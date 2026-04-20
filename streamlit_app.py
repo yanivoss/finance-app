@@ -22,8 +22,8 @@ try:
     
     # שליפת נתונים ספציפיים (לפי האינדקסים שאנחנו כבר מכירים)
     # נניח שורה 13 היא הון נקי, שורה 11 היא שווי בית, שורה 12 משכנתא
-    hon_naki = df.iloc[11, 2]  # תא C13 (אינדקס מתחיל מ-0)
-    bayit_val = df.iloc[9, 2]   # תא C11
+    hon_naki = df.iloc[13, 2]  # תא C13 (אינדקס מתחיל מ-0)
+    bayit_val = df.iloc[14, 2]   # תא C11
     mashkanta = df.iloc[10, 2]  # תא C12
     achuz_bealut = ((bayit_val - mashkanta) / bayit_val) * 100
 
