@@ -1,10 +1,8 @@
 import streamlit as st
 import pandas as pd
 
-# הגדרות עמוד למראה אפליקטיבי
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed")
 
-# פונקציית ניקוי נתונים
 def clean_currency(value):
     if pd.isna(value) or value == '': return 0.0
     if isinstance(value, str):
@@ -12,90 +10,82 @@ def clean_currency(value):
         return float(clean_val) if clean_val else 0.0
     return float(value)
 
-# לינקים (לפי ה-GID המנצח שלך)
+# לינקים
 URL_SUMMARY = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=1388477026&single=true&output=csv"
+URL_DATA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=0&single=true&output=csv"
 
-# עיצוב CSS מתקדם לשני כפתורים במקביל
+# עיצוב CSS מעודכן לקטגוריות קטנות
 st.markdown("""
     <style>
-    .card {
-        padding: 20px;
-        border-radius: 15px;
-        text-align: center;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        margin-bottom: 10px;
+    .main-card { padding: 15px; border-radius: 15px; text-align: center; color: white; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .sub-card { 
+        background: #f8f9fa; border: 1px solid #e9ecef; padding: 12px; border-radius: 12px; 
+        text-align: center; margin-bottom: 10px; height: 110px;
     }
-    .net-card { background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%); color: white; }
-    .debt-card { background: linear-gradient(135deg, #FF5252 0%, #D32F2F 100%); color: white; }
-    
-    .card-val { font-size: 1.8rem; font-weight: 800; margin: 5px 0; }
-    .card-label { font-size: 1rem; opacity: 0.9; font-weight: bold; }
-    .pct-badge { 
-        background: white; display: inline-block; padding: 1px 8px; 
-        border-radius: 8px; font-size: 0.8rem; font-weight: bold; 
-    }
-    
-    h1 { text-align: center; color: #333; font-size: 1.8rem; margin-bottom: 20px; }
-    .stTabs [data-baseweb="tab-list"] { justify-content: center; }
+    .main-val { font-size: 1.6rem; font-weight: 800; }
+    .sub-val { font-size: 1.1rem; font-weight: 700; color: #333; margin-top: 5px; }
+    .sub-label { font-size: 0.85rem; color: #666; font-weight: bold; }
+    .split-text { font-size: 0.75rem; color: #888; margin-top: 3px; }
+    h1 { text-align: center; font-size: 1.8rem; }
     </style>
 """, unsafe_allow_html=True)
 
 try:
     df_summary = pd.read_csv(URL_SUMMARY)
+    df_data = pd.read_csv(URL_DATA)
 
-    # --- שליפת נתונים מדויקת ---
-    # הון נטו (שורה 15, עמודה C)
-    current_net = clean_currency(df_summary.iloc[13, 2])
-    prev_net = clean_currency(df_summary.iloc[13, 1])
+    # הכנת נתוני המעקב (עמודה 11 היא 2025)
+    col_now = df_data.columns[11]
+    df_data[col_now] = df_data[col_now].apply(clean_currency)
     
-    # התחייבויות (סכימה של הלוואה ומשכנתא - שורות 14-15 באקסל = אינדקסים 11 ו-12 ב-Dataframe)
-    # שים לב: אנחנו מוודאים שהקוד לוקח את הערך המוחלט (חיובי) להצגה
-    loan_val = abs(clean_currency(df_summary.iloc[11, 2]))
-    mortgage_val = abs(clean_currency(df_summary.iloc[12, 2]))
-    total_debt = loan_val + mortgage_val
-    
-    # אחוזי שינוי
-    net_pct = ((current_net / prev_net) - 1) * 100 if prev_net != 0 else 0
-    # אחוז שינוי התחייבויות (מול עמודה B)
-    prev_debt = abs(clean_currency(df_summary.iloc[11, 1])) + abs(clean_currency(df_summary.iloc[12, 1]))
-    debt_pct = ((total_debt / prev_debt) - 1) * 100 if prev_debt != 0 else 0
+    # חישובים ראשיים
+    net_now = clean_currency(df_summary.iloc[13, 2])
+    debt_now = abs(clean_currency(df_summary.iloc[11, 2])) + abs(clean_currency(df_summary.iloc[12, 2]))
 
     st.markdown("<h1>💰 הון משפחת נודלמן</h1>", unsafe_allow_html=True)
 
-    tab1, tab2 = st.tabs(["🏠 מבט על", "📋 פירוט"])
+    t1, t2 = st.tabs(["🏠 מבט על", "📋 פירוט"])
 
-    with tab1:
-        # שורה עם שני כפתורים במקביל
-        col1, col2 = st.columns(2)
+    with t1:
+        # שורה ראשונה - כרטיסים גדולים
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #1E88E5, #1565C0);"><div style="font-size:0.9rem; opacity:0.8;">הון נטו</div><div class="main-val">₪{net_now:,.0f}</div></div>', unsafe_allow_html=True)
+        with c2:
+            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #FF5252, #D32F2F);"><div style="font-size:0.9rem; opacity:0.8;">התחייבויות</div><div class="main-val">₪{debt_now:,.0f}</div></div>', unsafe_allow_html=True)
+
+        st.markdown("### 📊 סיכום לפי אפיקים")
         
-        with col1:
-            st.markdown(f"""
-                <div class="card net-card">
-                    <div class="card-label">הון נטו</div>
-                    <div class="card-val">₪{current_net:,.0f}</div>
-                    <div class="pct-badge" style="color: #1E88E5;">{'+' if net_pct >= 0 else ''}{net_pct:.1f}%</div>
-                </div>
-            """, unsafe_allow_html=True)
-            
-        with col2:
-            st.markdown(f"""
-                <div class="card debt-card">
-                    <div class="card-label">התחייבויות</div>
-                    <div class="card-val">₪{total_debt:,.0f}</div>
-                    <div class="pct-badge" style="color: #FF5252;">{'+' if debt_pct >= 0 else ''}{debt_pct:.1f}%</div>
-                </div>
-            """, unsafe_allow_html=True)
+        # פונקציית עזר לסיכום קטגוריות
+        def get_cat_summary(keyword):
+            sub = df_data[df_data[df_data.columns[1]].str.contains(keyword, na=False)]
+            total = sub[col_now].sum()
+            y = sub[df_data[df_data.columns[0]] == 'יניב'][col_now].sum()
+            m = sub[df_data[df_data.columns[0]] == 'מיכל'][col_now].sum()
+            return total, y, m
 
-        st.divider()
-        
-        # שורת מידע משלימה (הון ברוטו)
-        total_gross = current_net + total_debt
-        st.markdown(f"<p style='text-align:center; color:gray;'><b>הון ברוטו:</b> ₪{total_gross:,.0f}</p>", unsafe_allow_html=True)
+        # הגדרת הקטגוריות
+        cats = {
+            "🏦 פנסיות": "פנסיה",
+            "📈 השתלמות": "השתלמות",
+            "💎 תיק מסחר": "מסחר|Excellence|Interactive",
+            "💰 חיסכון/מזומן": "עו\"ש|חיסכון"
+        }
 
-    with tab2:
-        st.subheader("מבנה הנכסים והתחייבויות")
-        # מציג את הטבלה הרלוונטית מהסיכום
-        st.dataframe(df_summary.iloc[0:15, 0:3], use_container_width=True)
+        cols = st.columns(2)
+        for i, (label, key) in enumerate(cats.items()):
+            total, y, m = get_cat_summary(key)
+            with cols[i % 2]:
+                st.markdown(f"""
+                    <div class="sub-card">
+                        <div class="sub-label">{label}</div>
+                        <div class="sub-val">₪{total:,.0f}</div>
+                        <div class="split-text">יניב: ₪{y:,.0f} | מיכל: ₪{m:,.0f}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+
+    with t2:
+        st.dataframe(df_data.iloc[:, [0, 1, 11]], use_container_width=True)
 
 except Exception as e:
     st.error(f"שגיאה: {e}")
