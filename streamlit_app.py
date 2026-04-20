@@ -1,16 +1,9 @@
 import streamlit as st
 import pandas as pd
-import urllib.request
-import io
 
 st.set_page_config(page_title="Noodelman Finance", layout="wide")
 
-# פונקציה לטעינת נתונים שעוקפת חסימות HTTP
-def load_data_from_url(url):
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    with urllib.request.urlopen(req) as response:
-        return pd.read_csv(io.StringIO(response.read().decode('utf-8')))
-
+# פונקציית ניקוי
 def clean_currency(value):
     if pd.isna(value) or value == '': return 0.0
     if isinstance(value, str):
@@ -18,39 +11,36 @@ def clean_currency(value):
         return float(clean_val) if clean_val else 0.0
     return float(value)
 
-# הגדרות
-BASE_URL = "https://docs.google.com/spreadsheets/d/1fRNQuq8hR-QlKwHp61p6uVcurL-DF5jUSNfg3OhRb8k/export?format=csv"
-GID_SUMMARY = "1388477026"
-GID_DATA = "152067713"
+# הקישורים הישירים (שים לב למבנה השונה מעט)
+url_summary = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTl6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=1388477026&single=true&output=csv"
+url_data = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTl6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=152067713&single=true&output=csv"
+
+st.title("💰 הון משפחת נודלמן")
 
 try:
-    # טעינה עם ה"עקיפה"
-    df_summary = load_data_from_url(f"{BASE_URL}&gid={GID_SUMMARY}")
-    df_data = load_data_from_url(f"{BASE_URL}&gid={GID_DATA}")
-
-    st.title("💰 הון משפחת נודלמן")
+    # טעינה ישירה של פנדס - הוספתי הגנה למקרה שהקובץ ריק
+    df_summary = pd.read_csv(url_summary)
+    df_data = pd.read_csv(url_data)
 
     tab1, tab2 = st.tabs(["🏠 מבט על", "📋 פירוט נכסים"])
 
     with tab1:
-        # שליפת C15 (אינדקס 13, עמודה 2)
+        # בדיקה אם אנחנו בשורה הנכונה (C15 בסיכום)
+        # שורה 15 באקסל היא אינדקס 13 ב-DataFrame
         total_25 = clean_currency(df_summary.iloc[13, 2])
-        # שליפת 2024 (נניח עמודה B, אינדקס 1)
         total_24 = clean_currency(df_summary.iloc[13, 1])
         
         diff = total_25 - total_24
         pct = (diff / total_24 * 100) if total_24 != 0 else 0
 
-        st.metric(label="סה\"כ הון נטו (מעודכן)", value=f"₪{total_25:,.0f}", delta=f"{pct:.1f}%")
-        
+        st.metric(label="סה\"כ הון נטו", value=f"₪{total_25:,.0f}", delta=f"{pct:.1f}%")
         st.divider()
-        
-        # חישוב יניב/מיכל מגיליון המעקב
-        col_25_name = df_data.columns[11]
-        df_data[col_25_name] = df_data[col_25_name].apply(clean_currency)
-        
-        y_val = df_data[df_data[df_data.columns[0]] == 'יניב'][col_25_name].sum()
-        m_val = df_data[df_data[df_data.columns[0]] == 'מיכל'][col_25_name].sum()
+
+        # חישוב יניב/מיכל מגיליון המעקב (עמודה 11 היא 2025)
+        col_25 = df_data.columns[11]
+        df_data[col_25] = df_data[col_25].apply(clean_currency)
+        y_val = df_data[df_data[df_data.columns[0]] == 'יניב'][col_25].sum()
+        m_val = df_data[df_data[df_data.columns[0]] == 'מיכל'][col_25].sum()
 
         c1, c2 = st.columns(2)
         c1.metric("יניב", f"₪{y_val:,.0f}")
@@ -60,5 +50,6 @@ try:
         st.dataframe(df_data.iloc[:, [0, 1, 11]], use_container_width=True)
 
 except Exception as e:
-    st.error(f"עדיין יש בעיית גישה לנתונים. שגיאה: {e}")
-    st.info("וודא שהגדרת 'Anyone with the link' ב-Share בגוגל שיטס.")
+    st.error(f"שגיאה בחיבור: {e}")
+    st.write("בדיקה זמנית - מה הקישור רואה?")
+    st.write(url_summary)
