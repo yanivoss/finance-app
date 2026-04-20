@@ -5,7 +5,7 @@ import plotly.express as px
 st.set_page_config(page_title="הלוח הפיננסי", layout="wide")
 
 # הלינק המדויק שלך
-SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTl6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?output=csv"
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1fRNQuq8hR-QlKwHp61p6uVcurL-DF5jUSNfg3OhRb8k/export?format=csv"
 
 st.write("מנסה לטעון נתונים...")
 
