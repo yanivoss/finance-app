@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import pytz
+import yfinance as yf # הוסף למעלה
 
 # הגדרת עמוד
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed")
@@ -53,17 +54,64 @@ try:
 
     st.markdown("<h1>💰 הון משפחת נודלמן</h1>", unsafe_allow_html=True)
 
-    # שורת מדדי שוק סטטית
-    m1, m2, m3 = st.columns(3)
-    with m1:
-        st.markdown(f'<div class="ticker-item"><div class="ticker-label">💵 שער הדולר</div><div class="ticker-val">₪{USD_RATE}</div></div>', unsafe_allow_html=True)
-    with m2:
-        # כאן אפשר בעתיד למשוך את הערך האמיתי מהשיטס אם אתה מזין אותו שם
-        st.markdown(f'<div class="ticker-item"><div class="ticker-label">📈 S&P 500</div><div class="ticker-val">Vusa.L / IVV</div></div>', unsafe_allow_html=True)
-    with m3:
-        st.markdown(f'<div class="ticker-item"><div class="ticker-label">₿ Bitcoin</div><div class="ticker-val">HODL / BTC</div></div>', unsafe_allow_html=True)
+# --- פונקציית עזר למשיכת נתון שוק ---
+def get_market_data(ticker_symbol):
+    try:
+        data = yf.Ticker(ticker_symbol).history(period="2d")
+        current_price = data['Close'].iloc[-1]
+        prev_price = data['Close'].iloc[-2]
+        change_pct = ((current_price - prev_price) / prev_price) * 100
+        color = "#4CAF50" if change_pct >= 0 else "#F44336"
+        arrow = "▲" if change_pct >= 0 else "▼"
+        return current_price, change_pct, color, arrow
+    except:
+        return 0, 0, "#666", ""
 
-    st.markdown(f'<div class="update-time">נתונים מעודכנים ליום: {last_update}</div>', unsafe_allow_html=True)
+# --- שליפת הנתונים ---
+# BTC-USD לביטקוין, ^GSPC למדד ה-S&P 500
+btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
+sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
+
+# --- עיצוב CSS מעודכן (קומפקטי יותר) ---
+st.markdown("""
+    <style>
+    .ticker-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+    .ticker-box { 
+        background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; 
+        padding: 4px 12px; min-width: 130px; text-align: center;
+    }
+    .t-label { font-size: 0.7rem; color: #666; font-weight: bold; margin-bottom: -2px; }
+    .t-val { font-size: 0.95rem; font-weight: 800; color: #333; }
+    .t-delta { font-size: 0.75rem; font-weight: bold; }
+    </style>
+""", unsafe_allow_html=True)
+
+st.markdown("<h1>💰 הון משפחת נודלמן</h1>", unsafe_allow_html=True)
+
+# הצגת המדדים בשורה אחת מרוכזת
+col_space1, m1, m2, m3, col_space2 = st.columns([1, 2, 2, 2, 1])
+
+with m1:
+    st.markdown(f'''<div class="ticker-box">
+        <div class="t-label">💵 דולר/שקל</div>
+        <div class="t-val">₪{USD_RATE}</div>
+    </div>''', unsafe_allow_html=True)
+
+with m2:
+    st.markdown(f'''<div class="ticker-box">
+        <div class="t-label">📈 S&P 500</div>
+        <div class="t-val">{sp_p:,.0f}</div>
+        <div class="t-delta" style="color: {sp_col};">{sp_a} {abs(sp_c):.1f}%</div>
+    </div>''', unsafe_allow_html=True)
+
+with m3:
+    st.markdown(f'''<div class="ticker-box">
+        <div class="t-label">₿ Bitcoin</div>
+        <div class="t-val">${btc_p:,.0f}</div>
+        <div class="t-delta" style="color: {btc_col};">{btc_a} {abs(btc_c):.1f}%</div>
+    </div>''', unsafe_allow_html=True)
+
+st.markdown(f'<div class="update-time">נתונים מעודכנים ליום: {last_update}</div>', unsafe_allow_html=True)
 
     # המשך שאר הקוד (הון נטו, התחייבויות, כרטיסים...)
     net_now = clean_val(df_s.iloc[13, 2])
