@@ -92,7 +92,7 @@ try:
         r3c1.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 חיסכון ילדים</div><div class="sub-val">₪{kids_total:,.0f}</div><div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         
         vacation = clean_val(df_d.iloc[10, 15])
-        r3c2.markdown(f'<div class="sub-card" style="border-right: 4px solid #1E88E5;"><div class="sub-label">🏖️ חיסכון לחופשה</div><div class="sub-val" style="color: #1E88E5;">₪{vacation:,.0f}</div><div class="split-text">יעד טיול</div></div>', unsafe_allow_html=True)
+        r3c2.markdown(f'<div class="sub-card" style="border-right: 4px solid #1E88E5;"><div class="sub-label">🏖️ חיסכון לחופשה</div><div class="sub-val" style="color: #1E88E5;">₪{vacation:,.0f}</div><div class="split-text">לטיול הבא שלנו</div></div>', unsafe_allow_html=True)
 
         # שורה 4: נדל"ן ואיסתא
         r4c1, r4c2 = st.columns(2)
