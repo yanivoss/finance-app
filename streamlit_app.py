@@ -68,7 +68,7 @@ try:
         
         # חסכונות הורים: P7 + P8 + P13 (אינדקסים: שורה פחות 2)
         parents = clean_val(df_d.iloc[5, COL_P]) + clean_val(df_d.iloc[6, COL_P]) + clean_val(df_d.iloc[11, COL_P])
-        r2c2.markdown(f'<div class="sub-card"><div class="sub-label">💰 חסכונות הורים</div><div class="sub-val">₪{parents:,.0f}</div><div class="split-text">נזיל - פועלים ולאומי</div></div>', unsafe_allow_html=True)
+        r2c2.markdown(f'<div class="sub-card"><div class="sub-label">💰 חסכונות הורים</div><div class="sub-val">₪{parents:,.0f}</div><div class="split-text">נזיל</div></div>', unsafe_allow_html=True)
 
         # שורה 3: ילדים וחופשה
         r3c1, r3c2 = st.columns(2)
@@ -77,7 +77,7 @@ try:
         
         # חופשה: P12 (אינדקס 10)
         vacation = clean_val(df_d.iloc[10, COL_P])
-        r3c2.markdown(f'<div class="sub-card" style="border: 1px solid #BBDEFB;"><div class="sub-label">🏖️ חיסכון לחופשה</div><div class="sub-val" style="color: #1976D2;">₪{vacation:,.0f}</div><div class="split-text">יעד טיול</div></div>', unsafe_allow_html=True)
+        r3c2.markdown(f'<div class="sub-card" style="border: 1px solid #BBDEFB;"><div class="sub-label">🏖️ חיסכון לחופשה</div><div class="sub-val" style="color: #1976D2;">₪{vacation:,.0f}</div><div class="split-text">לטיול הבא שלנו</div></div>', unsafe_allow_html=True)
 
         # שורה 4: נדל"ן ואיסתא
         r4c1, r4c2 = st.columns(2)
@@ -85,7 +85,7 @@ try:
         r4c1.markdown(f'<div class="sub-card"><div class="sub-label">🏠 נדל"ן</div><div class="sub-val">₪{house:,.0f}</div><div class="split-text">ערך הבית</div></div>', unsafe_allow_html=True)
         
         ista = clean_val(df_s.iloc[3, 2])
-        r4c2.markdown(f'<div class="sub-card"><div class="sub-label">✈️ אופציות איסתא</div><div class="sub-val">₪{ista:,.0f}</div><div class="split-text">Ista Options</div></div>', unsafe_allow_html=True)
+        r4c2.markdown(f'<div class="sub-card"><div class="sub-label">✈️ אופציות איסתא</div><div class="sub-val">₪{ista:,.0f}</div><div class="split-text">ממתין למימוש</div></div>', unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"שגיאה: {e}")
