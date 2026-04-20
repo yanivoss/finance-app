@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-# הגדרות עמוד
+# הגדרות עמוד למראה אפליקטיבי
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed")
 
 # פונקציית ניקוי נתונים
@@ -12,92 +12,90 @@ def clean_currency(value):
         return float(clean_val) if clean_val else 0.0
     return float(value)
 
-# לינקים (מעודכנים לפי מה שעבד)
+# לינקים (לפי ה-GID המנצח שלך)
 URL_SUMMARY = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=1388477026&single=true&output=csv"
 
-# עיצוב CSS מתקדם למראה אפליקטיבי
+# עיצוב CSS מתקדם לשני כפתורים במקביל
 st.markdown("""
     <style>
-    /* עיצוב כרטיס הון עצמי */
-    .net-worth-card {
-        background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 20px;
+    .card {
+        padding: 20px;
+        border-radius: 15px;
         text-align: center;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        margin-bottom: 10px;
     }
-    .net-worth-val { font-size: 3rem; font-weight: 800; margin: 10px 0; }
-    .net-worth-label { font-size: 1.2rem; opacity: 0.9; }
+    .net-card { background: linear-gradient(135deg, #1E88E5 0%, #1565C0 100%); color: white; }
+    .debt-card { background: linear-gradient(135deg, #FF5252 0%, #D32F2F 100%); color: white; }
     
-    /* עיצוב כפתור התחייבויות */
-    .debt-button {
-        background-color: #FF5252;
-        color: white;
-        padding: 15px;
-        border-radius: 12px;
-        text-align: center;
-        font-weight: bold;
-        text-decoration: none;
-        display: block;
-        margin: 10px auto;
-        width: 80%;
+    .card-val { font-size: 1.8rem; font-weight: 800; margin: 5px 0; }
+    .card-label { font-size: 1rem; opacity: 0.9; font-weight: bold; }
+    .pct-badge { 
+        background: white; display: inline-block; padding: 1px 8px; 
+        border-radius: 8px; font-size: 0.8rem; font-weight: bold; 
     }
     
-    h1 { text-align: center; color: #333; margin-bottom: 30px; }
+    h1 { text-align: center; color: #333; font-size: 1.8rem; margin-bottom: 20px; }
     .stTabs [data-baseweb="tab-list"] { justify-content: center; }
     </style>
 """, unsafe_allow_html=True)
 
 try:
-    # טעינת נתונים
     df_summary = pd.read_csv(URL_SUMMARY)
-    
-    # שליפת נתונים מ-App_Summary
-    # C15 = נטו נוכחי | B15 = נטו קודם | C14 = סה"כ התחייבויות
+
+    # --- שליפת נתונים מדויקת ---
+    # הון נטו (שורה 15, עמודה C)
     current_net = clean_currency(df_summary.iloc[13, 2])
     prev_net = clean_currency(df_summary.iloc[13, 1])
-    total_debt = clean_currency(df_summary.iloc[12, 2]) # בהנחה ששורה 14 היא אינדקס 12
+    
+    # התחייבויות (סכימה של הלוואה ומשכנתא - שורות 14-15 באקסל = אינדקסים 11 ו-12 ב-Dataframe)
+    # שים לב: אנחנו מוודאים שהקוד לוקח את הערך המוחלט (חיובי) להצגה
+    loan_val = abs(clean_currency(df_summary.iloc[11, 2]))
+    mortgage_val = abs(clean_currency(df_summary.iloc[12, 2]))
+    total_debt = loan_val + mortgage_val
+    
+    # אחוזי שינוי
+    net_pct = ((current_net / prev_net) - 1) * 100 if prev_net != 0 else 0
+    # אחוז שינוי התחייבויות (מול עמודה B)
+    prev_debt = abs(clean_currency(df_summary.iloc[11, 1])) + abs(clean_currency(df_summary.iloc[12, 1]))
+    debt_pct = ((total_debt / prev_debt) - 1) * 100 if prev_debt != 0 else 0
 
-    # חישוב אחוז שינוי
-    change_pct = ((current_net / prev_net) - 1) * 100 if prev_net != 0 else 0
-    change_color = "#4CAF50" if change_pct >= 0 else "#FF5252"
-
-    st.markdown("<h1>הון משפחת נודלמן</h1>", unsafe_allow_html=True)
+    st.markdown("<h1>💰 הון משפחת נודלמן</h1>", unsafe_allow_html=True)
 
     tab1, tab2 = st.tabs(["🏠 מבט על", "📋 פירוט"])
 
     with tab1:
-        # כרטיס הון עצמי מעוצב
-        st.markdown(f"""
-            <div class="net-worth-card">
-                <div class="net-worth-label">סה"כ הון עצמי נטו</div>
-                <div class="net-worth-val">₪{current_net:,.0f}</div>
-                <div style="color: {change_color}; background: white; display: inline-block; padding: 2px 12px; border-radius: 10px; font-weight: bold;">
-                    {'+' if change_pct >= 0 else ''}{change_pct:.1f}%
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # שורת מדדים נוספת (התחייבויות)
-        st.markdown("<br>", unsafe_allow_html=True)
-        col1, col2 = st.columns([1, 1])
+        # שורה עם שני כפתורים במקביל
+        col1, col2 = st.columns(2)
         
         with col1:
-            st.metric("התחייבויות", f"₪{total_debt:,.0f}")
+            st.markdown(f"""
+                <div class="card net-card">
+                    <div class="card-label">הון נטו</div>
+                    <div class="card-val">₪{current_net:,.0f}</div>
+                    <div class="pct-badge" style="color: #1E88E5;">{'+' if net_pct >= 0 else ''}{net_pct:.1f}%</div>
+                </div>
+            """, unsafe_allow_html=True)
+            
         with col2:
-            st.metric("הון ברוטו", f"₪{current_net + total_debt:,.0f}")
+            st.markdown(f"""
+                <div class="card debt-card">
+                    <div class="card-label">התחייבויות</div>
+                    <div class="card-val">₪{total_debt:,.0f}</div>
+                    <div class="pct-badge" style="color: #FF5252;">{'+' if debt_pct >= 0 else ''}{debt_pct:.1f}%</div>
+                </div>
+            """, unsafe_allow_html=True)
 
-        st.markdown("---")
+        st.divider()
         
-        # כפתור מעוצב להתחייבויות (סתם כעיצוב בולט או לינק לגיליון)
-        st.markdown(f'<div class="debt-button">סה"כ חובות: ₪{total_debt:,.0f}</div>', unsafe_allow_html=True)
+        # שורת מידע משלימה (הון ברוטו)
+        total_gross = current_net + total_debt
+        st.markdown(f"<p style='text-align:center; color:gray;'><b>הון ברוטו:</b> ₪{total_gross:,.0f}</p>", unsafe_allow_html=True)
 
     with tab2:
-        st.subheader("מבנה תיק הנכסים")
-        # כאן נציג את הטבלה מ-App_Summary או המעקב
+        st.subheader("מבנה הנכסים והתחייבויות")
+        # מציג את הטבלה הרלוונטית מהסיכום
         st.dataframe(df_summary.iloc[0:15, 0:3], use_container_width=True)
 
 except Exception as e:
-    st.error(f"שגיאה בעיבוד הנתונים: {e}")
+    st.error(f"שגיאה: {e}")
