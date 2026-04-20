@@ -11,7 +11,7 @@ st.markdown("<h1 style='text-align: center; color: #2E7D32;'>מבט על: הון
 # פונקציה למשיכת נתונים (כאן תשים את הלינק ל-CSV של הגיליון שלך)
 # ב-Google Sheets: קובץ -> שיתוף -> פרסם באינטרנט -> בחר CSV
 SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?output=csv"
-
+st.write(f"הלינק שלי הוא: {SHEET_URL}")
 def load_data():
     # כאן אנחנו מושכים את הנתונים
     df = pd.read_csv(SHEET_URL)
