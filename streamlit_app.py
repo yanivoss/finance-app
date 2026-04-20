@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import pytz  # ספרייה לניהול אזורי זמן
 
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed")
 
