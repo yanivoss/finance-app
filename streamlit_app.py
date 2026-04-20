@@ -44,23 +44,24 @@ URL_SUMMARY = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M9
 URL_DATA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=0&single=true&output=csv"
 USD_RATE = 3.7
 
-# --- עיצוב CSS ---
+# --- עיצוב CSS מעודכן לאיזון גבהים ---
 st.markdown("""
     <style>
     .ticker-box { 
         background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; 
-        padding: 5px 10px; text-align: center; min-width: 120px;
+        padding: 8px 10px; text-align: center; min-width: 120px;
+        min-height: 70px; display: flex; flex-direction: column; justify-content: center;
     }
-    .t-label { font-size: 0.7rem; color: #666; font-weight: bold; }
-    .t-val { font-size: 0.9rem; font-weight: 800; color: #333; }
-    .t-delta { font-size: 0.7rem; font-weight: bold; }
+    .t-label { font-size: 0.75rem; color: #666; font-weight: bold; margin-bottom: 2px; }
+    .t-val { font-size: 1rem; font-weight: 800; color: #333; }
+    .t-delta { font-size: 0.75rem; font-weight: bold; margin-top: 2px; }
     
     .main-card { padding: 15px; border-radius: 15px; text-align: center; color: white; margin-bottom: 15px; }
-    .sub-card { background: #ffffff; border: 1px solid #e9ecef; padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 10px; min-height: 110px; }
+    .sub-card { background: #ffffff; border: 1px solid #e9ecef; padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 10px; min-height: 115px; display: flex; flex-direction: column; justify-content: center; }
     .main-val { font-size: 1.8rem; font-weight: 800; }
     .sub-val { font-size: 1.1rem; font-weight: 700; color: #333; margin-top: 2px; }
     .sub-label { font-size: 0.85rem; color: #666; font-weight: bold; }
-    .split-text { font-size: 0.75rem; color: #888; margin-top: 4px; }
+    .split-text { font-size: 0.75rem; color: #888; margin-top: 4px; border-top: 1px solid #eee; padding-top: 4px; }
     .ltv-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; margin-top: 5px; }
     .update-time { text-align: center; color: #999; font-size: 0.8rem; margin-top: 5px; margin-bottom: 20px; }
     h1 { text-align: center; font-size: 1.8rem; margin-bottom: 5px; }
@@ -78,18 +79,30 @@ try:
     
     # זמן ירושלים
     jerusalem_tz = pytz.timezone('Asia/Jerusalem')
-    last_update = datetime.now(jerusalem_tz).strftime("%d/%m/%Y %H:%M")
+    last_update = datetime.now(jerusalem_tz).strftime("%H:%M %d/%m/%Y")
 
     # כותרת ושורת מדדים
     st.markdown("<h1>💰 הון משפחת נודלמן</h1>", unsafe_allow_html=True)
     
     _, m1, m2, m3, _ = st.columns([1, 2, 2, 2, 1])
     with m1:
-        st.markdown(f'<div class="ticker-box"><div class="t-label">💵 דולר/שקל</div><div class="t-val">₪{USD_RATE}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'''<div class="ticker-box">
+            <div class="t-label">💵 דולר/שקל</div>
+            <div class="t-val">₪{USD_RATE}</div>
+            <div class="t-delta" style="color: transparent;">-</div>
+        </div>''', unsafe_allow_html=True)
     with m2:
-        st.markdown(f'<div class="ticker-box"><div class="t-label">📈 S&P 500</div><div class="t-val">{sp_p:,.0f}</div><div class="t-delta" style="color: {sp_col};">{sp_a} {abs(sp_c):.1f}%</div></div>', unsafe_allow_html=True)
+        st.markdown(f'''<div class="ticker-box">
+            <div class="t-label">📈 S&P 500</div>
+            <div class="t-val">{sp_p:,.0f}</div>
+            <div class="t-delta" style="color: {sp_col};">{sp_a} {abs(sp_c):.1f}%</div>
+        </div>''', unsafe_allow_html=True)
     with m3:
-        st.markdown(f'<div class="ticker-box"><div class="t-label">₿ Bitcoin</div><div class="t-val">${btc_p:,.0f}</div><div class="t-delta" style="color: {btc_col};">{btc_a} {abs(btc_c):.1f}%</div></div>', unsafe_allow_html=True)
+        st.markdown(f'''<div class="ticker-box">
+            <div class="t-label">₿ Bitcoin</div>
+            <div class="t-val">${btc_p:,.0f}</div>
+            <div class="t-delta" style="color: {btc_col};">{btc_a} {abs(btc_c):.1f}%</div>
+        </div>''', unsafe_allow_html=True)
 
     st.markdown(f'<div class="update-time">נתונים מעודכנים ליום: {last_update}</div>', unsafe_allow_html=True)
 
