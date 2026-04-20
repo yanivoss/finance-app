@@ -107,7 +107,7 @@ try:
         """, unsafe_allow_html=True)
         
         ista = clean_val(df_s.iloc[3, 2])
-        r4c2.markdown(f'<div class="sub-card"><div class="sub-label">✈️ אופציות איסתא</div><div class="sub-val">₪{ista:,.0f}</div><div class="split-text">ערך הוני</div></div>', unsafe_allow_html=True)
+        r4c2.markdown(f'<div class="sub-card"><div class="sub-label">✈️ אופציות איסתא</div><div class="sub-val">₪{ista:,.0f}</div><div class="split-text">ממתין למימוש</div></div>', unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"שגיאה בטעינה: {e}")
