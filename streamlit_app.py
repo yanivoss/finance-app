@@ -12,7 +12,7 @@ def clean_currency(value):
         return float(clean_val) if clean_val else 0.0
     return float(value) if value else 0.0
 
-SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTl6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?output=csv"
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1fRNQuq8hR-QlKwHp61p6uVcurL-DF5jUSNfg3OhRb8k/export?format=csv"
 
 # טעינת נתונים
 df = pd.read_csv(SHEET_URL)
