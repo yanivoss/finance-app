@@ -44,8 +44,10 @@ try:
     df_s = pd.read_csv(URL_SUMMARY)
     df_d = pd.read_csv(URL_DATA)
     
-    last_update = datetime.now().strftime("%d/%m/%Y %H:%M")
-
+# תיקון זמן ירושלים
+    jerusalem_tz = pytz.timezone('Asia/Jerusalem')
+    last_update = datetime.now(jerusalem_tz).strftime("%d/%m/%Y %H:%M")
+    
     # שליפת נתונים בסיסיים
     net_now = clean_val(df_s.iloc[13, 2])
     mortgage = abs(clean_val(df_s.iloc[11, 2]))
