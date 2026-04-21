@@ -9,22 +9,26 @@ st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sideba
 
 # --- פונקציות עזר ---
 def clean_val(value):
-    if isinstance(value, (int, float)): return float(value)
+    """ניקוי ערכים מהשיטס בצורה מחמירה"""
     if pd.isna(value) or value == '': return 0.0
+    if isinstance(value, (int, float)): return float(value)
     if isinstance(value, str):
+        # מסיר תווים לא רלוונטיים אבל שומר על נקודה ומינוס
         clean = ''.join(c for c in value if c.isdigit() or c == '.' or c == '-')
-        try: return float(clean)
-        except: return 0.0
+        try:
+            return float(clean)
+        except:
+            return 0.0
     return 0.0
 
 def get_delta_html(current, start, show_NIS=True):
-    """חישוב אחוז שינוי מדויק. אם נקודת ההתחלה היא 0, לא מוצג אחוז."""
+    """חישוב אחוז שינוי - מותאם למקרה של נתוני חסר"""
     curr = clean_val(current)
     strt = clean_val(start)
     
-    # אם אין נתון התחלה (כמו במקרה של E14 ריק), לא מציגים דלתא
+    # אם אין נקודת ייחוס (תחילת שנה), לא נציג אחוז כדי לא להטעות
     if strt == 0: 
-        return '<div style="height: 20px;"></div>' # שומר על גובה הכרטיס
+        return '<div style="height: 20px;"></div>'
     
     diff = curr - strt
     pct = (diff / abs(strt)) * 100 
@@ -91,11 +95,13 @@ try:
     with tab1:
         # --- הון והתחייבויות ---
         c1, c2 = st.columns(2)
-        n_now = df_s.iloc[13, 2]
-        n_start = df_s.iloc[13, 4]
+        
+        # שלב בדיקה: מוודא שאנחנו קוראים את הערכים הנכונים
+        raw_n_now = df_s.iloc[13, 2]
+        raw_n_start = df_s.iloc[13, 4]
         
         with c1: 
-            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"><div style="font-size:0.85rem; opacity:0.8;">הון נטו</div><div style="font-size:1.8rem; font-weight:800;">₪{clean_val(n_now):,.0f}</div>{get_delta_html(n_now, n_start)}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"><div style="font-size:0.85rem; opacity:0.8;">הון נטו</div><div style="font-size:1.8rem; font-weight:800;">₪{clean_val(raw_n_now):,.0f}</div>{get_delta_html(raw_n_now, raw_n_start)}</div>', unsafe_allow_html=True)
         
         with c2:
             debt = abs(clean_val(df_s.iloc[11, 2])) + abs(clean_val(df_s.iloc[12, 2]))
@@ -106,7 +112,9 @@ try:
         with r1c1:
             py_n, py_s = df_s.iloc[4, 2], df_s.iloc[4, 4]
             pm_n, pm_s = df_s.iloc[6, 2], df_s.iloc[6, 4]
-            st.markdown(f'''<div class="sub-card"><div class="sub-label">🏦 פנסיות</div><div class="sub-val">₪{clean_val(py_n)+clean_val(pm_n):,.0f}</div>{get_delta_html(clean_val(py_n)+clean_val(pm_n), clean_val(py_s)+clean_val(pm_s))}
+            total_p_n = clean_val(py_n) + clean_val(pm_n)
+            total_p_s = clean_val(py_s) + clean_val(pm_s)
+            st.markdown(f'''<div class="sub-card"><div class="sub-label">🏦 פנסיות</div><div class="sub-val">₪{total_p_n:,.0f}</div>{get_delta_html(total_p_n, total_p_s)}
                 <div class="split-text">
                     <div class="split-item">יניב: ₪{clean_val(py_n):,.0f}{get_delta_html(py_n, py_s, False)}</div>
                     <div style="border-left: 1px solid #eee; height: 30px;"></div>
@@ -115,7 +123,9 @@ try:
         with r1c2:
             sy_n, sy_s = df_s.iloc[5, 2], df_s.iloc[5, 4]
             sm_n, sm_s = df_s.iloc[7, 2], df_s.iloc[7, 4]
-            st.markdown(f'''<div class="sub-card"><div class="sub-label">📈 השתלמות</div><div class="sub-val">₪{clean_val(sy_n)+clean_val(sm_n):,.0f}</div>{get_delta_html(clean_val(sy_n)+clean_val(sm_n), clean_val(sy_s)+clean_val(sm_s))}
+            total_s_n = clean_val(sy_n) + clean_val(sm_n)
+            total_s_s = clean_val(sy_s) + clean_val(sm_s)
+            st.markdown(f'''<div class="sub-card"><div class="sub-label">📈 השתלמות</div><div class="sub-val">₪{total_s_n:,.0f}</div>{get_delta_html(total_s_n, total_s_s)}
                 <div class="split-text">
                     <div class="split-item">יניב: ₪{clean_val(sy_n):,.0f}{get_delta_html(sy_n, sy_s, False)}</div>
                     <div style="border-left: 1px solid #eee; height: 30px;"></div>
@@ -127,7 +137,8 @@ try:
         with r2c1:
             exc_n, exc_s = df_s.iloc[1, 2], df_s.iloc[1, 4]
             int_n, int_s = df_s.iloc[2, 2], df_s.iloc[2, 4]
-            tr_n, tr_s = clean_val(exc_n) + (clean_val(int_n) * USD_RATE), clean_val(exc_s) + (clean_val(int_s) * USD_RATE)
+            tr_n = clean_val(exc_n) + (clean_val(int_n) * USD_RATE)
+            tr_s = clean_val(exc_s) + (clean_val(int_s) * USD_RATE)
             st.markdown(f'''<div class="sub-card"><div class="sub-label">💎 תיק מסחר</div><div class="sub-val">₪{tr_n:,.0f}</div>{get_delta_html(tr_n, tr_s)}
                 <div class="split-text">
                     <div class="split-item">אקסלנס: ₪{clean_val(exc_n):,.0f}{get_delta_html(exc_n, exc_s, False)}</div>
@@ -160,4 +171,4 @@ try:
             st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s)}<div class="split-text">אופציות מנהלים</div></div>', unsafe_allow_html=True)
 
 except Exception as e:
-    st.error(f"שגיאה: {e}")
+    st.error(f"שגיאה בטעינת הנתונים: {e}")
