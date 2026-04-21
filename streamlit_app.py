@@ -125,7 +125,7 @@ try:
     last_update = datetime.now(jerusalem_tz).strftime("%H:%M %d/%m/%Y")
 
     # כותרת ושורת מדדים
-    st.markdown("<h1>💰 הון משפחת נודלמן</h1>", unsafe_allow_html=True)
+    st.markdown("<h1>הון משפחת נודלמן</h1>", unsafe_allow_html=True)
     
     # במובייל ה-Columns יסתדרו אחד מתחת לשני אוטומטית
     m1, m2, m3 = st.columns(3)
