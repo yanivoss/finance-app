@@ -164,52 +164,7 @@ try:
             # איסתא - שורה 5 בגיליון (אינדקס 3)
             i_n, i_s, i_d = df_s.iloc[3, 2], df_s.iloc[3, 4], df_s.iloc[3, 5]
             st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s, i_d, False)}<div class="split-text">אופציות מנהלים</div></div>', unsafe_allow_html=True)
-        with tab2:
-        st.markdown("<h3 style='text-align:right;'>📋 פירוט אפיקי השקעה ונכסים</h3>", unsafe_allow_html=True)
-        
-        # טעינת הנתונים מגיליון מעקב הון עצמי (df_d)
-        # אנחנו לוקחים משורה 2 עד 16 (שורות הנתונים בגיליון)
-        raw_data = df_d.iloc[0:15].copy() 
-        
-        # יצירת רשימה מעוצבת של אפיקים
-        for index, row in raw_data.iterrows():
-            # שליפת הנתונים לפי האינדקסים שזיהינו בתמונה
-            asset_name = row.iloc[1]   # עמודה B
-            owner = row.iloc[0]        # עמודה A
-            val_now = clean_val(row.iloc[10])  # עמודה K (שווי 2026)
-            val_start = clean_val(row.iloc[5]) # עמודה F (שווי 2025)
-            deposits = clean_val(row.iloc[11]) # עמודה L (הפקדות 2026)
-            
-            # דילוג על שורות ריקות אם יש כאלו
-            if pd.isna(asset_name) or val_now == 0:
-                continue
 
-            # הצגת כרטיס שורה מעוצב
-            with st.container():
-                col_a, col_b, col_c = st.columns([2, 1, 1])
-                
-                with col_a:
-                    st.markdown(f"""
-                        <div style='text-align:right;'>
-                            <b style='font-size:1.1rem;'>{asset_name}</b><br>
-                            <span style='color:#666; font-size:0.85rem;'>מחזיק: {owner}</span>
-                        </div>
-                    """, unsafe_allow_html=True)
-                
-                with col_b:
-                    st.markdown(f"""
-                        <div style='text-align:center;'>
-                            <span style='color:#888; font-size:0.8rem;'>שווי נוכחי</span><br>
-                            <b style='font-size:1.1rem;'>₪{val_now:,.0f}</b>
-                        </div>
-                    """, unsafe_allow_html=True)
-                
-                with col_c:
-                    # שימוש בפונקציה הקיימת שלך לחישוב אחוזים
-                    delta_html = get_delta_html(val_now, val_start, deposits, is_main_card=False)
-                    st.markdown(f"<div style='text-align:center;'><span style='color:#888; font-size:0.8rem;'>תשואה</span>{delta_html}</div>", unsafe_allow_html=True)
-                
-                st.markdown("<hr style='margin:10px 0; opacity:0.1;'>", unsafe_allow_html=True)
                 
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
