@@ -9,26 +9,21 @@ st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sideba
 
 # --- פונקציות עזר ---
 def clean_val(value):
-    """ניקוי ערכים מהשיטס בצורה מחמירה"""
     if pd.isna(value) or value == '': return 0.0
     if isinstance(value, (int, float)): return float(value)
     if isinstance(value, str):
-        # מסיר תווים לא רלוונטיים אבל שומר על נקודה ומינוס
         clean = ''.join(c for c in value if c.isdigit() or c == '.' or c == '-')
-        try:
-            return float(clean)
-        except:
-            return 0.0
+        try: return float(clean)
+        except: return 0.0
     return 0.0
 
 def get_delta_html(current, start, show_NIS=True):
-    """חישוב אחוז שינוי - מותאם למקרה של נתוני חסר"""
     curr = clean_val(current)
     strt = clean_val(start)
     
-    # אם אין נקודת ייחוס (תחילת שנה), לא נציג אחוז כדי לא להטעות
+    # אם תא הייחוס (E) ריק או 0, נציג הודעה קטנה במקום להעלים לגמרי
     if strt == 0: 
-        return '<div style="height: 20px;"></div>'
+        return '<div style="color: #94a3b8; font-size: 0.7rem; margin-top: 2px;">(אין נתוני ייחוס ב-E)</div>'
     
     diff = curr - strt
     pct = (diff / abs(strt)) * 100 
@@ -82,7 +77,6 @@ try:
 
     st.markdown("<h1 style='text-align:center;'>הון משפחת נודלמן</h1>", unsafe_allow_html=True)
     
-    # שורת מדדים
     m1, m2, m3 = st.columns(3)
     with m1: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#888;">💵 דולר/שקל</div><div style="font-size:1rem; font-weight:800;">₪{USD_RATE}</div></div>', unsafe_allow_html=True)
     with m2: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#888;">📈 S&P 500</div><div style="font-size:1rem; font-weight:800;">{sp_p:,.0f}</div><div style="color:{sp_col}; font-size:0.75rem; font-weight:bold;">{sp_a} {abs(sp_c):.1f}%</div></div>', unsafe_allow_html=True)
@@ -93,28 +87,30 @@ try:
     tab1, tab2 = st.tabs(["🏠 מבט על", "📋 פירוט"])
 
     with tab1:
-        # --- הון והתחייבויות ---
         c1, c2 = st.columns(2)
         
-        # שלב בדיקה: מוודא שאנחנו קוראים את הערכים הנכונים
-        raw_n_now = df_s.iloc[13, 2]
-        raw_n_start = df_s.iloc[13, 4]
+        # --- הון נטו (שורה 14) ---
+        n_now = df_s.iloc[13, 2]
+        n_start = df_s.iloc[13, 4]
         
         with c1: 
-            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"><div style="font-size:0.85rem; opacity:0.8;">הון נטו</div><div style="font-size:1.8rem; font-weight:800;">₪{clean_val(raw_n_now):,.0f}</div>{get_delta_html(raw_n_now, raw_n_start)}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"><div style="font-size:0.85rem; opacity:0.8;">הון נטו</div><div style="font-size:1.8rem; font-weight:800;">₪{clean_val(n_now):,.0f}</div>{get_delta_html(n_now, n_start)}</div>', unsafe_allow_html=True)
         
+        # --- התחייבויות (שורות 12-13) ---
         with c2:
-            debt = abs(clean_val(df_s.iloc[11, 2])) + abs(clean_val(df_s.iloc[12, 2]))
-            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #ef4444, #b91c1c);"><div style="font-size:0.85rem; opacity:0.8;">התחייבויות</div><div style="font-size:1.8rem; font-weight:800;">₪{debt:,.0f}</div><div style="font-size:0.75rem;">ניהול סיכונים</div></div>', unsafe_allow_html=True)
+            # חישוב נוכחי
+            debt_now = abs(clean_val(df_s.iloc[11, 2])) + abs(clean_val(df_s.iloc[12, 2]))
+            # חישוב תחילת שנה (טור E שורות 12 ו-13)
+            debt_start = abs(clean_val(df_s.iloc[11, 4])) + abs(clean_val(df_s.iloc[12, 4]))
+            
+            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #ef4444, #b91c1c);"><div style="font-size:0.85rem; opacity:0.8;">התחייבויות</div><div style="font-size:1.8rem; font-weight:800;">₪{debt_now:,.0f}</div>{get_delta_html(debt_now, debt_start)}</div>', unsafe_allow_html=True)
 
-        # --- פנסיות והשתלמות ---
+        # שאר הכרטיסים (ללא שינוי בקוד, רק וידוא פונקציה)
         r1c1, r1c2 = st.columns(2)
         with r1c1:
             py_n, py_s = df_s.iloc[4, 2], df_s.iloc[4, 4]
             pm_n, pm_s = df_s.iloc[6, 2], df_s.iloc[6, 4]
-            total_p_n = clean_val(py_n) + clean_val(pm_n)
-            total_p_s = clean_val(py_s) + clean_val(pm_s)
-            st.markdown(f'''<div class="sub-card"><div class="sub-label">🏦 פנסיות</div><div class="sub-val">₪{total_p_n:,.0f}</div>{get_delta_html(total_p_n, total_p_s)}
+            st.markdown(f'''<div class="sub-card"><div class="sub-label">🏦 פנסיות</div><div class="sub-val">₪{clean_val(py_n)+clean_val(pm_n):,.0f}</div>{get_delta_html(clean_val(py_n)+clean_val(pm_n), clean_val(py_s)+clean_val(pm_s))}
                 <div class="split-text">
                     <div class="split-item">יניב: ₪{clean_val(py_n):,.0f}{get_delta_html(py_n, py_s, False)}</div>
                     <div style="border-left: 1px solid #eee; height: 30px;"></div>
@@ -123,22 +119,18 @@ try:
         with r1c2:
             sy_n, sy_s = df_s.iloc[5, 2], df_s.iloc[5, 4]
             sm_n, sm_s = df_s.iloc[7, 2], df_s.iloc[7, 4]
-            total_s_n = clean_val(sy_n) + clean_val(sm_n)
-            total_s_s = clean_val(sy_s) + clean_val(sm_s)
-            st.markdown(f'''<div class="sub-card"><div class="sub-label">📈 השתלמות</div><div class="sub-val">₪{total_s_n:,.0f}</div>{get_delta_html(total_s_n, total_s_s)}
+            st.markdown(f'''<div class="sub-card"><div class="sub-label">📈 השתלמות</div><div class="sub-val">₪{clean_val(sy_n)+clean_val(sm_n):,.0f}</div>{get_delta_html(clean_val(sy_n)+clean_val(sm_n), clean_val(sy_s)+clean_val(sm_s))}
                 <div class="split-text">
                     <div class="split-item">יניב: ₪{clean_val(sy_n):,.0f}{get_delta_html(sy_n, sy_s, False)}</div>
                     <div style="border-left: 1px solid #eee; height: 30px;"></div>
                     <div class="split-item">מיכל: ₪{clean_val(sm_n):,.0f}{get_delta_html(sm_n, sm_s, False)}</div>
                 </div></div>''', unsafe_allow_html=True)
 
-        # --- תיק מסחר והורים ---
         r2c1, r2c2 = st.columns(2)
         with r2c1:
             exc_n, exc_s = df_s.iloc[1, 2], df_s.iloc[1, 4]
             int_n, int_s = df_s.iloc[2, 2], df_s.iloc[2, 4]
-            tr_n = clean_val(exc_n) + (clean_val(int_n) * USD_RATE)
-            tr_s = clean_val(exc_s) + (clean_val(int_s) * USD_RATE)
+            tr_n, tr_s = clean_val(exc_n) + (clean_val(int_n) * USD_RATE), clean_val(exc_s) + (clean_val(int_s) * USD_RATE)
             st.markdown(f'''<div class="sub-card"><div class="sub-label">💎 תיק מסחר</div><div class="sub-val">₪{tr_n:,.0f}</div>{get_delta_html(tr_n, tr_s)}
                 <div class="split-text">
                     <div class="split-item">אקסלנס: ₪{clean_val(exc_n):,.0f}{get_delta_html(exc_n, exc_s, False)}</div>
@@ -150,17 +142,15 @@ try:
             p_s = clean_val(df_d.iloc[5, 14]) + clean_val(df_d.iloc[6, 14]) + clean_val(df_d.iloc[11, 14])
             st.markdown(f'<div class="sub-card"><div class="sub-label">💰 הורים</div><div class="sub-val">₪{p_n:,.0f}</div>{get_delta_html(p_n, p_s)}<div class="split-text">נזיל וזמין</div></div>', unsafe_allow_html=True)
 
-        # --- ילדים וחופשה ---
         r3c1, r3c2 = st.columns(2)
         with r3c1:
             k_n, k_s = df_s.iloc[9, 2], df_s.iloc[9, 4]
             st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
-            vac = df_d.iloc[10, 15]
-            vac_s = df_d.iloc[10, 14]
-            st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חופשה</div><div class="sub-val" style="color: #3b82f6;">₪{clean_val(vac):,.0f}</div>{get_delta_html(vac, vac_s)}<div class="split-text">ארה"ב ומקסיקו 2027</div></div>', unsafe_allow_html=True)
+            vac = clean_val(df_d.iloc[10, 15])
+            vac_s = clean_val(df_d.iloc[10, 14])
+            st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חופשה</div><div class="sub-val" style="color: #3b82f6;">₪{vac:,.0f}</div>{get_delta_html(vac, vac_s)}<div class="split-text">ארה"ב ומקסיקו 2027</div></div>', unsafe_allow_html=True)
 
-        # --- נדל"ן ואיסתא ---
         r4c1, r4c2 = st.columns(2)
         with r4c1:
             h_n, h_s = df_s.iloc[10, 2], df_s.iloc[10, 4]
@@ -171,4 +161,4 @@ try:
             st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s)}<div class="split-text">אופציות מנהלים</div></div>', unsafe_allow_html=True)
 
 except Exception as e:
-    st.error(f"שגיאה בטעינת הנתונים: {e}")
+    st.error(f"שגיאה: {e}")
