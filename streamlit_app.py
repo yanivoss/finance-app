@@ -156,34 +156,55 @@ try:
         with r4c2:
             i_n, i_s, i_d = df_s.iloc[3, 2], df_s.iloc[3, 4], df_s.iloc[3, 5]
             st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s, i_d, False)}<div class="split-text">אופציות מנהלים</div></div>', unsafe_allow_html=True)
-
-    # --- טאב פירוט ---
     with tab2:
-        st.markdown("<h3 style='text-align:right;'>📋 פירוט אפיקי השקעה ונכסים</h3>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:right;'>📋 פירוט תיק הנכסים</h2>", unsafe_allow_html=True)
         
-        # טעינת נתונים מגיליון המקור
-        raw_data = df_d.iloc[0:15].copy() 
-        
-        for index, row in raw_data.iterrows():
-            asset_name = row.iloc[1]   # עמודה B
-            owner = row.iloc[0]        # עמודה A
-            val_now = clean_val(row.iloc[10])  # עמודה K (2026)
-            val_start = clean_val(row.iloc[5]) # עמודה F (2025)
-            deposits = clean_val(row.iloc[11]) # עמודה L (הפקדות 2026)
-            
-            if pd.isna(asset_name) or (val_now == 0 and val_start == 0):
-                continue
+        # פונקציית עזר ליצירת "כרטיס נכס" מעוצב בתוך הפירוט
+        def asset_card(name, owner, val, delta_html):
+            st.markdown(f"""
+                <div style="background: white; padding: 15px; border-radius: 12px; 
+                            box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 10px; 
+                            border-right: 5px solid #2563eb;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.85rem; color: #64748b;">מחזיק: {owner}</div>
+                            <div style="font-size: 1.1rem; font-weight: 800; color: #1e293b;">{name}</div>
+                        </div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 1.2rem; font-weight: 800; color: #1e293b;">₪{val:,.0f}</div>
+                            <div>{delta_html}</div>
+                        </div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
 
-            with st.container():
-                col_a, col_b, col_c = st.columns([2, 1, 1])
-                with col_a:
-                    st.markdown(f"<div style='text-align:right;'><b style='font-size:1.1rem;'>{asset_name}</b><br><span style='color:#666; font-size:0.85rem;'>מחזיק: {owner}</span></div>", unsafe_allow_html=True)
-                with col_b:
-                    st.markdown(f"<div style='text-align:center;'><span style='color:#888; font-size:0.8rem;'>שווי נוכחי</span><br><b style='font-size:1.1rem;'>₪{val_now:,.0f}</b></div>", unsafe_allow_html=True)
-                with col_c:
-                    delta_html = get_delta_html(val_now, val_start, deposits, is_main_card=False)
-                    st.markdown(f"<div style='text-align:center;'><span style='color:#888; font-size:0.8rem;'>תשואה</span>{delta_html}</div>", unsafe_allow_html=True)
-                st.markdown("<hr style='margin:10px 0; opacity:0.1;'>", unsafe_allow_html=True)
+        # טעינת הנתונים
+        raw_data = df_d.iloc[0:15].copy()
+
+        # הגדרת הקבוצות לפי הלוגיקה של הגיליון שלך
+        groups = {
+            "🏦 קרנות פנסיה": [0, 1, 3],       # שורות פנסיה בגיליון
+            "📈 קרנות השתלמות": [2, 4],        # שורות השתלמות
+            "💰 חשבונות מסחר": [7, 8, 9],      # אקסלנס, אינטראקטיב, איסתא
+            "🍼 חיסכון לילדים": [12, 13, 14],  # עמית, נועם, קופת גמל להשקעה
+            "🏥 קרנות וחיסכון": [5, 6, 11]      # איילון, פועלים, מיטב
+        }
+
+        for group_name, row_indices in groups.items():
+            with st.expander(group_name, expanded=True):
+                for idx in row_indices:
+                    row = raw_data.iloc[idx]
+                    name = row.iloc[1]   # עמודה B
+                    owner = row.iloc[0]  # עמודה A
+                    val_now = clean_val(row.iloc[10])  # עמודה K
+                    val_start = clean_val(row.iloc[5]) # עמודה F
+                    deposits = clean_val(row.iloc[11]) # עמודה L
+                    
+                    if pd.isna(name) or (val_now == 0 and val_start == 0):
+                        continue
+                        
+                    d_html = get_delta_html(val_now, val_start, deposits, is_main_card=False)
+                    asset_card(name, owner, val_now, d_html)
 
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
