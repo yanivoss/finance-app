@@ -83,7 +83,7 @@ st.markdown("""
         border-radius: 12px; 
         padding: 10px; 
         text-align: center; 
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         min-height: 90px; 
         display: flex; 
         flex-direction: column; 
