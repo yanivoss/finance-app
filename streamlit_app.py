@@ -22,8 +22,7 @@ def get_delta_html(current, start, deposits=0, is_main_card=True, show_NIS=True)
     total_invested = strt + depo
     if abs(total_invested) <= 10: return '<span style="display:block; height:20px;"></span>'
     profit_loss = curr - total_invested
-    # חישוב תשואה: רווח חלקי (סכום התחלתי + הפקדות)
-    pct = (profit_loss / (strt + depo)) * 100 if (strt + depo) != 0 else 0
+    pct = (profit_loss / abs(total_invested)) * 100 
     arrow = "▲" if profit_loss >= 0 else "▼"
     nis_text = f" (₪{abs(profit_loss):,.0f})" if show_NIS else ""
     if is_main_card:
@@ -56,7 +55,6 @@ def get_market_data(ticker_symbol):
 
 # נתונים
 URL_SUMMARY = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=1388477026&single=true&output=csv"
-URL_TRACKING = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=0&single=true&output=csv"
 URL_DATA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=0&single=true&output=csv"
 USD_RATE = 3.7
 
@@ -76,7 +74,6 @@ st.markdown("""
 
 try:
     df_s = pd.read_csv(URL_SUMMARY)
-    df_t = pd.read_csv(URL_TRACKING)
     df_d = pd.read_csv(URL_DATA)
     sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
     btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
@@ -148,28 +145,10 @@ try:
             k_n, k_s, k_d = df_s.iloc[9, 2], df_s.iloc[9, 4], df_s.iloc[9, 5]
             st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
-            # משיכת נתונים גולמיים מגיליון המעקב
-            v_n = clean_val(df_t.iloc[10, 15])  # שווי 2026 (עמודה P)
-            v_s = clean_val(df_t.iloc[10, 9])   # שווי 2025 (עמודה J)
-            v_d = clean_val(df_t.iloc[10, 11])  # הפקדות 2026 (עמודה L)
-            
-            st.markdown(f'''
-                <div class="sub-card" style="border-right: 5px solid #3b82f6;">
-                    <div class="sub-label">🏖️ חופשה</div>
-                    <div class="sub-val" style="color: #3b82f6;">₪{v_n:,.0f}</div>
-                    {get_delta_html(v_n, v_s, v_d, False)}
-                    <div class="split-text">ארה"ב ומקסיקו 2027</div>
-                </div>
-            ''', unsafe_allow_html=True)
-            
-            st.markdown(f'''
-                <div class="sub-card" style="border-right: 5px solid #3b82f6;">
-                    <div class="sub-label">🏖️ חופשה</div>
-                    <div class="sub-val" style="color: #3b82f6;">₪{v_n:,.0f}</div>
-                    {get_delta_html(v_n, v_s, v_d, False)}
-                    <div class="split-text">ארה"ב ומקסיקו 2027</div>
-                </div>
-            ''', unsafe_allow_html=True)
+            # חופשה - שורה 12 בגיליון DATA (אינדקס 11)
+            v_n, v_s, v_d = df_d.iloc[11, 15], df_d.iloc[11, 10], df_d.iloc[11, 16]
+            st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חופשה</div><div class="sub-val" style="color: #3b82f6;">₪{clean_val(v_n):,.0f}</div>{get_delta_html(v_n, v_s, v_d, False)}<div class="split-text">ארה"ב ומקסיקו 2027</div></div>', unsafe_allow_html=True)
+
         r4c1, r4c2 = st.columns(2)
         with r4c1:
             # נדל"ן - שורה 12 בגיליון (אינדקס 10)
