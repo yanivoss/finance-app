@@ -22,7 +22,8 @@ def get_delta_html(current, start, deposits=0, is_main_card=True, show_NIS=True)
     total_invested = strt + depo
     if abs(total_invested) <= 10: return '<span style="display:block; height:20px;"></span>'
     profit_loss = curr - total_invested
-    pct = (profit_loss / abs(total_invested)) * 100 
+    # חישוב תשואה: רווח חלקי (סכום התחלתי + הפקדות)
+    pct = (profit_loss / (strt + depo)) * 100 if (strt + depo) != 0 else 0
     arrow = "▲" if profit_loss >= 0 else "▼"
     nis_text = f" (₪{abs(profit_loss):,.0f})" if show_NIS else ""
     if is_main_card:
