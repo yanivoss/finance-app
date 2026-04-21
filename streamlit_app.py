@@ -79,7 +79,6 @@ st.markdown("""
     .ticker-box { 
         background: rgba(255, 255, 255, 0.85) !important; /* Opacity גבוה לרקע בלבד */
         backdrop-filter: blur(5px); /* אפקט טשטוש יוקרתי לרקע */
-        font-color: green;
         border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 12px; 
         padding: 10px; 
