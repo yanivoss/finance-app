@@ -53,9 +53,9 @@ def get_market_data(ticker_symbol):
         return current_price, change_pct, color, arrow
     except: return 0, 0, "#666", ""
 
-# נתונים
+# נתונים - שני המקורות שלך
 URL_SUMMARY = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=1388477026&single=true&output=csv"
-URL_DATA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=0&single=true&output=csv"
+URL_TRACKING = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=0&single=true&output=csv"
 USD_RATE = 3.7
 
 # --- CSS ---
@@ -68,13 +68,12 @@ st.markdown("""
     .sub-val { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 4px 0; }
     .sub-label { font-size: 0.9rem; color: #64748b; font-weight: 600; }
     .split-text { font-size: 0.75rem; color: #475569; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 10px; display: flex; justify-content: space-around; min-height: 40px; align-items: center; }
-    .ltv-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 6px; }
     </style>
 """, unsafe_allow_html=True)
 
 try:
     df_s = pd.read_csv(URL_SUMMARY)
-    df_d = pd.read_csv(URL_DATA)
+    df_t = pd.read_csv(URL_TRACKING) # גיליון מעקב הון עצמי
     sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
     btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
 
@@ -90,79 +89,61 @@ try:
 
     with tab1:
         c1, c2 = st.columns(2)
-        # הון נטו - שורה 15 בגיליון (אינדקס 13)
+        # הון נטו - שורה 15 (אינדקס 13) ב-SUMMARY
         n_now, n_start, n_depo = df_s.iloc[13, 2], df_s.iloc[13, 4], df_s.iloc[13, 5]
         with c1: st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);"><div class="sub-label" style="color:white; opacity:0.9;">הון נטו</div><div style="font-size:2.3rem; font-weight:800;">₪{clean_val(n_now):,.0f}</div>{get_delta_html(n_now, n_start, n_depo, True)}</div>', unsafe_allow_html=True)
-        # התחייבויות - שורות 13+14 (אינדקס 11+12)
+        # התחייבויות - שורות 13+14 (אינדקס 11+12) ב-SUMMARY
         debt_now = abs(clean_val(df_s.iloc[11, 2])) + abs(clean_val(df_s.iloc[12, 2]))
         debt_start = abs(clean_val(df_s.iloc[11, 4])) + abs(clean_val(df_s.iloc[12, 4]))
         with c2: st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #dc2626, #b91c1c);"><div class="sub-label" style="color:white; opacity:0.9;">התחייבויות</div><div style="font-size:2.3rem; font-weight:800;">₪{debt_now:,.0f}</div>{get_delta_html(debt_now, debt_start, 0, True)}</div>', unsafe_allow_html=True)
 
         r1c1, r1c2 = st.columns(2)
         with r1c1:
-            # פנסיות - יניב (אינדקס 4), מיכל (אינדקס 6)
+            # פנסיות מ-SUMMARY
             py_n, py_s, py_d = df_s.iloc[4, 2], df_s.iloc[4, 4], df_s.iloc[4, 5]
             pm_n, pm_s, pm_d = df_s.iloc[6, 2], df_s.iloc[6, 4], df_s.iloc[6, 5]
             st.markdown(f'''<div class="sub-card"><div class="sub-label">🏦 פנסיות</div><div class="sub-val">₪{clean_val(py_n)+clean_val(pm_n):,.0f}</div>{get_delta_html(clean_val(py_n)+clean_val(pm_n), clean_val(py_s)+clean_val(pm_s), clean_val(py_d)+clean_val(pm_d), False)}
                 <div class="split-text">
-                    <div class="split-item">יניב: ₪{clean_val(py_n):,.0f}{get_delta_html(py_n, py_s, py_d, False, False)}</div>
-                    <div style="border-left: 1px solid #f1f5f9; height: 30px;"></div>
-                    <div class="split-item">מיכל: ₪{clean_val(pm_n):,.0f}{get_delta_html(pm_n, pm_s, pm_d, False, False)}</div>
+                    <div class="split-item">יניב: ₪{clean_val(py_n):,.0f}</div>
+                    <div class="split-item">מיכל: ₪{clean_val(pm_n):,.0f}</div>
                 </div></div>''', unsafe_allow_html=True)
         with r1c2:
-            # השתלמות - יניב (אינדקס 5), מיכל (אינדקס 7)
+            # השתלמות מ-SUMMARY
             sy_n, sy_s, sy_d = df_s.iloc[5, 2], df_s.iloc[5, 4], df_s.iloc[5, 5]
             sm_n, sm_s, sm_d = df_s.iloc[7, 2], df_s.iloc[7, 4], df_s.iloc[7, 5]
             st.markdown(f'''<div class="sub-card"><div class="sub-label">📈 השתלמות</div><div class="sub-val">₪{clean_val(sy_n)+clean_val(sm_n):,.0f}</div>{get_delta_html(clean_val(sy_n)+clean_val(sm_n), clean_val(sy_s)+clean_val(sm_s), clean_val(sy_d)+clean_val(sm_d), False)}
                 <div class="split-text">
-                    <div class="split-item">יניב: ₪{clean_val(sy_n):,.0f}{get_delta_html(sy_n, sy_s, sy_d, False, False)}</div>
-                    <div style="border-left: 1px solid #f1f5f9; height: 30px;"></div>
-                    <div class="split-item">מיכל: ₪{clean_val(sm_n):,.0f}{get_delta_html(sm_n, sm_s, sm_d, False, False)}</div>
+                    <div class="split-item">יניב: ₪{clean_val(sy_n):,.0f}</div>
+                    <div class="split-item">מיכל: ₪{clean_val(sm_n):,.0f}</div>
                 </div></div>''', unsafe_allow_html=True)
 
         r2c1, r2c2 = st.columns(2)
         with r2c1:
-            # תיק מסחר - אקסלנס (אינדקס 1), אינטר' (אינדקס 2)
-            exc_n, exc_s, exc_d = df_s.iloc[1, 2], df_s.iloc[1, 4], df_s.iloc[1, 5]
-            int_n, int_s, int_d = df_s.iloc[2, 2], df_s.iloc[2, 4], df_s.iloc[2, 5]
+            # תיק מסחר מ-SUMMARY
+            exc_n, int_n = df_s.iloc[1, 2], df_s.iloc[2, 2]
             tr_n = clean_val(exc_n) + (clean_val(int_n) * USD_RATE)
-            tr_s = clean_val(exc_s) + (clean_val(int_s) * USD_RATE)
-            tr_d = clean_val(exc_d) + (clean_val(int_d) * USD_RATE)
-            st.markdown(f'''<div class="sub-card"><div class="sub-label">💎 תיק מסחר</div><div class="sub-val">₪{tr_n:,.0f}</div>{get_delta_html(tr_n, tr_s, tr_d, False)}
+            st.markdown(f'''<div class="sub-card"><div class="sub-label">💎 תיק מסחר</div><div class="sub-val">₪{tr_n:,.0f}</div>
                 <div class="split-text">
-                    <div class="split-item">אקסלנס: ₪{clean_val(exc_n):,.0f}{get_delta_html(exc_n, exc_s, exc_d, False, False)}</div>
-                    <div style="border-left: 1px solid #f1f5f9; height: 30px;"></div>
-                    <div class="split-item">אינטר': ${clean_val(int_n):,.0f}{get_delta_html(int_n, int_s, int_d, False, False)}</div>
+                    <div class="split-item">אקסלנס: ₪{clean_val(exc_n):,.0f}</div>
+                    <div class="split-item">אינטר': ${clean_val(int_n):,.0f}</div>
                 </div></div>''', unsafe_allow_html=True)
         with r2c2:
-            # הורים - שורה 10 בגיליון (אינדקס 8)
-            p_n, p_s, p_d = df_s.iloc[8, 2], df_s.iloc[8, 4], df_s.iloc[8, 5]
-            st.markdown(f'<div class="sub-card"><div class="sub-label">💰 הורים</div><div class="sub-val">₪{clean_val(p_n):,.0f}</div>{get_delta_html(p_n, p_s, p_d, False)}<div class="split-text">נזיל וזמין</div></div>', unsafe_allow_html=True)
+            # חסכונות הורים מ-SUMMARY שורה 10 (אינדקס 8)
+            p_n = df_s.iloc[8, 2]
+            st.markdown(f'<div class="sub-card"><div class="sub-label">💰 הורים</div><div class="sub-val">₪{clean_val(p_n):,.0f}</div><div class="split-text">נזיל וזמין</div></div>', unsafe_allow_html=True)
 
         r3c1, r3c2 = st.columns(2)
         with r3c1:
-            # ילדים - שורה 11 בגיליון (אינדקס 9)
-            k_n, k_s, k_d = df_s.iloc[9, 2], df_s.iloc[9, 4], df_s.iloc[9, 5]
-            st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
+            # חסכונות ילדים מ-SUMMARY שורה 11 (אינדקס 9)
+            k_n = df_s.iloc[9, 2]
+            st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div><div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
-            # חופשה - שורה 12 בגיליון DATA (אינדקס 11)
-            v_n, v_s, v_d = df_d.iloc[11, 15], df_d.iloc[11, 10], df_d.iloc[11, 16]
+            # --- חופשה - משיכה מגיליון מעקב הון עצמי (TRACKING) שורה 12 (אינדקס 10) ---
+            # עמודה I (אינדקס 8) - שווי נוכחי, עמודה J (אינדקס 9) - תחילת שנה, עמודה L (אינדקס 11) - הפקדות
+            v_n = df_t.iloc[10, 14] # עמודה P (שווי 2026) לפי התמונה החדשה
+            v_s = df_t.iloc[10, 9]  # עמודה J (שווי 2025)
+            v_d = df_t.iloc[10, 11] # עמודה L (הפקדות 2026)
             st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חופשה</div><div class="sub-val" style="color: #3b82f6;">₪{clean_val(v_n):,.0f}</div>{get_delta_html(v_n, v_s, v_d, False)}<div class="split-text">ארה"ב ומקסיקו 2027</div></div>', unsafe_allow_html=True)
-
-        r4c1, r4c2 = st.columns(2)
-        with r4c1:
-            # נדל"ן - שורה 12 בגיליון (אינדקס 10)
-            h_n, h_s = df_s.iloc[10, 2], df_s.iloc[10, 4]
-            mortgage = abs(clean_val(df_s.iloc[11, 2]))
-            ltv = (mortgage / clean_val(h_n) * 100) if clean_val(h_n) > 0 else 0
-            ltv_color = "#16a34a" if ltv < 60 else "#ea580c"
-            st.markdown(f'''<div class="sub-card"><div class="sub-label">🏠 נדל"ן</div><div class="sub-val">₪{clean_val(h_n):,.0f}</div>{get_delta_html(h_n, h_s, 0, False)}
-                <div style="font-size:0.8rem; margin-top:10px; font-weight:bold; color:{ltv_color};">LTV: {ltv:.1f}%</div>
-                <div class="ltv-bar" style="background-color: {ltv_color};"></div></div>''', unsafe_allow_html=True)
-        with r4c2:
-            # איסתא - שורה 5 בגיליון (אינדקס 3)
-            i_n, i_s, i_d = df_s.iloc[3, 2], df_s.iloc[3, 4], df_s.iloc[3, 5]
-            st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s, i_d, False)}<div class="split-text">אופציות מנהלים</div></div>', unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
