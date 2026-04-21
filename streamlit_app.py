@@ -182,7 +182,7 @@ try:
                 val_start = clean_val(row.iloc[5]) # עמודה F (שווי 2025)
                 deposits = clean_val(row.iloc[11]) # עמודה L (הפקדות 2026)
                 
-        if pd.isna(asset_name) or (val_now == 0 and val_start == 0):
+            if pd.isna(asset_name) or (val_now == 0 and val_start == 0):
                     continue
 
         with st.container():
