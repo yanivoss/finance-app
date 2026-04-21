@@ -18,7 +18,7 @@ def clean_val(value):
     return 0.0
 
 def get_delta_html(current, start, is_main_card=True, show_NIS=True):
-    """עיצוב דלתא עם בועה בולטת לכרטיסים הראשיים"""
+    """עיצוב דלתא עם בועה בולטת וצבעים מותנים"""
     curr = clean_val(current)
     strt = clean_val(start)
     
@@ -28,44 +28,45 @@ def get_delta_html(current, start, is_main_card=True, show_NIS=True):
     diff = curr - strt
     pct = (diff / abs(strt)) * 100 
     
-    # הגדרות עיצוב לכרטיסים הראשיים (הכחול והאדום)
-    if is_main_card:
-        bg_color = "rgba(255, 255, 255, 0.2)"  # רקע לבן שקוף
-        text_color = "white"
-        margin = "10px auto 0 auto"
-        padding = "4px 12px"
-        width = "fit-content"
-        border_radius = "20px"
-    else:
-        # לכרטיסים הלבנים הקטנים
-        bg_color = "transparent"
-        text_color = "#4CAF50" if diff >= 0 else "#F44336"
-        margin = "2px 0 0 0"
-        padding = "0"
-        width = "auto"
-        border_radius = "0"
-
+    # קביעת צבע לפי כיוון השינוי
+    # ירוק בהיר לעלייה, אדום בהיר לירידה (כדי שיהיה קריא על הרקע הכהה)
+    positive_color = "#4ade80" # Green-400
+    negative_color = "#f87171" # Red-400
+    
+    status_color = positive_color if diff >= 0 else negative_color
     arrow = "▲" if diff >= 0 else "▼"
     nis_text = f" (₪{abs(diff):,.0f})" if show_NIS else ""
     
-    return f'''
-    <div style="
-        background-color: {bg_color}; 
-        color: {text_color}; 
-        font-size: 0.8rem; 
-        font-weight: bold; 
-        margin: {margin}; 
-        padding: {padding}; 
-        border-radius: {border_radius}; 
-        width: {width};
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
-    ">
-        {arrow} {abs(pct):.1f}%{nis_text}
-    </div>
-    '''
+    if is_main_card:
+        return f'''
+        <div style="
+            background-color: rgba(255, 255, 255, 0.15); 
+            color: {status_color}; 
+            font-size: 0.85rem; 
+            font-weight: bold; 
+            margin: 10px auto 0 auto; 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            width: fit-content;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        ">
+            <span>{arrow}</span>
+            <span>{abs(pct):.1f}%</span>
+            <span style="font-size: 0.75rem; opacity: 0.9;">{nis_text}</span>
+        </div>
+        '''
+    else:
+        # עיצוב לכרטיסים הלבנים (שימוש בצבעים כהים יותר לקריאות)
+        card_text_color = "#16a34a" if diff >= 0 else "#dc2626"
+        return f'''
+        <div style="color: {card_text_color}; font-size: 0.75rem; font-weight: bold; margin-top: 2px;">
+            {arrow} {abs(pct):.1f}%{nis_text}
+        </div>
+        '''
 
 def get_market_data(ticker_symbol):
     try:
@@ -91,9 +92,10 @@ st.markdown("""
     <style>
     .stApp { background-color: #f4f7f9; }
     .ticker-box { background: white; border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); min-height: 85px; display: flex; flex-direction: column; justify-content: center; }
-    .main-card { padding: 25px 20px; border-radius: 20px; text-align: center; color: white; margin-bottom: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .main-card { padding: 25px 20px; border-radius: 20px; text-align: center; color: white; margin-bottom: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
     .sub-card { background: white; padding: 15px; border-radius: 16px; text-align: center; margin-bottom: 12px; min-height: 150px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: center; }
     .sub-val { font-size: 1.2rem; font-weight: 800; color: #1a1a1a; }
+    .sub-label { font-size: 0.9rem; color: #64748b; font-weight: 600; margin-bottom: 4px; }
     .split-text { font-size: 0.72rem; color: #777; margin-top: 10px; border-top: 1px solid #f0f0f0; padding-top: 8px; display: flex; justify-content: space-around; align-items: flex-start; }
     .split-item { display: flex; flex-direction: column; align-items: center; width: 48%; }
     .update-time { text-align: center; color: #94a3b8; font-size: 0.8rem; margin-bottom: 20px; }
@@ -126,15 +128,15 @@ try:
         n_now = df_s.iloc[13, 2]
         n_start = df_s.iloc[13, 4]
         with c1: 
-            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"><div style="font-size:0.9rem; opacity:0.9; margin-bottom:5px;">הון נטו</div><div style="font-size:2rem; font-weight:800;">₪{clean_val(n_now):,.0f}</div>{get_delta_html(n_now, n_start, is_main_card=True)}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);"><div style="font-size:0.9rem; opacity:0.9; margin-bottom:5px;">הון נטו</div><div style="font-size:2.2rem; font-weight:800;">₪{clean_val(n_now):,.0f}</div>{get_delta_html(n_now, n_start, is_main_card=True)}</div>', unsafe_allow_html=True)
         
         # --- התחייבויות ---
         debt_now = abs(clean_val(df_s.iloc[11, 2])) + abs(clean_val(df_s.iloc[12, 2]))
         debt_start = abs(clean_val(df_s.iloc[11, 4])) + abs(clean_val(df_s.iloc[12, 4]))
         with c2:
-            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #ef4444, #b91c1c);"><div style="font-size:0.9rem; opacity:0.9; margin-bottom:5px;">התחייבויות</div><div style="font-size:2rem; font-weight:800;">₪{debt_now:,.0f}</div>{get_delta_html(debt_now, debt_start, is_main_card=True)}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #dc2626, #b91c1c);"><div style="font-size:0.9rem; opacity:0.9; margin-bottom:5px;">התחייבויות</div><div style="font-size:2.2rem; font-weight:800;">₪{debt_now:,.0f}</div>{get_delta_html(debt_now, debt_start, is_main_card=True)}</div>', unsafe_allow_html=True)
 
-        # --- כרטיסים משניים (לבנים) ---
+        # --- כרטיסים משניים ---
         r1c1, r1c2 = st.columns(2)
         with r1c1:
             py_n, py_s = df_s.iloc[4, 2], df_s.iloc[4, 4]
