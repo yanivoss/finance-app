@@ -79,6 +79,22 @@ try:
     btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
 
     st.markdown("<h1 style='text-align:center;'>הון משפחת נודלמן</h1>", unsafe_allow_html=True)
+    # --- שורת רענון וזמן עדכון ---
+import datetime
+
+col_refresh, col_time = st.columns([1, 4])
+with col_refresh:
+    if st.button("🔄 רענון נתונים"):
+        st.cache_data.clear()
+        st.rerun()
+
+with col_time:
+    # זמן נוכחי בפורמט ישראלי
+    now = datetime.datetime.now() + datetime.timedelta(hours=2) # תיקון שעון אם השרת בחו"ל
+    dt_string = now.strftime("%d/%m/%Y %H:%M")
+    st.markdown(f"<div style='color: #64748b; font-size: 0.9rem; padding-top: 10px;'>עודכן לאחרונה: {dt_string}</div>", unsafe_allow_html=True)
+
+st.markdown("---") # קו מפריד דק
     
     # טיקרים
     m1, m2, m3 = st.columns(3)
