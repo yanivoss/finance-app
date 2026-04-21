@@ -12,20 +12,21 @@ def clean_val(value):
     if isinstance(value, (int, float)): return float(value)
     if pd.isna(value) or value == '': return 0.0
     if isinstance(value, str):
-        # מסיר כל דבר שהוא לא מספר, נקודה עשרונית או מינוס
         clean = ''.join(c for c in value if c.isdigit() or c == '.' or c == '-')
         try: return float(clean)
         except: return 0.0
     return 0.0
 
 def get_delta_html(current, start, show_NIS=True):
-    """חישוב אחוז שינוי מדויק והצגת דלתא עם עיגול נכון"""
+    """חישוב אחוז שינוי מדויק. אם נקודת ההתחלה היא 0, לא מוצג אחוז."""
     curr = clean_val(current)
     strt = clean_val(start)
-    if strt == 0: return ""
+    
+    # אם אין נתון התחלה (כמו במקרה של E14 ריק), לא מציגים דלתא
+    if strt == 0: 
+        return '<div style="height: 20px;"></div>' # שומר על גובה הכרטיס
     
     diff = curr - strt
-    # נוסחת אחוז שינוי: (חדש פחות ישן) חלקי ישן
     pct = (diff / abs(strt)) * 100 
     
     color = "#4CAF50" if diff >= 0 else "#F44336"
@@ -90,7 +91,6 @@ try:
     with tab1:
         # --- הון והתחייבויות ---
         c1, c2 = st.columns(2)
-        # הון נטו - משיכת ערכים גולמיים וחישוב דרך הפונקציה המעודכנת
         n_now = df_s.iloc[13, 2]
         n_start = df_s.iloc[13, 4]
         
