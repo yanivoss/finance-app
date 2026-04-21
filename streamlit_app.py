@@ -62,48 +62,55 @@ USD_RATE = 3.7
 # --- CSS ---
 st.markdown("""
     <style>
+    /* הגדרות בסיס */
     .stApp { background-color: #f4f7f9; direction: rtl; }
     
-    /* שיפור כותרת ראשית H1 */
+    /* כותרת H1 משופרת וקריאה */
     h1 {
         color: #1e293b !important;
-        text-shadow: 0px 1px 2px rgba(255,255,255,0.8); /* צל בהיר מאחורי הטקסט להבלטה */
-        padding: 10px;
+        text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
+        padding: 20px 0 !important;
         font-weight: 800 !important;
+        text-align: center;
+        width: 100%;
     }
 
-    /* עיצוב הטיקרים - ברירת מחדל למחשב */
+    /* עיצוב הטיקרים למחשב */
     .ticker-box { 
         background: white; 
         border-radius: 12px; 
         padding: 10px; 
         text-align: center; 
         box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
-        min-height: 85px; 
+        min-height: 90px; 
         display: flex; 
         flex-direction: column; 
-        justify-content: center; 
+        justify-content: center;
+        margin-bottom: 10px;
     }
 
-    /* תיקון מיוחד למובייל - מופעל במסכים קטנים */
+    /* --- תיקון מיוחד למובייל (Media Query) --- */
     @media (max-width: 640px) {
-        h1 {
-            font-size: 1.8rem !important; /* הקטנת כותרת בנייד כדי שלא תתפוס חצי מסך */
-        }
+        /* הקטנת הכותרת הראשית */
+        h1 { font-size: 1.8rem !important; }
+        
+        /* צמצום הטיקרים כדי שלא יחתכו */
         .ticker-box {
-            min-height: 65px; 
-            padding: 5px;     
+            min-height: 70px;
+            padding: 5px;
         }
+        /* הקטנת הטקסט בתוך הטיקרים */
         .ticker-box div {
-            font-size: 0.75rem !important; 
+            font-size: 0.7rem !important; 
+            line-height: 1.2;
         }
-        /* הבטחת קריאות המספרים בתוך הטיקר בנייד */
+        /* הקטנת המספר המודגש (השווי) */
         .ticker-box div[style*="font-weight:800"] {
-            font-size: 0.9rem !important;
+            font-size: 0.85rem !important;
         }
     }
 
-    /* שאר העיצובים של הכרטיסים */
+    /* שאר עיצובי הכרטיסים */
     .main-card { padding: 25px 20px; border-radius: 20px; text-align: center; color: white; margin-bottom: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
     .sub-card { background: white; padding: 15px; border-radius: 16px; text-align: center; margin-bottom: 12px; min-height: 170px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
     .sub-val { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 4px 0; }
