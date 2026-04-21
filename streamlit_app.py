@@ -5,7 +5,12 @@ import pytz
 import yfinance as yf
 
 # הגדרת דף
-st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(
+    page_title="Noodelman Finance", 
+    layout="wide", 
+    initial_sidebar_state="collapsed",
+    page_icon="💰" # כאן שמים את הקישור ללוגו
+)
 
 # --- פונקציות עזר ---
 def clean_val(value):
