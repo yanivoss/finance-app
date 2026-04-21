@@ -77,11 +77,12 @@ st.markdown("""
 
     /* עיצוב הטיקרים למחשב */
     .ticker-box { 
-        background: white; 
+        background: rgba(255, 255, 255, 0.85) !important; /* Opacity גבוה לרקע בלבד */
+        backdrop-filter: blur(5px); /* אפקט טשטוש יוקרתי לרקע */
+        border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 12px; 
         padding: 10px; 
         text-align: center; 
-        text-color: black;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
         min-height: 90px; 
         display: flex; 
