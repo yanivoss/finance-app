@@ -147,7 +147,9 @@ try:
             st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
             # חופשה - שורה 12 בגיליון DATA (אינדקס 11)
-            v_n, v_s, v_d = df_d.iloc[11, 15], df_d.iloc[11, 10], df_d.iloc[11, 16]
+            v_n = clean_val(df_s.iloc[11, 2])   # שווי נוכחי (שורה 12, עמודה C)
+            v_s = clean_val(df_s.iloc[11, 10])  # שווי תחילת שנה (שורה 12, עמודה K)
+            v_d = clean_val(df_s.iloc[11, 16])  # הפקדות (שורה 12, עמודה Q)
             st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חופשה</div><div class="sub-val" style="color: #3b82f6;">₪{clean_val(v_n):,.0f}</div>{get_delta_html(v_n, v_s, v_d, False)}<div class="split-text">ארה"ב ומקסיקו 2027</div></div>', unsafe_allow_html=True)
 
         r4c1, r4c2 = st.columns(2)
