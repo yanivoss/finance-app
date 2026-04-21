@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import yfinance as yf
+import datetime
 
 # הגדרת דף
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed", page_icon="💰")
@@ -80,8 +81,6 @@ try:
 
     st.markdown("<h1 style='text-align:center;'>הון משפחת נודלמן</h1>", unsafe_allow_html=True)
     # --- שורת רענון וזמן עדכון ---
-import datetime
-
 col_refresh, col_time = st.columns([1, 4])
 with col_refresh:
     if st.button("🔄 רענון נתונים"):
@@ -89,12 +88,12 @@ with col_refresh:
         st.rerun()
 
 with col_time:
-    # זמן נוכחי בפורמט ישראלי
-    now = datetime.datetime.now() + datetime.timedelta(hours=2) # תיקון שעון אם השרת בחו"ל
+    # זמן נוכחי בפורמט ישראלי (UTC+3 לשעון קיץ 2026)
+    now = datetime.datetime.now() + datetime.timedelta(hours=3)
     dt_string = now.strftime("%d/%m/%Y %H:%M")
     st.markdown(f"<div style='color: #64748b; font-size: 0.9rem; padding-top: 10px;'>עודכן לאחרונה: {dt_string}</div>", unsafe_allow_html=True)
 
-st.markdown("---") # קו מפריד דק
+st.markdown("---")
     
     # טיקרים
     m1, m2, m3 = st.columns(3)
