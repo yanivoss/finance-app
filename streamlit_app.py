@@ -18,24 +18,24 @@ def clean_val(value):
     return 0.0
 
 def get_delta_html(current, start, deposits=0, is_main_card=True, show_NIS=True):
-    """חישוב תשואה (ROI) - מנטרל הפקדות ומונע אחוזים מופרכים"""
+    """חישוב תשואה (ROI) יציב ללא קפיצות חריגות"""
     curr = clean_val(current)
     strt = clean_val(start)
     depo = clean_val(deposits)
     
     total_invested = strt + depo
     
-    # מניעת חלוקה ב-0 או חישוב על בסיס ריק שגורם לאחוזים מופרכים
-    if total_invested <= 100: # אם הסכום המושקע זניח או 0
+    # אם אין בסיס להשוואה, נחזיר רווח נקי בשקלים ללא אחוזים
+    if total_invested <= 1: 
+        if curr > 0:
+            return f'<span style="color: #16a34a; font-size: 0.75rem; font-weight: bold; display: block; margin-top: 2px;">▲ ₪{curr:,.0f}</span>'
         return '<span style="display:block; height:20px;"></span>'
     
     profit_loss = curr - total_invested
     pct = (profit_loss / abs(total_invested)) * 100 
     
-    # הגנה נוספת מפני קפיצות לא הגיוניות (למשל מעל 500%)
-    if abs(pct) > 500:
-        return '<span style="color: #64748b; font-size: 0.75rem;">מעקב נדרש</span>'
-
+    # טיפול באחוזי ענק (כמו בחסכונות הורים) - הצגת נתון שפוי
+    pct_display = f"{abs(pct):.1f}%" if abs(pct) < 500 else "--%"
     arrow = "▲" if profit_loss >= 0 else "▼"
     nis_text = f" (₪{abs(profit_loss):,.0f})" if show_NIS else ""
     
@@ -46,13 +46,13 @@ def get_delta_html(current, start, deposits=0, is_main_card=True, show_NIS=True)
              margin: 10px auto 0 auto; padding: 5px 14px; border-radius: 20px; width: fit-content; 
              border: 1px solid rgba(255, 255, 255, 0.25); display: flex; align-items: center; gap: 4px;">
             <span style="color: {arrow_color};">{arrow}</span>
-            <span>{abs(pct):.1f}%</span>
+            <span>{pct_display}</span>
             <span style="font-size: 0.75rem; font-weight: 400; opacity: 0.9;">{nis_text}</span>
         </div>
         '''
     else:
         status_color = "#16a34a" if profit_loss >= 0 else "#dc2626"
-        return f'<span style="color: {status_color}; font-size: 0.75rem; font-weight: bold; display: block; margin-top: 2px;">{arrow} {abs(pct):.1f}%{nis_text}</span>'
+        return f'<span style="color: {status_color}; font-size: 0.75rem; font-weight: bold; display: block; margin-top: 2px;">{arrow} {pct_display}{nis_text}</span>'
 
 def get_market_data(ticker_symbol):
     try:
@@ -78,10 +78,10 @@ st.markdown("""
     .stApp { background-color: #f4f7f9; direction: rtl; }
     .ticker-box { background: white; border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); min-height: 85px; display: flex; flex-direction: column; justify-content: center; }
     .main-card { padding: 25px 20px; border-radius: 20px; text-align: center; color: white; margin-bottom: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
-    .sub-card { background: white; padding: 15px; border-radius: 16px; text-align: center; margin-bottom: 12px; min-height: 165px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
+    .sub-card { background: white; padding: 15px; border-radius: 16px; text-align: center; margin-bottom: 12px; min-height: 170px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
     .sub-val { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 4px 0; }
     .sub-label { font-size: 0.9rem; color: #64748b; font-weight: 600; }
-    .split-text { font-size: 0.75rem; color: #475569; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 10px; display: flex; justify-content: space-around; }
+    .split-text { font-size: 0.75rem; color: #475569; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 10px; display: flex; justify-content: space-around; min-height: 45px; align-items: center; }
     .ltv-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 6px; }
     </style>
 """, unsafe_allow_html=True)
@@ -89,13 +89,13 @@ st.markdown("""
 try:
     df_s = pd.read_csv(URL_SUMMARY)
     df_d = pd.read_csv(URL_DATA)
-    
+    last_update = datetime.now(pytz.timezone('Asia/Jerusalem')).strftime("%H:%M %d/%m/%Y")
     sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
     btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
-    last_update = datetime.now(pytz.timezone('Asia/Jerusalem')).strftime("%H:%M %d/%m/%Y")
 
     st.markdown("<h1 style='text-align:center;'>הון משפחת נודלמן</h1>", unsafe_allow_html=True)
     
+    # שורת טיקרים
     m1, m2, m3 = st.columns(3)
     with m1: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#888;">💵 דולר/שקל</div><div style="font-size:1.1rem; font-weight:800;">₪{USD_RATE}</div></div>', unsafe_allow_html=True)
     with m2: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#888;">📈 S&P 500</div><div style="font-size:1.1rem; font-weight:800;">{sp_p:,.0f}</div><div style="color:{sp_col}; font-size:0.75rem; font-weight:bold;">{sp_a} {abs(sp_c):.1f}%</div></div>', unsafe_allow_html=True)
@@ -105,9 +105,10 @@ try:
 
     with tab1:
         c1, c2 = st.columns(2)
+        # הון נטו
         n_now, n_start, n_depo = df_s.iloc[13, 2], df_s.iloc[13, 4], df_s.iloc[13, 5]
         with c1: st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);"><div class="sub-label" style="color:white; opacity:0.9;">הון נטו</div><div style="font-size:2.3rem; font-weight:800;">₪{clean_val(n_now):,.0f}</div>{get_delta_html(n_now, n_start, n_depo, True)}</div>', unsafe_allow_html=True)
-        
+        # התחייבויות
         debt_now = abs(clean_val(df_s.iloc[11, 2])) + abs(clean_val(df_s.iloc[12, 2]))
         debt_start = abs(clean_val(df_s.iloc[11, 4])) + abs(clean_val(df_s.iloc[12, 4]))
         with c2: st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #dc2626, #b91c1c);"><div class="sub-label" style="color:white; opacity:0.9;">התחייבויות</div><div style="font-size:2.3rem; font-weight:800;">₪{debt_now:,.0f}</div>{get_delta_html(debt_now, debt_start, 0, True)}</div>', unsafe_allow_html=True)
@@ -119,7 +120,7 @@ try:
             st.markdown(f'''<div class="sub-card"><div class="sub-label">🏦 פנסיות</div><div class="sub-val">₪{clean_val(py_n)+clean_val(pm_n):,.0f}</div>{get_delta_html(clean_val(py_n)+clean_val(pm_n), clean_val(py_s)+clean_val(pm_s), clean_val(py_d)+clean_val(pm_d), False)}
                 <div class="split-text">
                     <div class="split-item">יניב: ₪{clean_val(py_n):,.0f}{get_delta_html(py_n, py_s, py_d, False, False)}</div>
-                    <div style="border-left: 1px solid #f1f5f9; height: 35px; margin: 0 10px;"></div>
+                    <div style="border-left: 1px solid #f1f5f9; height: 30px;"></div>
                     <div class="split-item">מיכל: ₪{clean_val(pm_n):,.0f}{get_delta_html(pm_n, pm_s, pm_d, False, False)}</div>
                 </div></div>''', unsafe_allow_html=True)
         with r1c2:
@@ -128,7 +129,7 @@ try:
             st.markdown(f'''<div class="sub-card"><div class="sub-label">📈 השתלמות</div><div class="sub-val">₪{clean_val(sy_n)+clean_val(sm_n):,.0f}</div>{get_delta_html(clean_val(sy_n)+clean_val(sm_n), clean_val(sy_s)+clean_val(sm_s), clean_val(sy_d)+clean_val(sm_d), False)}
                 <div class="split-text">
                     <div class="split-item">יניב: ₪{clean_val(sy_n):,.0f}{get_delta_html(sy_n, sy_s, sy_d, False, False)}</div>
-                    <div style="border-left: 1px solid #f1f5f9; height: 35px; margin: 0 10px;"></div>
+                    <div style="border-left: 1px solid #f1f5f9; height: 30px;"></div>
                     <div class="split-item">מיכל: ₪{clean_val(sm_n):,.0f}{get_delta_html(sm_n, sm_s, sm_d, False, False)}</div>
                 </div></div>''', unsafe_allow_html=True)
 
@@ -142,23 +143,22 @@ try:
             st.markdown(f'''<div class="sub-card"><div class="sub-label">💎 תיק מסחר</div><div class="sub-val">₪{tr_n:,.0f}</div>{get_delta_html(tr_n, tr_s, tr_d, False)}
                 <div class="split-text">
                     <div class="split-item">אקסלנס: ₪{clean_val(exc_n):,.0f}{get_delta_html(exc_n, exc_s, exc_d, False, False)}</div>
-                    <div style="border-left: 1px solid #f1f5f9; height: 35px; margin: 0 10px;"></div>
+                    <div style="border-left: 1px solid #f1f5f9; height: 30px;"></div>
                     <div class="split-item">אינטר': ${clean_val(int_n):,.0f}{get_delta_html(int_n, int_s, int_d, False, False)}</div>
                 </div></div>''', unsafe_allow_html=True)
         with r2c2:
             p_n = clean_val(df_d.iloc[5, 15]) + clean_val(df_d.iloc[6, 15]) + clean_val(df_d.iloc[11, 15])
             p_s = clean_val(df_d.iloc[5, 14]) + clean_val(df_d.iloc[6, 14]) + clean_val(df_d.iloc[11, 14])
-            # כאן פתרנו את בעיית ה-800% על ידי שליחת deposits=0 אם אין נתון הפקדות להורים
-            st.markdown(f'<div class="sub-card"><div class="sub-label">💰 הורים</div><div class="sub-val">₪{p_n:,.0f}</div>{get_delta_html(p_n, p_s, 0, False)}<div class="split-text" style="justify-content:center; border:none; opacity:0.6;">נזיל וזמין</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="sub-card"><div class="sub-label">💰 הורים</div><div class="sub-val">₪{p_n:,.0f}</div>{get_delta_html(p_n, p_s, 0, False)}<div class="split-text">נזיל וזמין</div></div>', unsafe_allow_html=True)
 
         r3c1, r3c2 = st.columns(2)
         with r3c1:
             k_n, k_s, k_d = df_s.iloc[9, 2], df_s.iloc[9, 4], df_s.iloc[9, 5]
-            st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text" style="justify-content:center; border:none; opacity:0.6;">עמית ונועם</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
             vac = clean_val(df_d.iloc[10, 15])
             vac_s = clean_val(df_d.iloc[10, 14])
-            st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חופשה</div><div class="sub-val" style="color: #3b82f6;">₪{vac:,.0f}</div>{get_delta_html(vac, vac_s, 0, False)}<div class="split-text" style="justify-content:center; border:none; opacity:0.6;">ארה"ב ומקסיקו 2027</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חופשה</div><div class="sub-val" style="color: #3b82f6;">₪{vac:,.0f}</div>{get_delta_html(vac, vac_s, 0, False)}<div class="split-text">ארה"ב ומקסיקו 2027</div></div>', unsafe_allow_html=True)
 
         r4c1, r4c2 = st.columns(2)
         with r4c1:
@@ -166,15 +166,12 @@ try:
             mortgage = abs(clean_val(df_s.iloc[11, 2]))
             ltv = (mortgage / clean_val(h_n) * 100) if clean_val(h_n) > 0 else 0
             ltv_color = "#16a34a" if ltv < 60 else "#ea580c"
-            ltv_text = "תקין" if ltv < 60 else "למעקב"
-            st.markdown(f'''<div class="sub-card">
-                <div class="sub-label">🏠 נדל"ן</div><div class="sub-val">₪{clean_val(h_n):,.0f}</div>{get_delta_html(h_n, h_s, 0, False)}
-                <div style="font-size:0.8rem; margin-top:10px; font-weight:bold; color:{ltv_color};">LTV: {ltv:.1f}% ({ltv_text})</div>
-                <div class="ltv-bar" style="background-color: {ltv_color}; opacity: 0.8;"></div>
-            </div>''', unsafe_allow_html=True)
+            st.markdown(f'''<div class="sub-card"><div class="sub-label">🏠 נדל"ן</div><div class="sub-val">₪{clean_val(h_n):,.0f}</div>{get_delta_html(h_n, h_s, 0, False)}
+                <div style="font-size:0.8rem; margin-top:10px; font-weight:bold; color:{ltv_color};">LTV: {ltv:.1f}%</div>
+                <div class="ltv-bar" style="background-color: {ltv_color};"></div></div>''', unsafe_allow_html=True)
         with r4c2:
             i_n, i_s, i_d = df_s.iloc[3, 2], df_s.iloc[3, 4], df_s.iloc[3, 5]
-            st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s, i_d, False)}<div class="split-text" style="justify-content:center; border:none; opacity:0.6;">אופציות מנהלים</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s, i_d, False)}<div class="split-text">אופציות מנהלים</div></div>', unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"שגיאה: {e}")
