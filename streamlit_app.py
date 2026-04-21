@@ -145,10 +145,20 @@ try:
             k_n, k_s, k_d = df_s.iloc[9, 2], df_s.iloc[9, 4], df_s.iloc[9, 5]
             st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
-            # חופשה - שורה 12 בגיליון DATA (אינדקס 11)
-            v_n, v_s, v_d = df_d.iloc[11, 15], df_d.iloc[11, 10], df_d.iloc[11, 16]
-            st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חופשה</div><div class="sub-val" style="color: #3b82f6;">₪{clean_val(v_n):,.0f}</div>{get_delta_html(v_n, v_s, v_d, False)}<div class="split-text">ארה"ב ומקסיקו 2027</div></div>', unsafe_allow_html=True)
-
+            # --- חישוב כרטיס חופשה (מבוסס על שורה 12 בגיליון מעקב) ---
+            # אינדקס 10 = שורה 12 בגיליון
+            v_now = clean_val(df_t.iloc[10, 15])  # עמודה P - שווי 2026
+            v_start = clean_val(df_t.iloc[10, 9])  # עמודה J - שווי 2025
+            v_depo = clean_val(df_t.iloc[10, 11])  # עמודה L - הפקדות 2026
+            
+            st.markdown(f'''
+                <div class="sub-card" style="border-right: 5px solid #3b82f6;">
+                    <div class="sub-label">🏖️ חופשה</div>
+                    <div class="sub-val" style="color: #3b82f6;">₪{v_now:,.0f}</div>
+                    {get_delta_html(v_now, v_start, v_depo, False)}
+                    <div class="split-text">ארה"ב ומקסיקו 2027</div>
+                </div>
+            ''', unsafe_allow_html=True)
         r4c1, r4c2 = st.columns(2)
         with r4c1:
             # נדל"ן - שורה 12 בגיליון (אינדקס 10)
