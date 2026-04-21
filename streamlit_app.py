@@ -18,14 +18,13 @@ def clean_val(value):
     return 0.0
 
 def get_delta_html(current, start, deposits=0, is_main_card=True, show_NIS=True):
-    """חישוב תשואה (ROI) מדויק"""
     curr = clean_val(current)
     strt = clean_val(start)
     depo = clean_val(deposits)
     
     total_invested = strt + depo
     
-    if total_invested <= 1: 
+    if total_invested <= 100: 
         return '<span style="display:block; height:20px;"></span>'
     
     profit_loss = curr - total_invested
@@ -86,11 +85,10 @@ try:
     df_d = pd.read_csv(URL_DATA)
     sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
     btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
-    last_update = datetime.now(pytz.timezone('Asia/Jerusalem')).strftime("%H:%M %d/%m/%Y")
 
     st.markdown("<h1 style='text-align:center;'>הון משפחת נודלמן</h1>", unsafe_allow_html=True)
     
-    # טיקרים
+    # שורת טיקרים
     m1, m2, m3 = st.columns(3)
     with m1: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#888;">💵 דולר/שקל</div><div style="font-size:1.1rem; font-weight:800;">₪{USD_RATE}</div></div>', unsafe_allow_html=True)
     with m2: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#888;">📈 S&P 500</div><div style="font-size:1.1rem; font-weight:800;">{sp_p:,.0f}</div><div style="color:{sp_col}; font-size:0.75rem; font-weight:bold;">{sp_a} {abs(sp_c):.1f}%</div></div>', unsafe_allow_html=True)
@@ -148,8 +146,8 @@ try:
 
         r3c1, r3c2 = st.columns(2)
         with r3c1:
-            # ילדים - שורה 9 ב-SUMMARY (אינדקס 8)
-            k_n, k_s, k_d = df_s.iloc[8, 2], df_s.iloc[8, 4], df_s.iloc[8, 5]
+            # ילדים - שורה 11 ב-SUMMARY (אינדקס 10)
+            k_n, k_s, k_d = df_s.iloc[10, 2], df_s.iloc[10, 4], df_s.iloc[10, 5]
             st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
             # חופשה - שורה 12 ב-DATA (אינדקס 11)
