@@ -148,11 +148,19 @@ try:
             k_n, k_s, k_d = df_s.iloc[9, 2], df_s.iloc[9, 4], df_s.iloc[9, 5]
             st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
-            # --- כרטיס חופשה: משיכה מגיליון מעקב (df_t) שורה 12 ---
-            # אינדקס 10 = שורה 12 בגיליון פיזית
-            v_n = clean_val(df_t.iloc[10, 15])  # שווי נוכחי מעמודה P
-            v_s = clean_val(df_t.iloc[10, 9])   # שווי תחילת שנה מעמודה J
-            v_d = clean_val(df_t.iloc[10, 11])  # הפקדות מעמודה L
+            # משיכת נתונים גולמיים מגיליון המעקב
+            v_n = clean_val(df_t.iloc[10, 15])  # שווי 2026 (עמודה P)
+            v_s = clean_val(df_t.iloc[10, 9])   # שווי 2025 (עמודה J)
+            v_d = clean_val(df_t.iloc[10, 11])  # הפקדות 2026 (עמודה L)
+            
+            st.markdown(f'''
+                <div class="sub-card" style="border-right: 5px solid #3b82f6;">
+                    <div class="sub-label">🏖️ חופשה</div>
+                    <div class="sub-val" style="color: #3b82f6;">₪{v_n:,.0f}</div>
+                    {get_delta_html(v_n, v_s, v_d, False)}
+                    <div class="split-text">ארה"ב ומקסיקו 2027</div>
+                </div>
+            ''', unsafe_allow_html=True)
             
             st.markdown(f'''
                 <div class="sub-card" style="border-right: 5px solid #3b82f6;">
