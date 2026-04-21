@@ -18,7 +18,7 @@ def clean_val(value):
     return 0.0
 
 def get_delta_html(current, start, is_main_card=True, show_NIS=True):
-    """עיצוב דלתא - שימוש ב-SPAN למניעת שבירת DIV"""
+    """עיצוב דלתא עם ניגודיות גבוהה - בועה לבנה לכרטיסים כהים"""
     curr = clean_val(current)
     strt = clean_val(start)
     
@@ -28,27 +28,40 @@ def get_delta_html(current, start, is_main_card=True, show_NIS=True):
     diff = curr - strt
     pct = (diff / abs(strt)) * 100 
     
-    # צבעים
-    pos_color = "#4ade80" # ירוק בהיר לכרטיס כהה
-    neg_color = "#f87171" # אדום בהיר לכרטיס כהה
-    pos_dark = "#16a34a"  # ירוק כהה לכרטיס לבן
-    neg_dark = "#dc2626"  # אדום כהה לכרטיס לבן
+    # הגדרות צבעים
+    pos_dark = "#16a34a" # ירוק לכרטיס לבן
+    neg_dark = "#dc2626" # אדום לכרטיס לבן
     
     arrow = "▲" if diff >= 0 else "▼"
     nis_text = f" (₪{abs(diff):,.0f})" if show_NIS else ""
     
     if is_main_card:
-        # בועה לכרטיסים הראשיים
-        status_color = pos_color if diff >= 0 else neg_color
+        # בועה בולטת לכרטיסים הראשיים (כחול/אדום)
+        # החץ נשאר צבעוני, הטקסט הופך ללבן בוהק לקריאות
+        arrow_color = "#4ade80" if diff >= 0 else "#ff8787" 
         return f'''
-        <div style="background-color: rgba(255, 255, 255, 0.15); color: {status_color}; 
-             font-size: 0.85rem; font-weight: bold; margin: 10px auto 0 auto; 
-             padding: 4px 12px; border-radius: 20px; width: fit-content; border: 1px solid rgba(255, 255, 255, 0.1);">
-            {arrow} {abs(pct):.1f}% <span style="font-size: 0.75rem; opacity: 0.8;">{nis_text}</span>
+        <div style="
+            background-color: rgba(255, 255, 255, 0.22); 
+            color: white; 
+            font-size: 0.85rem; 
+            font-weight: 800; 
+            margin: 10px auto 0 auto; 
+            padding: 5px 14px; 
+            border-radius: 20px; 
+            width: fit-content; 
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        ">
+            <span style="color: {arrow_color};">{arrow}</span>
+            <span>{abs(pct):.1f}%</span>
+            <span style="font-size: 0.75rem; font-weight: 400; opacity: 0.9;">{nis_text}</span>
         </div>
         '''
     else:
-        # טקסט פשוט לכרטיסים המשניים - משתמש ב-SPAN
+        # טקסט פשוט לכרטיסים המשניים (הלבנים)
         status_color = pos_dark if diff >= 0 else neg_dark
         return f'<span style="color: {status_color}; font-size: 0.75rem; font-weight: bold; display: block; margin-top: 2px;">{arrow} {abs(pct):.1f}%{nis_text}</span>'
 
@@ -107,10 +120,13 @@ try:
 
     with tab1:
         c1, c2 = st.columns(2)
+        
+        # --- הון נטו ---
         n_now, n_start = df_s.iloc[13, 2], df_s.iloc[13, 4]
         with c1: 
             st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);"><div class="sub-label" style="color:white; opacity:0.9;">הון נטו</div><div style="font-size:2.2rem; font-weight:800;">₪{clean_val(n_now):,.0f}</div>{get_delta_html(n_now, n_start, True)}</div>', unsafe_allow_html=True)
         
+        # --- התחייבויות ---
         debt_now = abs(clean_val(df_s.iloc[11, 2])) + abs(clean_val(df_s.iloc[12, 2]))
         debt_start = abs(clean_val(df_s.iloc[11, 4])) + abs(clean_val(df_s.iloc[12, 4]))
         with c2:
