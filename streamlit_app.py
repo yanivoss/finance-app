@@ -62,63 +62,101 @@ USD_RATE = 3.7
 # --- CSS ---
 st.markdown("""
     <style>
-    /* הגדרות בסיס */
-    .stApp { background-color: #f4f7f9; direction: rtl; }
+    /* רקע כללי וכיווניות */
+    .stApp { 
+        background-color: #f4f7f9; 
+        direction: rtl; 
+    }
     
-    /* כותרת H1 משופרת וקריאה */
+    /* כותרת H1 - הפיכה לשחור בולט עם ריווח טוב */
     h1 {
-        color: #1e293b !important;
-        text-shadow: 1px 1px 2px rgba(255,255,255,0.9);
-        padding: 20px 0 !important;
+        color: #0f172a !important; /* כחול-כהה עמוק, כמעט שחור */
         font-weight: 800 !important;
+        padding: 25px 0 !important;
         text-align: center;
-        width: 100%;
+        text-shadow: none !important; /* ביטול הצל למראה נקי ובולט */
     }
 
-    /* עיצוב הטיקרים למחשב */
+    /* תיקון הטיקרים (הקופסאות הלבנות למעלה) */
     .ticker-box { 
-        background: rgba(255, 255, 255, 0.85) !important; /* Opacity גבוה לרקע בלבד */
-        backdrop-filter: blur(5px); /* אפקט טשטוש יוקרתי לרקע */
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 12px; 
-        padding: 10px; 
+        background: white; 
+        border-radius: 14px; 
+        padding: 12px; 
         text-align: center; 
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        min-height: 90px; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+        min-height: 95px; 
         display: flex; 
         flex-direction: column; 
         justify-content: center;
         margin-bottom: 10px;
     }
 
-    /* --- תיקון מיוחד למובייל (Media Query) --- */
+    /* הפיכת הטקסט בתוך הטיקרים לכהה וברור */
+    .ticker-box div {
+        color: #1e293b !important; /* צבע כהה לכל הטקסט */
+    }
+
+    /* התאמה ספציפית למובייל - כאן קורה הקסם */
     @media (max-width: 640px) {
-        /* הקטנת הכותרת הראשית */
-        h1 { font-size: 1.8rem !important; }
-        
-        /* צמצום הטיקרים כדי שלא יחתכו */
+        h1 { 
+            font-size: 1.8rem !important; 
+            padding: 15px 0 !important;
+        }
         .ticker-box {
-            min-height: 70px;
-            padding: 5px;
+            min-height: 80px;
+            padding: 8px;
         }
-        /* הקטנת הטקסט בתוך הטיקרים */
-        .ticker-box div {
-            font-size: 0.7rem !important; 
-            line-height: 1.2;
+        /* הקטנת פונטים במובייל כדי שלא יחרגו מהקופסה */
+        .ticker-box div[style*="font-size:0.75rem"] {
+            font-size: 0.7rem !important;
+            color: #64748b !important; /* אפור כהה לכותרות הקטנות */
         }
-        /* הקטנת המספר המודגש (השווי) */
-        .ticker-box div[style*="font-weight:800"] {
-            font-size: 0.85rem !important;
+        .ticker-box div[style*="font-size:1.1rem"] {
+            font-size: 1rem !important; /* המספר המרכזי */
+            font-weight: 800 !important;
         }
     }
 
-    /* שאר עיצובי הכרטיסים */
-    .main-card { padding: 25px 20px; border-radius: 20px; text-align: center; color: white; margin-bottom: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
-    .sub-card { background: white; padding: 15px; border-radius: 16px; text-align: center; margin-bottom: 12px; min-height: 170px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
-    .sub-val { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 4px 0; }
-    .sub-label { font-size: 0.9rem; color: #64748b; font-weight: 600; }
-    .split-text { font-size: 0.75rem; color: #475569; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 10px; display: flex; justify-content: space-around; min-height: 40px; align-items: center; }
-    .ltv-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 6px; }
+    /* עיצוב הכרטיסים הראשיים (הון נטו והתחייבויות) */
+    .main-card { 
+        padding: 25px 20px; 
+        border-radius: 20px; 
+        text-align: center; 
+        color: white; 
+        margin-bottom: 15px; 
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15); 
+    }
+    
+    .sub-card { 
+        background: white; 
+        padding: 18px; 
+        border-radius: 18px; 
+        text-align: center; 
+        margin-bottom: 15px; 
+        min-height: 170px; 
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04); 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+        position: relative; 
+        overflow: hidden; 
+    }
+
+    .sub-val { font-size: 1.3rem; font-weight: 800; color: #1e293b; margin: 5px 0; }
+    .sub-label { font-size: 0.95rem; color: #64748b; font-weight: 700; }
+    
+    .split-text { 
+        font-size: 0.8rem; 
+        color: #475569; 
+        margin-top: 15px; 
+        border-top: 1px solid #f1f5f9; 
+        padding-top: 12px; 
+        display: flex; 
+        justify-content: space-around; 
+        align-items: center; 
+    }
+    
+    .ltv-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 8px; }
     </style>
 """, unsafe_allow_html=True)
 
