@@ -18,24 +18,19 @@ def clean_val(value):
     return 0.0
 
 def get_delta_html(current, start, deposits=0, is_main_card=True, show_NIS=True):
-    """חישוב תשואה (ROI) יציב ללא קפיצות חריגות"""
+    """חישוב תשואה (ROI) מדויק ומיושר"""
     curr = clean_val(current)
     strt = clean_val(start)
     depo = clean_val(deposits)
     
     total_invested = strt + depo
     
-    # אם אין בסיס להשוואה, נחזיר רווח נקי בשקלים ללא אחוזים
     if total_invested <= 1: 
-        if curr > 0:
-            return f'<span style="color: #16a34a; font-size: 0.75rem; font-weight: bold; display: block; margin-top: 2px;">▲ ₪{curr:,.0f}</span>'
         return '<span style="display:block; height:20px;"></span>'
     
     profit_loss = curr - total_invested
     pct = (profit_loss / abs(total_invested)) * 100 
     
-    # טיפול באחוזי ענק (כמו בחסכונות הורים) - הצגת נתון שפוי
-    pct_display = f"{abs(pct):.1f}%" if abs(pct) < 500 else "--%"
     arrow = "▲" if profit_loss >= 0 else "▼"
     nis_text = f" (₪{abs(profit_loss):,.0f})" if show_NIS else ""
     
@@ -46,13 +41,13 @@ def get_delta_html(current, start, deposits=0, is_main_card=True, show_NIS=True)
              margin: 10px auto 0 auto; padding: 5px 14px; border-radius: 20px; width: fit-content; 
              border: 1px solid rgba(255, 255, 255, 0.25); display: flex; align-items: center; gap: 4px;">
             <span style="color: {arrow_color};">{arrow}</span>
-            <span>{pct_display}</span>
+            <span>{abs(pct):.1f}%</span>
             <span style="font-size: 0.75rem; font-weight: 400; opacity: 0.9;">{nis_text}</span>
         </div>
         '''
     else:
         status_color = "#16a34a" if profit_loss >= 0 else "#dc2626"
-        return f'<span style="color: {status_color}; font-size: 0.75rem; font-weight: bold; display: block; margin-top: 2px;">{arrow} {pct_display}{nis_text}</span>'
+        return f'<span style="color: {status_color}; font-size: 0.75rem; font-weight: bold; display: block; margin-top: 2px;">{arrow} {abs(pct):.1f}%{nis_text}</span>'
 
 def get_market_data(ticker_symbol):
     try:
@@ -81,7 +76,7 @@ st.markdown("""
     .sub-card { background: white; padding: 15px; border-radius: 16px; text-align: center; margin-bottom: 12px; min-height: 170px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
     .sub-val { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 4px 0; }
     .sub-label { font-size: 0.9rem; color: #64748b; font-weight: 600; }
-    .split-text { font-size: 0.75rem; color: #475569; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 10px; display: flex; justify-content: space-around; min-height: 45px; align-items: center; }
+    .split-text { font-size: 0.75rem; color: #475569; margin-top: 12px; border-top: 1px solid #f1f5f9; padding-top: 10px; display: flex; justify-content: space-around; min-height: 40px; align-items: center; }
     .ltv-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 6px; }
     </style>
 """, unsafe_allow_html=True)
@@ -89,13 +84,13 @@ st.markdown("""
 try:
     df_s = pd.read_csv(URL_SUMMARY)
     df_d = pd.read_csv(URL_DATA)
-    last_update = datetime.now(pytz.timezone('Asia/Jerusalem')).strftime("%H:%M %d/%m/%Y")
     sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
     btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
+    last_update = datetime.now(pytz.timezone('Asia/Jerusalem')).strftime("%H:%M %d/%m/%Y")
 
     st.markdown("<h1 style='text-align:center;'>הון משפחת נודלמן</h1>", unsafe_allow_html=True)
     
-    # שורת טיקרים
+    # טיקרים
     m1, m2, m3 = st.columns(3)
     with m1: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#888;">💵 דולר/שקל</div><div style="font-size:1.1rem; font-weight:800;">₪{USD_RATE}</div></div>', unsafe_allow_html=True)
     with m2: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#888;">📈 S&P 500</div><div style="font-size:1.1rem; font-weight:800;">{sp_p:,.0f}</div><div style="color:{sp_col}; font-size:0.75rem; font-weight:bold;">{sp_a} {abs(sp_c):.1f}%</div></div>', unsafe_allow_html=True)
@@ -147,18 +142,18 @@ try:
                     <div class="split-item">אינטר': ${clean_val(int_n):,.0f}{get_delta_html(int_n, int_s, int_d, False, False)}</div>
                 </div></div>''', unsafe_allow_html=True)
         with r2c2:
-            p_n = clean_val(df_d.iloc[5, 15]) + clean_val(df_d.iloc[6, 15]) + clean_val(df_d.iloc[11, 15])
-            p_s = clean_val(df_d.iloc[5, 14]) + clean_val(df_d.iloc[6, 14]) + clean_val(df_d.iloc[11, 14])
-            st.markdown(f'<div class="sub-card"><div class="sub-label">💰 הורים</div><div class="sub-val">₪{p_n:,.0f}</div>{get_delta_html(p_n, p_s, 0, False)}<div class="split-text">נזיל וזמין</div></div>', unsafe_allow_html=True)
+            # הורים - SUMMARY שורה 10 (אינדקס 9): C=עכשווי (2), E=שנה שעברה (4), F=הפקדות (5)
+            p_n, p_s, p_d = df_s.iloc[9, 2], df_s.iloc[9, 4], df_s.iloc[9, 5]
+            st.markdown(f'<div class="sub-card"><div class="sub-label">💰 הורים</div><div class="sub-val">₪{clean_val(p_n):,.0f}</div>{get_delta_html(p_n, p_s, p_d, False)}<div class="split-text">נזיל וזמין</div></div>', unsafe_allow_html=True)
 
         r3c1, r3c2 = st.columns(2)
         with r3c1:
-            k_n, k_s, k_d = df_s.iloc[9, 2], df_s.iloc[9, 4], df_s.iloc[9, 5]
+            k_n, k_s, k_d = df_s.iloc[8, 2], df_s.iloc[8, 4], df_s.iloc[8, 5]
             st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
-            vac = clean_val(df_d.iloc[10, 15])
-            vac_s = clean_val(df_d.iloc[10, 14])
-            st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חופשה</div><div class="sub-val" style="color: #3b82f6;">₪{vac:,.0f}</div>{get_delta_html(vac, vac_s, 0, False)}<div class="split-text">ארה"ב ומקסיקו 2027</div></div>', unsafe_allow_html=True)
+            # חופשה - DATA שורה 12 (אינדקס 11): P=עכשווי (15), K=שנה שעברה (10), Q=הפקדות (16)
+            v_n, v_s, v_d = df_d.iloc[11, 15], df_d.iloc[11, 10], df_d.iloc[11, 16]
+            st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חופשה</div><div class="sub-val" style="color: #3b82f6;">₪{clean_val(v_n):,.0f}</div>{get_delta_html(v_n, v_s, v_d, False)}<div class="split-text">ארה"ב ומקסיקו 2027</div></div>', unsafe_allow_html=True)
 
         r4c1, r4c2 = st.columns(2)
         with r4c1:
