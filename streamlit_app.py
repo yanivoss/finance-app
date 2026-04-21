@@ -55,6 +55,7 @@ def get_market_data(ticker_symbol):
 
 # נתונים
 URL_SUMMARY = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=1388477026&single=true&output=csv"
+URL_TRACKING = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=0&single=true&output=csv"
 URL_DATA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=0&single=true&output=csv"
 USD_RATE = 3.7
 
@@ -74,6 +75,7 @@ st.markdown("""
 
 try:
     df_s = pd.read_csv(URL_SUMMARY)
+    df_t = pd.read_csv(URL_TRACKING)
     df_d = pd.read_csv(URL_DATA)
     sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
     btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
@@ -147,9 +149,9 @@ try:
         with r3c2:
             # --- כרטיס חופשה: משיכה מגיליון מעקב (df_t) שורה 12 ---
             # אינדקס 10 = שורה 12 בגיליון פיזית
-            v_n = clean_val(df_t.iloc[10, 15])  # עמודה P (שווי 2026)
-            v_s = clean_val(df_t.iloc[10, 9])   # עמודה J (שווי 2025)
-            v_d = clean_val(df_t.iloc[10, 11])  # עמודה L (הפקדות 2026)
+            v_n = clean_val(df_t.iloc[10, 15])  # שווי נוכחי מעמודה P
+            v_s = clean_val(df_t.iloc[10, 9])   # שווי תחילת שנה מעמודה J
+            v_d = clean_val(df_t.iloc[10, 11])  # הפקדות מעמודה L
             
             st.markdown(f'''
                 <div class="sub-card" style="border-right: 5px solid #3b82f6;">
