@@ -63,7 +63,47 @@ USD_RATE = 3.7
 st.markdown("""
     <style>
     .stApp { background-color: #f4f7f9; direction: rtl; }
-    .ticker-box { background: white; border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); min-height: 85px; display: flex; flex-direction: column; justify-content: center; }
+    
+    /* שיפור כותרת ראשית H1 */
+    h1 {
+        color: #1e293b !important;
+        text-shadow: 0px 1px 2px rgba(255,255,255,0.8); /* צל בהיר מאחורי הטקסט להבלטה */
+        padding: 10px;
+        font-weight: 800 !important;
+    }
+
+    /* עיצוב הטיקרים - ברירת מחדל למחשב */
+    .ticker-box { 
+        background: white; 
+        border-radius: 12px; 
+        padding: 10px; 
+        text-align: center; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+        min-height: 85px; 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+    }
+
+    /* תיקון מיוחד למובייל - מופעל במסכים קטנים */
+    @media (max-width: 640px) {
+        h1 {
+            font-size: 1.8rem !important; /* הקטנת כותרת בנייד כדי שלא תתפוס חצי מסך */
+        }
+        .ticker-box {
+            min-height: 65px; 
+            padding: 5px;     
+        }
+        .ticker-box div {
+            font-size: 0.75rem !important; 
+        }
+        /* הבטחת קריאות המספרים בתוך הטיקר בנייד */
+        .ticker-box div[style*="font-weight:800"] {
+            font-size: 0.9rem !important;
+        }
+    }
+
+    /* שאר העיצובים של הכרטיסים */
     .main-card { padding: 25px 20px; border-radius: 20px; text-align: center; color: white; margin-bottom: 15px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
     .sub-card { background: white; padding: 15px; border-radius: 16px; text-align: center; margin-bottom: 12px; min-height: 170px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
     .sub-val { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin: 4px 0; }
