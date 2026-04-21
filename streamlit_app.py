@@ -18,7 +18,7 @@ def clean_val(value):
     return 0.0
 
 def get_delta_html(current, start, deposits=0, is_main_card=True, show_NIS=True):
-    """חישוב תשואה (ROI) מדויק ומיושר"""
+    """חישוב תשואה (ROI) מדויק"""
     curr = clean_val(current)
     strt = clean_val(start)
     depo = clean_val(deposits)
@@ -142,16 +142,17 @@ try:
                     <div class="split-item">אינטר': ${clean_val(int_n):,.0f}{get_delta_html(int_n, int_s, int_d, False, False)}</div>
                 </div></div>''', unsafe_allow_html=True)
         with r2c2:
-            # הורים - SUMMARY שורה 10 (אינדקס 9): C=עכשווי (2), E=שנה שעברה (4), F=הפקדות (5)
+            # הורים - שורה 10 ב-SUMMARY (אינדקס 9)
             p_n, p_s, p_d = df_s.iloc[9, 2], df_s.iloc[9, 4], df_s.iloc[9, 5]
             st.markdown(f'<div class="sub-card"><div class="sub-label">💰 הורים</div><div class="sub-val">₪{clean_val(p_n):,.0f}</div>{get_delta_html(p_n, p_s, p_d, False)}<div class="split-text">נזיל וזמין</div></div>', unsafe_allow_html=True)
 
         r3c1, r3c2 = st.columns(2)
         with r3c1:
+            # ילדים - שורה 9 ב-SUMMARY (אינדקס 8)
             k_n, k_s, k_d = df_s.iloc[8, 2], df_s.iloc[8, 4], df_s.iloc[8, 5]
             st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
-            # חופשה - DATA שורה 12 (אינדקס 11): P=עכשווי (15), K=שנה שעברה (10), Q=הפקדות (16)
+            # חופשה - שורה 12 ב-DATA (אינדקס 11)
             v_n, v_s, v_d = df_d.iloc[11, 15], df_d.iloc[11, 10], df_d.iloc[11, 16]
             st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חופשה</div><div class="sub-val" style="color: #3b82f6;">₪{clean_val(v_n):,.0f}</div>{get_delta_html(v_n, v_s, v_d, False)}<div class="split-text">ארה"ב ומקסיקו 2027</div></div>', unsafe_allow_html=True)
 
