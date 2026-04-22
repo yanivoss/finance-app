@@ -57,11 +57,15 @@ def get_market_data(ticker_symbol):
 # נתונים
 URL_SUMMARY = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=1388477026&single=true&output=csv"
 URL_DATA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=0&single=true&output=csv"
-try:
-    usd_data = yf.Ticker("ILS=X").history(period="1d")
-    if not usd_data.empty:
-        # לוקח את המחיר האחרון שנסגר ומעגל ל-2 ספרות
-        USD_RATE = round(usd_data['Close'].iloc[-1], 2)
+# קריאה לפונקציה שלך כדי לקבל את שער הדולר העדכני
+# אנחנו משתמשים בטיקר "ILS=X" שהוא הסימול לדולר/שקל ב-Yahoo Finance
+current_usd, change_pct, color, arrow = get_market_data("ILS=X")
+
+# עדכון המשתנה הגלובלי שבו כל האפליקציה משתמשת
+if current_usd > 0:
+    USD_RATE = round(current_usd, 2)
+else:
+    USD_RATE = 3.00  # גיבוי למקרה שהפונקציה החזירה 0 (שגיאה)
 
 # --- CSS ---
 st.markdown("""
