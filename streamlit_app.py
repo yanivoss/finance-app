@@ -301,11 +301,15 @@ try:
                         g_depo += v_depo
                         valid_rows.append((row, v_now, v_start, v_depo))
 
-            # יצירת כותרת Expander עם סיכום כספי ואחוזי
+            # יצירת כותרת Expander עם סיכום כספי
             if g_now > 0:
                 profit = g_now - g_start - g_depo
+                # קביעת צבע (אמוג'י ירוק/אדום כפתרון פשוט ובולט לכותרת)
+                indicator = "🟢" if profit >= 0 else "🔴"
                 pct = (profit / g_start * 100) if g_start != 0 else 0
-                header_summary = f"{group_name} &nbsp;&nbsp; | &nbsp;&nbsp; ₪{g_now:,.0f} ({pct:+.1f}%)"
+                
+                # הכותרת החדשה עם אינדיקטור ויזואלי
+                header_summary = f"{group_name} | ₪{g_now:,.0f} {indicator} ({pct:+.1f}%)"
             else:
                 header_summary = group_name
 
