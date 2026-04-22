@@ -225,7 +225,7 @@ try:
                 <div class="split-text">
                     <div class="split-item">אקסלנס: ₪{clean_val(exc_n):,.0f}{get_delta_html(exc_n, exc_s, exc_d, False, False)}</div>
                     <div style="border-left: 1px solid #f1f5f9; height: 30px;"></div>
-                    <div class="split-item">אינטר': ₪{clean_val(int_n) * USD_RATE:,.0f}{get_delta_html(int_n * USD_RATE, int_s * USD_RATE, int_d * USD_RATE, False, False)}</div>
+                    <div class="split-item">אינטר': ₪{clean_val(int_n) * USD_RATE:,.0f}{get_delta_html(clean_val(int_n) * USD_RATE, clean_val(int_s) * USD_RATE, clean_val(int_d) * USD_RATE, False, False)}</div>
                 </div></div>''', unsafe_allow_html=True)
         with r2c2:
             p_n, p_s, p_d = df_s.iloc[8, 2], df_s.iloc[8, 4], df_s.iloc[8, 5]
