@@ -57,7 +57,11 @@ def get_market_data(ticker_symbol):
 # נתונים
 URL_SUMMARY = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=1388477026&single=true&output=csv"
 URL_DATA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=0&single=true&output=csv"
-USD_RATE = 3.7
+    try:
+        usd_data = yf.Ticker("ILS=X").history(period="1d")
+        if not usd_data.empty:
+            # לוקח את המחיר האחרון שנסגר ומעגל ל-2 ספרות
+            USD_RATE = round(usd_data['Close'].iloc[-1], 2)
 
 # --- CSS ---
 st.markdown("""
