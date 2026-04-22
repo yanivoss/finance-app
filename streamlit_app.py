@@ -246,52 +246,77 @@ try:
     with tab2:
         st.markdown("<h2 style='text-align:right;'>📋 פירוט תיק הנכסים</h2>", unsafe_allow_html=True)
         
-        # פונקציית עזר ליצירת "כרטיס נכס" מעוצב בתוך הפירוט
-        def asset_card(name, owner, val, delta_html):
+        # פונקציה פנימית לעיצוב הכרטיס - כולל נתוני הפקדות ותחילת שנה
+        def asset_card(name, owner, val_now, val_start, deposits, delta_html):
             st.markdown(f"""
-                <div style="background: white; padding: 15px; border-radius: 12px; 
-                            box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 10px; 
-                            border-right: 5px solid #2563eb;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="background: white; padding: 16px; border-radius: 16px; 
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; 
+                            border-right: 6px solid #2563eb; direction: rtl;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div style="text-align: right;">
-                            <div style="font-size: 0.85rem; color: #64748b;">מחזיק: {owner}</div>
                             <div style="font-size: 1.1rem; font-weight: 800; color: #1e293b;">{name}</div>
+                            <div style="font-size: 0.85rem; color: #444;">מחזיק: {owner}</div>
                         </div>
                         <div style="text-align: left;">
-                            <div style="font-size: 1.2rem; font-weight: 800; color: #1e293b;">₪{val:,.0f}</div>
-                            <div>{delta_html}</div>
+                            <div style="font-size: 1.25rem; font-weight: 800; color: #1e293b;">₪{val_now:,.0f}</div>
+                            {delta_html}
                         </div>
+                    </div>
+                    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #f1f5f9; 
+                                display: flex; justify-content: space-between; font-size: 0.8rem; color: #444;">
+                        <span>💰 הפקדות השנה: <b>₪{deposits:,.0f}</b></span>
+                        <span>📅 תחילת שנה: <b>₪{val_start:,.0f}</b></span>
                     </div>
                 </div>
             """, unsafe_allow_html=True)
 
-        # טעינת הנתונים
-        raw_data = df_d.iloc[0:15].copy()
-
-        # הגדרת הקבוצות לפי הלוגיקה של הגיליון שלך
+        # הגדרת הקבוצות לפי אינדקסים בגיליון DATA
         groups = {
-            "🏦 קרנות פנסיה": [0, 1, 3],       # שורות פנסיה בגיליון
-            "📈 קרנות השתלמות": [2, 4],        # שורות השתלמות
-            "💰 חשבונות מסחר": [7, 8, 9],      # אקסלנס, אינטראקטיב, איסתא
-            "🍼 חיסכון לילדים": [12, 13, 14],  # עמית, נועם, קופת גמל להשקעה
-            "🏥 קרנות וחיסכון": [5, 6, 11]      # איילון, פועלים, מיטב
+            "🏦 קרנות פנסיה": [0, 1, 3],
+            "📈 קרנות השתלמות": [2, 4],
+            "💎 תיק השקעות ומסחר": [7, 8, 9],
+            "👦 חיסכון לילדים": [12, 13, 14],
+            "🏥 נזיל וקופות גמל": [5, 6, 11, 15]
         }
 
+        # טעינת נתונים גולמיים מהגיליון
+        raw_data = df_d.iloc[0:16].copy()
+
         for group_name, row_indices in groups.items():
-            with st.expander(group_name, expanded=True):
-                for idx in row_indices:
+            # חישוב סיכומים לקבוצה (עבור הכותרת)
+            g_now, g_start, g_depo = 0, 0, 0
+            valid_rows = []
+
+            for idx in row_indices:
+                if idx < len(raw_data):
                     row = raw_data.iloc[idx]
-                    name = row.iloc[1]   # עמודה B
-                    owner = row.iloc[0]  # עמודה A
-                    val_now = clean_val(row.iloc[10])  # עמודה K
-                    val_start = clean_val(row.iloc[5]) # עמודה F
-                    deposits = clean_val(row.iloc[11]) # עמודה L
+                    v_now = clean_val(row.iloc[10])   # עמודה K
+                    v_start = clean_val(row.iloc[5])  # עמודה F
+                    v_depo = clean_val(row.iloc[11])  # עמודה L
                     
-                    if pd.isna(name) or (val_now == 0 and val_start == 0):
-                        continue
-                        
-                    d_html = get_delta_html(val_now, val_start, deposits, is_main_card=False)
-                    asset_card(name, owner, val_now, d_html)
+                    # בדיקה שהשורה לא ריקה ויש בה נתונים
+                    if not pd.isna(row.iloc[1]) and (v_now != 0 or v_start != 0):
+                        g_now += v_now
+                        g_start += v_start
+                        g_depo += v_depo
+                        valid_rows.append((row, v_now, v_start, v_depo))
+
+            # יצירת כותרת Expander עם סיכום כספי ואחוזי
+            if g_now > 0:
+                profit = g_now - g_start - g_depo
+                pct = (profit / g_start * 100) if g_start != 0 else 0
+                header_summary = f"{group_name} &nbsp;&nbsp; | &nbsp;&nbsp; ₪{g_now:,.0f} ({pct:+.1f}%)"
+            else:
+                header_summary = group_name
+
+            # הצגת ה-Expander והכרטיסים בתוכו
+            with st.expander(header_summary, expanded=True):
+                if not valid_rows:
+                    st.write("אין נתונים להצגה בקבוצה זו.")
+                for row, v_now, v_start, v_depo in valid_rows:
+                    d_html = get_delta_html(v_now, v_start, v_depo, is_main_card=False)
+                    asset_card(row.iloc[1], row.iloc[0], v_now, v_start, v_depo, d_html)
+   
 
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
