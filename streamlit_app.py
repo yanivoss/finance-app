@@ -244,7 +244,7 @@ try:
             i_n, i_s, i_d = df_s.iloc[3, 2], df_s.iloc[3, 4], df_s.iloc[3, 5]
             st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s, i_d, False)}<div class="split-text">אופציות מנהלים</div></div>', unsafe_allow_html=True)
     with tab2:
-        st.markdown("<h2 style='text-align:right;'>📋 פירוט תיק הנכסים</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:right;color: black;'>📋 פירוט תיק הנכסים</h2>", unsafe_allow_html=True)
         
         # פונקציה פנימית לעיצוב הכרטיס - כולל נתוני הפקדות ותחילת שנה
         def asset_card(name, owner, val_now, val_start, deposits, delta_html):
