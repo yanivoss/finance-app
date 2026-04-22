@@ -62,91 +62,102 @@ USD_RATE = 3.7
 # --- CSS ---
 st.markdown("""
     <style>
-    /* הגדרות בסיס ורקע */
+    /* רקע כללי וכיווניות */
     .stApp { 
         background-color: #f4f7f9; 
         direction: rtl; 
     }
     
-    /* כותרת H1 - שחורה, בולטת וקריאה בכל מסך */
+    /* כותרת H1 - הפיכה לשחור בולט עם ריווח טוב */
     h1 {
-        color: #0f172a !important;
+        color: #0f172a !important; /* כחול-כהה עמוק, כמעט שחור */
         font-weight: 800 !important;
-        padding: 20px 0 !important;
+        padding: 25px 0 !important;
         text-align: center;
-        text-shadow: none !important;
+        text-shadow: none !important; /* ביטול הצל למראה נקי ובולט */
     }
 
-    /* עיצוב הטיקרים (הקופסאות הלבנות למעלה) */
+    /* תיקון הטיקרים (הקופסאות הלבנות למעלה) */
     .ticker-box { 
         background: white; 
         border-radius: 14px; 
-        padding: 10px; 
+        padding: 12px; 
         text-align: center; 
         box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-        min-height: 90px;
-        display: flex;
-        flex-direction: column;
+        min-height: 95px; 
+        display: flex; 
+        flex-direction: column; 
         justify-content: center;
         margin-bottom: 10px;
-        border: 1px solid #e2e8f0;
     }
 
-    /* הפיכת הטקסט בתוך הטיקר לכהה מאוד */
+    /* הפיכת הטקסט בתוך הטיקרים לכהה וברור */
     .ticker-box div {
-        color: #1e293b !important;
+        color: #1e293b !important; /* צבע כהה לכל הטקסט */
     }
 
-    /* --- תיקון מיוחד למובייל (Media Query) --- */
+    /* התאמה ספציפית למובייל - כאן קורה הקסם */
     @media (max-width: 640px) {
         h1 { 
-            font-size: 1.6rem !important; 
-            padding: 10px 0 !important; 
+            font-size: 1.8rem !important; 
+            padding: 15px 0 !important;
         }
-
         .ticker-box {
-            min-height: 70px !important;
-            padding: 5px !important;
-            margin-bottom: 5px !important;
+            min-height: 80px;
+            padding: 8px;
         }
-
-        /* הקטנת טקסט הכותרת בתוך הטיקר (למשל "דולר/שקל") */
-        .ticker-box div[style*="font-size:0.7rem"] {
-            font-size: 0.65rem !important;
-            line-height: 1 !important;
-        }
-
-        /* הקטנת המספר המרכזי (למשל "3.7") */
-        .ticker-box div[style*="font-size:1.1rem"] {
-            font-size: 0.9rem !important;
-            font-weight: 800 !important;
-        }
-
-        /* הקטנת אחוז השינוי */
+        /* הקטנת פונטים במובייל כדי שלא יחרגו מהקופסה */
         .ticker-box div[style*="font-size:0.75rem"] {
-            font-size: 0.6rem !important;
+            font-size: 0.7rem !important;
+            color: #64748b !important; /* אפור כהה לכותרות הקטנות */
+        }
+        .ticker-box div[style*="font-size:1.1rem"] {
+            font-size: 1rem !important; /* המספר המרכזי */
+            font-weight: 800 !important;
         }
     }
 
-    /* עיצוב הכרטיסים הראשיים והמשניים */
+    /* עיצוב הכרטיסים הראשיים (הון נטו והתחייבויות) */
     .main-card { 
-        padding: 20px; 
+        padding: 25px 20px; 
         border-radius: 20px; 
         text-align: center; 
         color: white; 
-        margin-bottom: 10px; 
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        margin-bottom: 15px; 
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15); 
     }
     
     .sub-card { 
         background: white; 
-        padding: 15px; 
+        padding: 18px; 
         border-radius: 18px; 
         text-align: center; 
-        margin-bottom: 10px; 
-        box-shadow: 0 2px 10px rgba(0,0,0,0.04); 
+        margin-bottom: 15px; 
+        min-height: 170px; 
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04); 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+        position: relative; 
+        overflow: hidden; 
     }
-</style>
+
+    .sub-val { font-size: 1.3rem; font-weight: 800; color: #1e293b; margin: 5px 0; }
+    .sub-label { font-size: 0.95rem; color: #64748b; font-weight: 700; }
+    
+    .split-text { 
+        font-size: 0.8rem; 
+        color: #475569; 
+        margin-top: 15px; 
+        border-top: 1px solid #f1f5f9; 
+        padding-top: 12px; 
+        display: flex; 
+        justify-content: space-around; 
+        align-items: center; 
+    }
+    
+    .ltv-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 8px; }
+    </style>
 """, unsafe_allow_html=True)
 
 try:
