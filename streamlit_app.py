@@ -493,10 +493,12 @@ try:
         st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-bottom: 5px;'>הוצאה חודשית מבוקשת (₪)</p>", unsafe_allow_html=True)
         monthly_expenses_fire = st.number_input("", value=15000, step=500, key="fire_input_exp_final", label_visibility="collapsed")
         
+        # כותרת שחורה וברורה
         st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
-        return_options = [4, 6, 7, 8, 10, 12]
-        selected_return = st.pills("", return_options, selection_mode="single", default=7, key="fire_ret_pills", label_visibility="collapsed")
-        expected_return_fire = selected_return if selected_return else 7
+        
+        # שימוש בתיבת בחירה - הכי בטוח למובייל, תמיד קריא ושחור
+        return_options = [4, 5, 6, 7, 8, 9, 10, 11, 12]
+        expected_return_fire = st.selectbox("", return_options, index=3, key="fire_ret_select", label_visibility="collapsed")
 
         # חישוב יעד
         fire_target = monthly_expenses_fire * 12 * 25
