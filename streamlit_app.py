@@ -79,6 +79,7 @@ URL_DEBTS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t
 # אנחנו משתמשים בטיקר "ILS=X" שהוא הסימול לדולר/שקל ב-Yahoo Finance
 current_usd, change_pct, color, arrow = get_market_data("ILS=X")
 
+st.write("העמודות שמצאתי בגיליון הן:", df_data.columns.tolist())
 # ... הכתובות של ה-URL ששלחת ...
 df_data = pd.read_csv(URL_DATA) # נניח שזה ה-DataFrame של הפירוט
 
