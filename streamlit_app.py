@@ -6,6 +6,16 @@ import datetime
 # הגדרת דף
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed", page_icon="💰")
 
+# 2. פונקציית רענון - נגדיר אותה בנפרד כדי לא להעמיס על הלוגיקה
+def refresh_data():
+    st.cache_data.clear()
+    st.rerun()
+
+# 3. כפתור רענון ב-Sidebar
+# שים לב: ה-if הזה לא "עוטף" את שאר הקוד! הוא עצמאי לחלוטין.
+if st.sidebar.button("🔄 רענון נתונים"):
+    refresh_data()
+
 # --- פונקציות עזר ---
 def clean_val(value):
     if pd.isna(value) or value == '': return 0.0
