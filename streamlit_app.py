@@ -403,58 +403,41 @@ try:
                             </div>
                         </div>
                     """
-                    st.markdown(debt_html, unsafe_allow_html=True)
-       
+                    st.markdown(debt_card_html, unsafe_allow_html=True)
+                        
+        except Exception as e:
+            st.info(f"ממתין לעדכון נתוני התחייבויות...")
+
+    # כאן מתחיל טאב 3 - שים לב שהוא באותה רמת הזחה (רווחים) כמו with tab2
     with tab3:
         st.markdown("<h2 style='text-align:right; color: #1e293b;'>🚀 מחשבון חופש כלכלי (FIRE)</h2>", unsafe_allow_html=True)
-        st.info("מחשבון זה בודק מתי ההון העצמי שלך יספיק כדי לכסות את ההוצאות החודשיות שלך ללא תלות בעבודה.")
-
-        # יצירת פאנל הגדרות ב-3 עמודות
-        col1, col2, col3 = st.columns(3)
+        
+        # הגדרות משתמש
+        col1, col2 = st.columns(2)
         with col1:
-            monthly_expenses = st.number_input("הוצאה חודשית מבוקשת בפרישה (₪)", value=15000, step=500)
+            monthly_expenses = st.number_input("הוצאה חודשית מבוקשת (₪)", value=15000, step=500, key="fire_expenses")
         with col2:
-            monthly_savings = st.number_input("הפקדה חודשית מתוכננת (₪)", value=2000, step=100)
-        with col3:
-            expected_return = st.slider("תשואה שנתית משוערת (%)", 1, 10, 7)
+            expected_return = st.slider("תשואה שנתית משוערת (%)", 1, 10, 7, key="fire_return")
 
-        # לוגיקה של חוק ה-4% (הון נדרש = הוצאה שנתית כפול 25)
-        annual_expenses = monthly_expenses * 12
-        fire_target = annual_expenses * 25
+        # חישוב יעד לפי חוק ה-4%
+        fire_target = monthly_expenses * 12 * 25
         
-        # שימוש בהון העצמי שחושב בטאבים הקודמים
-        # הערה: וודא שהמשתנה net_worth_now מוגדר אצלך למעלה כ (נכסים - התחייבויות)
-        current_net_worth = net_worth_now 
+        # שימוש בהון העצמי שחישבנו בטאב 1 (וודא שהמשתנה net_worth_now קיים למעלה)
+        # אם עוד לא הגדרת אותו, נשתמש ב-0 כדי שלא תקרוס
+        current_net = locals().get('net_worth_now', 0)
+        progress = min(current_net / fire_target, 1.0) if fire_target > 0 else 0
         
-        progress = (current_net_worth / fire_target) if fire_target > 0 else 0
+        # תצוגת מדדים
+        st.metric("יעד הון נדרש", f"₪{fire_target:,.0f}")
+        st.write(f"**התקדמות ליעד:** {progress:.1%}")
+        st.progress(progress)
         
-        # תצוגת הכרטיסים המרכזיים
-        st.markdown(f"""
-            <div style="display: flex; gap: 15px; direction: rtl; margin-bottom: 25px;">
-                <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 5px solid #3b82f6; text-align: right;">
-                    <div style="font-size: 0.9rem; color: #64748b;">יעד הון נדרש (4%)</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">₪{fire_target:,.0f}</div>
-                </div>
-                <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 5px solid #10b981; text-align: right;">
-                    <div style="font-size: 0.9rem; color: #64748b;">הכנסה פאסיבית נוכחית</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #10b981;">₪{(current_net_worth * 0.04 / 12):,.0f}</div>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.info(f"לפי חוק ה-4%, עם הון של ₪{fire_target:,.0f} תוכל למשוך ₪{monthly_expenses:,.0f} בחודש לנצח.")
 
-        # מד התקדמות ויזואלי
-        st.markdown(f"<div style='text-align: right; font-weight: bold;'>התקדמות ליעד: {progress:.1%}</div>", unsafe_allow_html=True)
-        st.progress(min(progress, 1.0))
-        
-        # חישוב שנים נותרות (מקורב)
-        st.markdown("---")
-        st.subheader("🗓️ תחזית צמיחה")
-        if current_net_worth < fire_target:
-            st.write(f"לפי הנתונים שלך, חסר לך סכום של **₪{max(fire_target - current_net_worth, 0):,.0f}** כדי להגיע לעצמאות כלכלית.")
-        else:
-            st.success("מזל טוב! לפי חוק ה-4%, הגעת לעצמאות כלכלית!")
-
-
+# סגירת ה-try הכללי של כל האפליקציה (זה חייב להיות בסוף!)
+except Exception as e:
+    st.error(f"שגיאה בטעינת הנתונים: {e}")
+                    
         
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
