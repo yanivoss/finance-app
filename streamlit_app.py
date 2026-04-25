@@ -497,15 +497,16 @@ try:
         progress = min(current_net / fire_target, 1.0) if fire_target > 0 else 0
         
         # תצוגה נקייה וסימטרית
+        # כרטיסי מידע משופרים - עיצוב נקי עם צל ועומק
         st.markdown(f"""
-            <div style="display: flex; gap: 15px; direction: rtl; margin-top: 10px;">
-                <div style="flex: 1; background: white; padding: 20px; border-radius: 15px; border: 1px solid #e2e8f0; border-right: 8px solid #10b981; text-align: right;">
-                    <div style="font-size: 0.8rem; color: #64748b;">הון עצמי נוכחי</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">₪{current_net:,.0f}</div>
+            <div style="display: flex; gap: 12px; direction: rtl; margin-top: 20px;">
+                <div style="flex: 1; background: white; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-right: 6px solid #10b981; text-align: right;">
+                    <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px; font-weight: 500;">הון נוכחי</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: #0f172a;">₪{current_net:,.0f}</div>
                 </div>
-                <div style="flex: 1; background: white; padding: 20px; border-radius: 15px; border: 1px solid #e2e8f0; border-right: 8px solid #3b82f6; text-align: right;">
-                    <div style="font-size: 0.8rem; color: #64748b;">יעד הון (4%)</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">₪{fire_target:,.0f}</div>
+                <div style="flex: 1; background: white; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-right: 6px solid #3b82f6; text-align: right;">
+                    <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px; font-weight: 500;">יעד פרישה</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: #0f172a;">₪{fire_target:,.0f}</div>
                 </div>
             </div>
         """, unsafe_allow_html=True)
