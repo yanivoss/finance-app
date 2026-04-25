@@ -212,32 +212,22 @@ st.markdown("""
 
 try:
     df_s = pd.read_csv(URL_SUMMARY)
-
-    # 1. טעינת נתונים גולמיים
-    df_s = pd.read_csv(URL_SUMMARY)
     df_d = pd.read_csv(URL_DATA)
-    
-    # 2. הרצת עדכון לייב לאיסתא
+    # 2. עדכון לייב של איסתא - כאן קורה הקסם
     live_issta_value, current_issta_price = get_issta_live_value()
     
     if live_issta_value is not None:
-        # עדכון טאב 1 (Summary): שורה 4 (אינדקס 3), עמודה C (אינדקס 2)
+        # עדכון טאב 1: שורה 4 (אינדקס 3), עמודה C (אינדקס 2) בגיליון הסיכום
         df_s.iloc[3, 2] = live_issta_value
         
-        # עדכון טאב 2 (Detail): חיפוש השורה שכתוב בה ISSTA בעמודה B (אינדקס 1)
-        # ועדכון עמודה P (אינדקס 15) שהיא השווי הנוכחי
+        # עדכון טאב 2: חיפוש המילה ISSTA בגיליון הנתונים ועדכון עמודת השווי (אינדקס 15)
         mask = df_d.iloc[:, 1].astype(str).str.contains('ISSTA', case=True, na=False)
         if mask.any():
             df_d.loc[mask, df_d.columns[15]] = live_issta_value
             
-        # שמירת המחיר להצגה בוידג'טים
+        # שמירת המחיר לשימוש בוידג'טים/התראות
         st.session_state['last_issta_price'] = current_issta_price
 
-    # 3. משיכת נתוני שוק אחרים
-    sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
-    btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
-
-    df_d = pd.read_csv(URL_DATA)
     sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
     btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
 
