@@ -212,7 +212,7 @@ st.markdown("""
 
 try:
     df_s = pd.read_csv(URL_SUMMARY)
-try:
+
     # 1. טעינת נתונים גולמיים
     df_s = pd.read_csv(URL_SUMMARY)
     df_d = pd.read_csv(URL_DATA)
