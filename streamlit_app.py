@@ -412,49 +412,52 @@ try:
     with tab3:
         st.markdown("<h2 style='text-align:right; color: #1e293b;'>🚀 מחשבון חופש כלכלי (FIRE)</h2>", unsafe_allow_html=True)
         
-        # הגדרות משתמש
-        col1, col2 = st.columns(2)
-        with col1:
-            monthly_expenses = st.number_input("הוצאה חודשית מבוקשת (₪)", value=15000, step=500, key="fire_expenses")
-        with col2:
-            expected_return = st.slider("תשואה שנתית משוערת (%)", 1, 10, 7, key="fire_return")
+        # פריסה חדשה כדי למנוע כפילויות ועיצוב שבור
+        col_input1, col_input2 = st.columns([1, 1])
+        
+        with col_input1:
+            monthly_expenses = st.number_input("הוצאה חודשית מבוקשת (₪)", value=15000, step=500, key="fire_exp_new")
+        
+        with col_input2:
+            # הוספת padding בטקסט כדי שהסליידר לא יעלה על המספר
+            expected_return = st.slider("תשואה שנתית משוערת (%)", 1, 12, 7, key="fire_ret_new")
 
-        # חישוב יעד לפי חוק ה-4%
+        # משיכת הנתונים - כאן התיקון הקריטי
+        # אנחנו מוודאים ש-net_worth_now הוא סך הנכסים פחות סך ההתחייבויות
+        # אם יש לך שמות משתנים אחרים בטאב 1, תחליף אותם כאן:
+        try:
+            # ניסיון למשוך את הסיכומים שכבר עשית
+            current_net = net_worth_now 
+        except NameError:
+            # אם המשתנה לא הוגדר גלובלית, נחשב אותו מחדש מהמשתנים הקיימים
+            current_net = total_assets - total_liabilities if 'total_assets' in locals() else 0
+
         fire_target = monthly_expenses * 12 * 25
+        progress = min(current_net / fire_target, 1.0) if fire_target > 0 else 0
         
-        # שימוש בהון העצמי שחישבנו בטאב 1 (וודא שהמשתנה net_worth_now קיים למעלה)
-        # אם עוד לא הגדרת אותו, נשתמש ב-0 כדי שלא תקרוס
-        # משיכת הנתונים האמיתיים מהחישובים שלך
-        # ננסה לקחת את נתוני הנכסים והחובות שכבר חישבת בטאבים הקודמים
-        current_net = locals().get('net_worth_now', 0)
-        
-        # אם המשתנה net_worth_now לא נמצא, ננסה לחשב אותו כאן במהירות
-        if current_net == 0:
-             try:
-                 # כאן כדאי לוודא שסכמת את כל הנכסים פחות החובות למשתנה אחד
-                 # לצורך הבדיקה, בוא נוודא שזה מושך מהסיכום הכללי שלך
-                 current_net = total_assets - total_liabilities # או השמות שהשתמשת בהם
-             except:
-                 current_net = 0
-
-        progress = (current_net / fire_target) if fire_target > 0 else 0
-        
-        # תצוגת הכרטיסים עם הנתונים האמיתיים
+        # כרטיסי מידע מעוצבים מחדש
         st.markdown(f"""
-            <div style="display: flex; gap: 15px; direction: rtl; margin-bottom: 25px;">
-                <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 5px solid #10b981; text-align: right;">
-                    <div style="font-size: 0.9rem; color: #64748b;">הון עצמי נוכחי</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">₪{current_net:,.0f}</div>
+            <div style="display: flex; gap: 20px; direction: rtl; margin-top: 20px;">
+                <div style="flex: 1; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-right: 8px solid #10b981; text-align: right;">
+                    <div style="font-size: 0.9rem; color: #64748b; font-weight: 600;">הון עצמי נוכחי</div>
+                    <div style="font-size: 1.8rem; font-weight: 900; color: #1e293b;">₪{current_net:,.0f}</div>
                 </div>
-                <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 5px solid #3b82f6; text-align: right;">
-                    <div style="font-size: 0.9rem; color: #64748b;">הכנסה פסיבית פוטנציאלית</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #10b981;">₪{(current_net * 0.04 / 12):,.0f}</div>
+                <div style="flex: 1; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-right: 8px solid #3b82f6; text-align: right;">
+                    <div style="font-size: 0.9rem; color: #64748b; font-weight: 600;">יעד הון (לפי 4%)</div>
+                    <div style="font-size: 1.8rem; font-weight: 900; color: #1e293b;">₪{fire_target:,.0f}</div>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
-        st.markdown(f"<div style='text-align: right; font-weight: bold;'>התקדמות ליעד: {progress:.1%}</div>", unsafe_allow_html=True)
-        st.progress(min(progress, 1.0))
+        # מד התקדמות
+        st.markdown(f"<div style='text-align: right; margin-top: 30px; font-weight: bold; color: #1e293b;'>אחוז כיסוי מהיעד: {progress:.1%}</div>", unsafe_allow_html=True)
+        st.progress(progress)
+        
+        # תובנה אישית
+        passive_income = (current_net * 0.04) / 12
+        st.success(f"ההון הנוכחי שלך מייצר לך פוטנציאלית **₪{passive_income:,.0f}** בחודש נטו.")
+    
+    
         
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
