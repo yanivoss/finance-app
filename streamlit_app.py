@@ -443,6 +443,24 @@ try:
     # כאן מתחיל טאב 3 - שים לב שהוא באותה רמת הזחה (רווחים) כמו with tab2
     with tab3:
         st.markdown("""
+    <style>
+        /* הכרחת בועת הערך של הסליידר להיות גלויה תמיד */
+        div[data-testid="stSlider"] [data-testid="stThumbValue"] {
+            display: flex !important;
+            color: black !important;
+            font-weight: bold !important;
+            font-size: 1rem !important;
+            background-color: transparent !important;
+        }
+        
+        /* תיקון מיקום הבועה שתהיה מעל הנקודה ולא תוסתר */
+        div[data-testid="stSlider"] [data-baseweb="slider"] {
+            margin-top: 30px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+        
+        st.markdown("""
             <style>
                 div[data-testid="stWidgetLabel"] p {
                     color: black !important;
