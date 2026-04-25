@@ -346,8 +346,9 @@ try:
         try:
             # שליפת הנתונים מגיליון התחייבויות
             # שים לב לשנות את "שם הקובץ שלך" לשם המדויק של הקובץ בגוגל דרייב
-            worksheet_debts = client.open("הון עצמי + ביטוחים").worksheet("התחייבויות")
-            df_debts = pd.DataFrame(worksheet_debts.get_all_records())
+            sh_debts = client.open("הון עצמי + ביטוחים")
+            ws_debts = sh_debts.worksheet("התחייבויות")
+            debt_data = ws_debts.get_all_values()
             
             # הגדרת אינדקסים: 0 עבור אתי, 2 עבור משכנתא (מדלגים על פועלים שבשורה 1)
             debt_indices = [0, 2] 
