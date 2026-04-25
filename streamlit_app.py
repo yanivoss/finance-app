@@ -347,65 +347,66 @@ try:
         try:
             df_debts = pd.read_csv(URL_DEBTS)
             debt_indices = [0, 2] 
+            
+            # חישוב סכומים לסיכום הכותרת
+            total_debt_now = 0
+            total_debt_prev = 0
+            valid_debts = []
 
             for idx in debt_indices:
                 if idx < len(df_debts):
                     row = df_debts.iloc[idx]
-                    
+                    d_val = clean_val(row.iloc[10])
+                    d_val_prev = clean_val(row.iloc[7])
+                    if d_val > 0:
+                        total_debt_now += d_val
+                        total_debt_prev += d_val_prev
+                        valid_debts.append((row, d_val, d_val_prev))
+
+            # יצירת כותרת עם סיכום (כמו בנכסים)
+            debt_diff = total_debt_now - total_debt_prev
+            debt_pct = (debt_diff / total_debt_prev * 100) if total_debt_prev != 0 else 0
+            
+            # בחוב: אם ירד (שלילי) זה ירוק, אם עלה זה אדום
+            debt_indicator = "🟢" if debt_diff <= 0 else "🔴"
+            debt_header = f"ריכוז התחייבויות | ₪{total_debt_now:,.0f} {debt_indicator} ({debt_pct:+.1f}%)"
+
+            # יצירת ה-Expander
+            with st.expander(debt_header, expanded=True):
+                for row, d_val, d_val_prev in valid_debts:
                     d_name = str(row.iloc[1])
-                    d_val = clean_val(row.iloc[10])     # 2026 (עמודה K)
-                    d_val_prev = clean_val(row.iloc[7]) # 2025 (עמודה H)
-                    
-                    # חישוב שינוי
                     diff = d_val - d_val_prev
-                    pct_change = (diff / d_val_prev * 100) if d_val_prev != 0 else 0
-                    
-                    # לוגיקה הפוכה לחוב: ירידה (diff שלילי) היא חיובית (צבע ירוק)
+                    pct = (diff / d_val_prev * 100) if d_val_prev != 0 else 0
                     color = "#4CAF50" if diff <= 0 else "#e11d48"
                     arrow = "▼" if diff <= 0 else "▲"
 
-                    if d_val > 0:
-                        # יצירת מחרוזת ה-HTML בנפרד
-                        html_template = """
+                    debt_html = f"""
                         <div style='background: white; padding: 20px; border-radius: 20px; 
                                     box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 16px; 
                                     border-right: 8px solid #e11d48; direction: rtl; text-align: right;'>
                             <div style='display: flex; justify-content: space-between; align-items: start;'>
                                 <div>
-                                    <div style='font-size: 1.2rem; font-weight: 800; color: #1e293b;'>{name}</div>
+                                    <div style='font-size: 1.2rem; font-weight: 800; color: #1e293b;'>{d_name}</div>
                                     <div style='font-size: 0.85rem; color: #64748b;'>יתרת חוב עדכנית</div>
                                 </div>
                                 <div style='text-align: left; direction: ltr;'>
-                                    <div style='font-size: 1.5rem; font-weight: 900; color: #1e293b;'>₪{val:,.0f}</div>
+                                    <div style='font-size: 1.5rem; font-weight: 900; color: #1e293b;'>₪{d_val:,.0f}</div>
                                     <div style='color: {color}; font-size: 0.9rem; font-weight: 600; margin-top: 4px;'>
-                                        {arrow} ₪{diff_abs:,.0f} ({pct:+.1f}%)
+                                        {arrow} ₪{abs(diff):,.0f} ({abs(pct):.1f}%)
                                     </div>
                                 </div>
                             </div>
                             <div style='margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; direction: rtl;'>
-                                <span style='font-size: 0.8rem; color: #64748b;'>📅 יתרה ב-2025: <b>₪{prev:,.0f}</b></span>
+                                <span style='font-size: 0.8rem; color: #64748b;'>📅 יתרה ב-2025: <b>₪{d_val_prev:,.0f}</b></span>
                                 <span style='font-size: 0.8rem; color: #64748b;'>📉 שינוי שנתי</span>
                             </div>
                         </div>
-                        """
+                    """
+                    st.markdown(debt_html, unsafe_allow_html=True)
                         
-                        # הזרקת הנתונים לתוך ה-Template
-                        formatted_html = html_template.format(
-                            name=d_name,
-                            val=d_val,
-                            color=color,
-                            arrow=arrow,
-                            diff_abs=abs(diff),
-                            pct=pct_change,
-                            prev=d_val_prev
-                        )
-                        
-                        # הצגה סופית
-                        st.markdown(formatted_html, unsafe_allow_html=True)
-
-                       
         except Exception as e:
-            st.info("ממתין לעדכון נתוני התחייבויות...")
+            st.info(f"ממתין לעדכון נתוני התחייבויות... ({e})")
+
 
         
 except Exception as e:
