@@ -451,29 +451,29 @@ try:
                     font-weight: bold !important;
                     text-align: right;
                 }
-                
-                /* עיצוב ה-Pills (הכפתורים) */
-                /* כפתור לא נבחר */
-                div[data-testid="stBaseButton-secondaryPill"] {
-                    border: 1px solid #e2e8f0 !important;
-                    background-color: #f8fafc !important;
+                /* עיצוב ה-Pills המעודכן */
+                /* כפתור לא נבחר - רקע בהיר */
+                button[data-testid="stBaseButton-secondaryPill"] {
+                    background-color: #f0f2f6 !important;
                     color: black !important;
+                    border: 1px solid #d1d5db !important;
                     border-radius: 10px !important;
                 }
                 
-                /* כפתור נבחר */
-                div[data-testid="stBaseButton-secondaryPill"][aria-checked="true"] {
+                /* כפתור נבחר - רקע שחור */
+                button[data-testid="stBaseButton-secondaryPill"][aria-checked="true"] {
                     background-color: black !important;
                     color: white !important;
                     border-color: black !important;
                     font-weight: bold !important;
                 }
 
-                /* יישור לימין של רכיב ה-Pills */
-                div[data-testid="stPills"] {
-                    direction: rtl;
+                /* יישור לימין חזק מותאם למובייל */
+                div[data-testid="stPills"] > div {
+                    justify-content: flex-end !important;
+                    flex-direction: row-reverse !important;
                 }
-
+                
                 /* עיצוב הודעת ההצלחה (Success) למטה */
                 div.stSuccess {
                     background-color: #f0fdf4;
