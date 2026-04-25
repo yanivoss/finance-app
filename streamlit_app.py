@@ -285,6 +285,7 @@ try:
             "💎 תיק השקעות ומסחר": [7, 8, 9],
             "👦 חיסכון לילדים": [12, 13, 14],
             "🏥 נזיל וקופות גמל": [5, 6, 11, 15]
+            "✈️ חיסכון לחופשה": [19]  # הוספת השורה של החופשה כאן
         }
 
         # טעינת נתונים גולמיים מהגיליון
@@ -301,6 +302,12 @@ try:
                     v_now = clean_val(row.iloc[15])   # עמודה K
                     v_start = clean_val(row.iloc[10])  # עמודה F
                     v_depo = clean_val(row.iloc[16])  # עמודה L
+
+                    # לוגיקה נקודתית לאינטראקטיב:
+                    display_currency = "₪"
+                    if "אינטראקטיב" in asset_name:
+                        v_now = v_now * USD_RATE  # רק השווי הנוכחי הופך לשקלים
+                        display_currency = "$"    # סימן המטבע לשאר הנתונים יהיה דולר
                     
                     # בדיקה שהשורה לא ריקה ויש בה נתונים
                     if not pd.isna(row.iloc[1]) and (v_now != 0 or v_start != 0):
@@ -327,7 +334,7 @@ try:
                     st.write("אין נתונים להצגה בקבוצה זו.")
                 for row, v_now, v_start, v_depo in valid_rows:
                     d_html = get_delta_html(v_now, v_start, v_depo, is_main_card=False)
-                    asset_card(row.iloc[1], row.iloc[0], v_now, v_start, v_depo, d_html)
+                    asset_card(row.iloc[1], row.iloc[0], v_now, v_start, v_depo, d_html, display_currency)
    
 
 except Exception as e:
