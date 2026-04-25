@@ -363,10 +363,9 @@ try:
                     # לוגיקה הפוכה לחוב: ירידה (diff שלילי) היא חיובית (צבע ירוק)
                     color = "#4CAF50" if diff <= 0 else "#e11d48"
                     arrow = "▼" if diff <= 0 else "▲"
-                    
+
                     if d_val > 0:
-                        # שים לב לשימוש ב-st.markdown עם unsafe_allow_html=True
-                        st.markdown(f"""
+                        debt_html = f"""
                             <div style="background: white; padding: 20px; border-radius: 20px; 
                                         box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 16px; 
                                         border-right: 8px solid #e11d48; direction: rtl;">
