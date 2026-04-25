@@ -479,7 +479,7 @@ try:
                     }
                 </style>
             """, unsafe_allow_html=True)
-            expected_return_fire = st.slider("", 1, 12, 7, key="fire_slider_final", label_visibility="collapsed")
+            expected_return_fire = st.slider("", 1, 12, 7, key="fire_ret_fix", label_visibility="collapsed")
 
         fire_target = monthly_expenses_fire * 12 * 25
         
