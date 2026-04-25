@@ -183,44 +183,38 @@ try:
     with m2: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#black;">📈 S&P 500</div><div style="font-size:1.1rem; font-weight:800;">{sp_p:,.0f}</div><div style="color:{sp_col}; font-size:0.75rem; font-weight:bold;">{sp_a} {abs(sp_c):.1f}%</div></div>', unsafe_allow_html=True)
     with m3: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#black;">₿ Bitcoin</div><div style="font-size:1.1rem; font-weight:800;">${btc_p:,.0f}</div><div style="color:{btc_col}; font-size:0.75rem; font-weight:bold;">{btc_a} {abs(btc_c):.1f}%</div></div>', unsafe_allow_html=True)
 
-    # הזרקת CSS לתיקון הטאבים: צבע שחור, יישור לימין והדגשה
     # הזרקת CSS לשינוי עיצוב הטאבים למראה נקי ומותאם למובייל
+    # הזרקת CSS מתוקן ליישור מוחלט לימין
     st.markdown("""
         <style>
-            /* יישור כל רצועת הטאבים לימין */
+            /* הגדרת כל אזור הטאבים כימין לשמאל */
+            div[data-testid="stTabs"] {
+                direction: rtl !important;
+            }
+
+            /* יישור רצועת הכפתורים עצמה */
             div[data-testid="stTabs"] [data-baseweb="tab-list"] {
                 display: flex;
-                flex-direction: row-reverse; /* הופך את הסדר לימין לשמאל */
-                justify-content: flex-start;
+                justify-content: flex-start !important;
+                flex-direction: row !important; /* direction:rtl כבר דואג להיפוך */
                 gap: 8px;
             }
 
-            /* עיצוב כפתורי הטאבים */
-            div[data-testid="stTabs"] button {
-                padding: 5px 10px !important;
-            }
-
-            /* עיצוב הטקסט בתוך הטאבים - פחות מודגש ויותר קטן למובייל */
+            /* עיצוב הטקסט בתוך הטאבים */
             div[data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p {
                 color: black !important;
-                font-weight: 500 !important; /* Bold עדין יותר */
-                font-size: 0.9rem !important; /* מעט קטן יותר כדי למנוע שבירת שורות */
-                text-align: right;
+                font-weight: 500 !important;
+                font-size: 0.9rem !important;
+                white-space: nowrap;
             }
 
-            /* קו תחתון עדין לטאב הנבחר */
+            /* הדגשת הקו התחתון של הטאב הנבחר בשחור */
             div[data-testid="stTabs"] button[aria-selected="true"] {
                 border-bottom-color: black !important;
             }
-            
-            /* מניעת כיווץ יתר של טאבים במובייל */
-            div[data-testid="stTabs"] button {
-                white-space: nowrap;
-                min-width: auto !important;
-            }
         </style>
     """, unsafe_allow_html=True)
-
+    
     tab1, tab2, tab3 = st.tabs(["🏠 מבט על", "📋 פירוט", "🚀 מחשבון פרישה"])
     
     with tab1:
