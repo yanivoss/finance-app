@@ -358,7 +358,12 @@ try:
                     # שימוש בשמות העמודות כפי שהם מופיעים ב-CSV
                     # (אם השמות שונים, הקוד ישתמש במיקום העמודה)
                     d_name = row.iloc[1] # עמודה B
-                    d_val = clean_val(row.iloc[10]) # עמודה K
+                    d_val = clean_val(row.iloc[10])     # שווי נוכחי 2026 (עמודה K)
+                    d_val_prev = clean_val(row.iloc[7]) # שווי קודם 2025 (עמודה H)  
+                    diff = d_val - d_val_prev
+                    pct_change = (diff / d_val_prev * 100) if d_val_prev != 0 else 0
+                    color = "#4CAF50" if diff <= 0 else "#e11d48"
+                    arrow = "▼" if diff <= 0 else "▲"
                     
                     if d_val > 0:
                         st.markdown(f"""
