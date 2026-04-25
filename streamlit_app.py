@@ -252,7 +252,7 @@ try:
         with r4c2:
             i_n, i_s, i_d = df_s.iloc[3, 2], df_s.iloc[3, 4], df_s.iloc[3, 5]
             st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ אופציות איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s, i_d, False)}<div class="split-text">ממתין למימוש </div></div>', unsafe_allow_html=True)
-        pass
+        
     with tab2:
         st.markdown("<h2 style='text-align:right;color: black;'>📋 פירוט תיק הנכסים</h2>", unsafe_allow_html=True)
         
@@ -404,7 +404,7 @@ try:
                         </div>
                     """
                     st.markdown(debt_html, unsafe_allow_html=True)
-       pass
+       
     with tab3:
         st.markdown("<h2 style='text-align:right; color: #1e293b;'>🚀 מחשבון חופש כלכלי (FIRE)</h2>", unsafe_allow_html=True)
         st.info("מחשבון זה בודק מתי ההון העצמי שלך יספיק כדי לכסות את ההוצאות החודשיות שלך ללא תלות בעבודה.")
