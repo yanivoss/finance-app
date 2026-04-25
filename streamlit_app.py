@@ -302,6 +302,8 @@ try:
                     v_now = clean_val(row.iloc[15])   # עמודה K
                     v_start = clean_val(row.iloc[10])  # עמודה F
                     v_depo = clean_val(row.iloc[16])  # עמודה L
+                    # 1. קודם כל מגדירים את שם הנכס מהעמודה השנייה (B)
+                    asset_name = str(row.iloc[1])
 
                     # לוגיקה נקודתית לאינטראקטיב:
                     display_currency = "₪"
