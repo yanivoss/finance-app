@@ -365,32 +365,45 @@ try:
                     arrow = "▼" if diff <= 0 else "▲"
 
                     if d_val > 0:
-                        debt_html = f"""
-                            <div style="background: white; padding: 20px; border-radius: 20px; 
-                                        box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 16px; 
-                                        border-right: 8px solid #e11d48; direction: rtl;">
-                                
-                                <div style="display: flex; justify-content: space-between; align-items: start;">
-                                    <div style="text-align: right;">
-                                        <div style="font-size: 1.2rem; font-weight: 800; color: #1e293b;">{d_name}</div>
-                                        <div style="font-size: 0.85rem; color: #64748b;">יתרת חוב עדכנית</div>
-                                    </div>
-                                    <div style="text-align: left;">
-                                        <div style="font-size: 1.5rem; font-weight: 900; color: #1e293b;">₪{d_val:,.0f}</div>
-                                        <div style="color: {color}; font-size: 0.9rem; font-weight: 600; margin-top: 4px;">
-                                            {arrow} ₪{abs(diff):,.0f} ({abs(pct_change):.1f}%)
-                                        </div>
-                                    </div>
+                        # יצירת מחרוזת ה-HTML בנפרד
+                        html_template = """
+                        <div style='background: white; padding: 20px; border-radius: 20px; 
+                                    box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 16px; 
+                                    border-right: 8px solid #e11d48; direction: rtl; text-align: right;'>
+                            <div style='display: flex; justify-content: space-between; align-items: start;'>
+                                <div>
+                                    <div style='font-size: 1.2rem; font-weight: 800; color: #1e293b;'>{name}</div>
+                                    <div style='font-size: 0.85rem; color: #64748b;'>יתרת חוב עדכנית</div>
                                 </div>
-                                
-                                <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between;">
-                                    <span style="font-size: 0.8rem; color: #64748b;">📅 יתרה ב-2025: <b>₪{d_val_prev:,.0f}</b></span>
-                                    <span style="font-size: 0.8rem; color: #64748b;">📉 שינוי שנתי 📉</span>
+                                <div style='text-align: left; direction: ltr;'>
+                                    <div style='font-size: 1.5rem; font-weight: 900; color: #1e293b;'>₪{val:,.0f}</div>
+                                    <div style='color: {color}; font-size: 0.9rem; font-weight: 600; margin-top: 4px;'>
+                                        {arrow} ₪{diff_abs:,.0f} ({pct:+.1f}%)
+                                    </div>
                                 </div>
                             </div>
+                            <div style='margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; direction: rtl;'>
+                                <span style='font-size: 0.8rem; color: #64748b;'>📅 יתרה ב-2025: <b>₪{prev:,.0f}</b></span>
+                                <span style='font-size: 0.8rem; color: #64748b;'>📉 שינוי שנתי</span>
+                            </div>
+                        </div>
                         """
-                        st.markdown(debt_html, unsafe_allow_html=True)
                         
+                        # הזרקת הנתונים לתוך ה-Template
+                        formatted_html = html_template.format(
+                            name=d_name,
+                            val=d_val,
+                            color=color,
+                            arrow=arrow,
+                            diff_abs=abs(diff),
+                            pct=pct_change,
+                            prev=d_val_prev
+                        )
+                        
+                        # הצגה סופית
+                        st.markdown(formatted_html, unsafe_allow_html=True)
+
+                       
         except Exception as e:
             st.info("ממתין לעדכון נתוני התחייבויות...")
 
