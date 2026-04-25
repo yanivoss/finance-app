@@ -462,7 +462,7 @@ try:
 
         # --- החלק החדש: תחזית שנים ---
         st.markdown("---")
-        st.subheader("🗓️ מתי נגיע ליעד?")
+        st.markdown("<h3 style='text-align: right; color: black;'>🗓️ מתי נגיע ליעד?</h3>", unsafe_allow_html=True)
         
         # הנחה של הפקדה חודשית ממוצעת (תוכל להוסיף לזה input בעתיד)
         monthly_contribution = 5000 
