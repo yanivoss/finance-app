@@ -213,19 +213,22 @@ st.markdown("""
 try:
     df_s = pd.read_csv(URL_SUMMARY)
     df_d = pd.read_csv(URL_DATA)
-    # 2. עדכון לייב של איסתא - כאן קורה הקסם
+    # 2. עדכון לייב של איסתא
     live_issta_value, current_issta_price = get_issta_live_value()
     
     if live_issta_value is not None:
-        # עדכון טאב 1: שורה 4 (אינדקס 3), עמודה C (אינדקס 2) בגיליון הסיכום
+        # עדכון טאב 1: שורה 4 (אינדקס 3), עמודה C (אינדקס 2)
         df_s.iloc[3, 2] = live_issta_value
         
-        # עדכון טאב 2: חיפוש המילה ISSTA בגיליון הנתונים ועדכון עמודת השווי (אינדקס 15)
-        mask = df_d.iloc[:, 1].astype(str).str.contains('ISSTA', case=True, na=False)
+        # עדכון טאב 2: חיפוש ISSTA בעמודה B (אינדקס 1) - הוספת astype(str) למניעת השגיאה
+        # אנחנו מוודאים שהעמודה מטופלת כטקסט לצורך החיפוש
+        column_to_search = df_d.iloc[:, 1].astype(str)
+        mask = column_to_search.str.contains('ISSTA', case=True, na=False)
+        
         if mask.any():
-            df_d.loc[mask, df_d.columns[15]] = live_issta_value
+            # עדכון השווי בעמודה 15 (עמודה P)
+            df_d.iloc[mask[mask].index, 15] = live_issta_value
             
-        # שמירת המחיר לשימוש בוידג'טים/התראות
         st.session_state['last_issta_price'] = current_issta_price
 
     sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
