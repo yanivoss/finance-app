@@ -410,6 +410,15 @@ try:
 
     # כאן מתחיל טאב 3 - שים לב שהוא באותה רמת הזחה (רווחים) כמו with tab2
     with tab3:
+        st.markdown("""
+            <style>
+                div[data-testid="stWidgetLabel"] p {
+                    color: black !important;
+                    font-weight: bold !important;
+                }
+            </style>
+        """, unsafe_allow_html=True)
+        
         st.markdown("<h3 style='text-align:right; color: black;'>🚀 מחשבון חופש כלכלי (FIRE)</h3>", unsafe_allow_html=True)
         
         # הפרדה לעמודות עם יחס רוחב שונה כדי למנוע צפיפות
