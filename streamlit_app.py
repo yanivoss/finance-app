@@ -85,21 +85,28 @@ df_data = pd.read_csv(URL_DATA)
 # 2. הרצת חישוב הלייב
 live_issta_value, current_issta_price = get_issta_live_value()
 
+# --- בדיקה ויזואלית זמנית ---
+if current_issta_price:
+    st.sidebar.write(f"מחיר מניה שהתקבל: {current_issta_price}")
+    st.sidebar.write(f"שווי אופציות לחישוב: {live_issta_value}")
+
 if live_issta_value is not None:
-    # איתור שמות העמודות
     col_name = [c for c in df_data.columns if 'שם' in c][0]
     col_value = 'שווי' 
     
-    # --- התיקון: ניקוי והמרת עמודת השווי למספרים ---
-    # אנחנו מסירים ₪, פסיקים ורווחים כדי ש-Pandas יסכים לקבל מספר
+    # ניקוי עמודת השווי (חשוב כדי למנוע את ה-TypeError)
     df_data[col_value] = df_data[col_value].astype(str).str.replace('₪', '').str.replace(',', '').str.strip()
     df_data[col_value] = pd.to_numeric(df_data[col_value], errors='coerce')
     
-    # חיפוש השורה של איסתא
-    mask = df_data[col_name].astype(str).str.contains('ISSTA|איסתא', case=False, na=False)
+    # שימוש בחיפוש רחב יותר כדי לוודא שלא פספסנו את השורה
+    mask = df_data[col_name].astype(str).str.contains('ISSTA|איסתא|issta', case=False, na=False)
     
-    # עכשיו העדכון יעבור חלק כי שני הצדדים הם מספרים
-    df_data.loc[mask, col_value] = float(live_issta_value)
+    # בדיקה אם המסיכה מצאה שורה
+    if mask.any():
+        df_data.loc[mask, col_value] = float(live_issta_value)
+        st.sidebar.success("השווי עודכן בטבלה!")
+    else:
+        st.sidebar.error(f"לא נמצאה שורה עם השם 'איסתא' בעמודה '{col_name}'")
     
     st.session_state['last_issta_price'] = current_issta_price
 
