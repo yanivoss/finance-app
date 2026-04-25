@@ -6,12 +6,6 @@ import datetime
 # הגדרת דף
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed", page_icon="💰")
 
-# כפתור רענון בתפריט הצד - שים לב שאין רווחים בתחילת השורה
-if st.sidebar.button("🔄 רענון נתונים מהדרייב"):
-    # כאן יש הזחה כי אנחנו בתוך ה-if
-    st.cache_data.clear()
-    st.rerun()
-
 # --- פונקציות עזר ---
 def clean_val(value):
     if pd.isna(value) or value == '': return 0.0
@@ -221,7 +215,7 @@ try:
         </style>
     """, unsafe_allow_html=True)
     
-tab1, tab2, tab3 = st.tabs(["🏠 מבט על", "📋 פירוט", "🚀 מחשבון פרישה"])
+    tab1, tab2, tab3 = st.tabs(["🏠 מבט על", "📋 פירוט", "🚀 מחשבון פרישה"])
     
     with tab1:
         c1, c2 = st.columns(2)
