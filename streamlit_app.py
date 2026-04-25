@@ -477,37 +477,29 @@ try:
             st.markdown("<p style='color: black; font-weight: bold; margin-bottom: 0px; text-align: right;'>הוצאה חודשית מבוקשת (₪)</p>", unsafe_allow_html=True)
             monthly_expenses_fire = st.number_input("", value=15000, step=500, key="fire_input_exp_final", label_visibility="collapsed")
         with col_ret:
-            # כותרת שחורה
-        st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-top: 20px; margin-bottom: 10px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
-        
-        # הזרקת CSS כדי שהכפתורים הלא נבחרים יהיו בהירים והנבחר יהיה בולט
-        st.markdown("""
-            <style>
-                /* עיצוב כללי לכפתורי הבחירה */
-                div[data-testid="stWidgetLabel"] { display: none; } /* הסתרת כותרת כפולה */
-                
-                /* צבע הטקסט של האפשרויות */
-                div[data-testid="stMarkdownContainer"] p { color: black; }
-                
-                /* שינוי צבע הרקע של הכפתורים - לבן ללא נבחרים, כחול/שחור לנבחר */
-                div[data-baseweb="radio"] div {
-                    background-color: #f8fafc !important;
-                    border: 1px solid #e2e8f0 !important;
-                    color: black !important;
-                }
-            </style>
-        """, unsafe_allow_html=True)
+            # 1. כותרת שחורה ומיושרת לימין
+            st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
+            
+            # 2. כפתורי בחירה (Pills) - נקי ונוח
+            return_options = [4, 6, 7, 8, 10, 12]
+            selected_return = st.pills("", return_options, selection_mode="single", default=7, key="fire_ret_pills", label_visibility="collapsed")
+            
+            # 3. השמת הערך למשתנה החישוב שלך
+            expected_return_fire = selected_return if selected_return else 7
 
-        # יצירת שורת כפתורים (Radio אופקי) במקום סליידר
-        options = [4, 5, 6, 7, 8, 9, 10]
-        expected_return_fire = st.radio(
-            "",
-            options,
-            index=3, # ברירת מחדל על 7%
-            horizontal=True,
-            key="fire_return_buttons",
-            label_visibility="collapsed"
-        )
+            # 4. CSS לצביעת הכפתורים בשחור (במקום ה-CSS של הסליידר)
+            st.markdown("""
+                <style>
+                    div[data-testid="stBaseButton-secondaryPill"] {
+                        border: 1px solid black !important;
+                        color: black !important;
+                    }
+                    div[data-testid="stBaseButton-secondaryPill"][aria-checked="true"] {
+                        background-color: black !important;
+                        color: white !important;
+                    }
+                </style>
+            """, unsafe_allow_html=True)
         
         fire_target = monthly_expenses_fire * 12 * 25
         
