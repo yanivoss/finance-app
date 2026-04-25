@@ -410,47 +410,65 @@ try:
 
     # כאן מתחיל טאב 3 - שים לב שהוא באותה רמת הזחה (רווחים) כמו with tab2
     with tab3:
-        st.markdown("<h3 style='text-align:right;'>🚀 מחשבון חופש כלכלי</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align:right;'>🚀 מחשבון חופש כלכלי (FIRE)</h3>", unsafe_allow_html=True)
         
-        col_exp, col_ret = st.columns(2)
+        # הפרדה לעמודות עם יחס רוחב שונה כדי למנוע צפיפות
+        col_exp, col_ret = st.columns([2, 3])
         with col_exp:
-            monthly_expenses_fire = st.number_input("הוצאה חודשית מבוקשת (₪)", value=15000, step=500, key="fire_input_exp")
+            monthly_expenses_fire = st.number_input("הוצאה חודשית מבוקשת (₪)", value=15000, step=500, key="fire_input_exp_final")
         with col_ret:
-            expected_return_fire = st.slider("תשואה שנתית משוערת (%)", 1, 12, 7, key="fire_slider_ret")
+            expected_return_fire = st.slider("תשואה שנתית משוערת (%)", 1, 12, 7, key="fire_slider_ret_final")
 
         fire_target = monthly_expenses_fire * 12 * 25
         
-        # --- תיקון השגיאה: המרת n_now למספר נקי ---
+        # המרה בטוחה של n_now למספר (כדי למנוע את שגיאת ה-str/int)
         try:
             if isinstance(n_now, str):
-                # הסרת סימני ₪, פסיקים ורווחים כדי להפוך למספר
-                clean_n_now = float(n_now.replace('₪', '').replace(',', '').strip())
+                current_net = float(n_now.replace('₪', '').replace(',', '').strip())
             else:
-                clean_n_now = float(n_now)
+                current_net = float(n_now)
         except:
-            clean_n_now = 0
-            
-        current_net = clean_n_now
-        # ---------------------------------------
+            current_net = 0
 
         progress = min(current_net / fire_target, 1.0) if fire_target > 0 else 0
         
+        # תצוגה נקייה וסימטרית
         st.markdown(f"""
             <div style="display: flex; gap: 15px; direction: rtl; margin-top: 10px;">
-                <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 8px solid #10b981; text-align: right;">
-                    <div style="font-size: 0.9rem; color: #64748b;">הון עצמי נוכחי</div>
-                    <div style="font-size: 1.6rem; font-weight: 800; color: #1e293b;">₪{current_net:,.0f}</div>
+                <div style="flex: 1; background: white; padding: 20px; border-radius: 15px; border: 1px solid #e2e8f0; border-right: 8px solid #10b981; text-align: right;">
+                    <div style="font-size: 0.8rem; color: #64748b;">הון עצמי נוכחי</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">₪{current_net:,.0f}</div>
                 </div>
-                <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 8px solid #3b82f6; text-align: right;">
-                    <div style="font-size: 0.9rem; color: #64748b;">יעד הון נדרש</div>
-                    <div style="font-size: 1.6rem; font-weight: 800; color: #1e293b;">₪{fire_target:,.0f}</div>
+                <div style="flex: 1; background: white; padding: 20px; border-radius: 15px; border: 1px solid #e2e8f0; border-right: 8px solid #3b82f6; text-align: right;">
+                    <div style="font-size: 0.8rem; color: #64748b;">יעד הון (4%)</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">₪{fire_target:,.0f}</div>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
         st.markdown(f"<div style='text-align: right; margin-top: 20px; font-weight: bold;'>אחוז כיסוי מהיעד: {progress:.1%}</div>", unsafe_allow_html=True)
         st.progress(progress)
-    
+
+        # --- החלק החדש: תחזית שנים ---
+        st.markdown("---")
+        st.subheader("🗓️ מתי נגיע ליעד?")
         
+        # הנחה של הפקדה חודשית ממוצעת (תוכל להוסיף לזה input בעתיד)
+        monthly_contribution = 5000 
+        
+        # חישוב מקורב של שנים להגעה ליעד (כולל ריבית דריבית)
+        years_left = 0
+        temp_net = current_net
+        if temp_net < fire_target:
+            while temp_net < fire_target and years_left < 50:
+                temp_net = (temp_net * (1 + expected_return_fire/100)) + (monthly_contribution * 12)
+                years_left += 1
+            
+            st.success(f"בהנחה של הפקדה חודשית של ₪{monthly_contribution:,.0f}, אתה צפוי להגיע ליעד בעוד כ-**{years_left} שנים**.")
+        else:
+            st.balloons()
+            st.success("אתה כבר שם! ההון שלך מספיק לכיסוי ההוצאות לפי חוק ה-4%.")
+    
+            
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
