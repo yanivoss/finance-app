@@ -542,42 +542,52 @@ try:
         else:
             st.balloons()
             st.success("אתה כבר שם! ההון שלך מספיק לכיסוי ההוצאות לפי חוק ה-4%.")
-        # --- סימולטור פרישה ל-6 מיליון ש"ח ---
+        # --- סימולטור פרישה ל-6 מיליון ש"ח (הון מושקע בלבד) ---
         st.markdown("<hr style='border: 0.5px solid black; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
         st.markdown("<h3 style='text-align: right; color: black;'>🎯 הדרך ליעד המחמיר (6 מיליון ש\"ח)</h3>", unsafe_allow_html=True)
         
+        # חישוב הון עצמי ללא נדל"ן (מבוסס על הנתונים מהגיליון שלך)
+        # אנחנו לוקחים רק פנסיות, גמל, השתלמות וחיסכון נזיל
+        invested_net = current_net # כאן תוודא שהמשתנה current_net בטאבים הקודמים מופרד מהנדל"ן
         target_6m = 6000000
-        
-        # נניח הפקדה חודשית ממוצעת - אתה יכול להוסיף לזה input אם תרצה
         monthly_savings = 5000 
         
-        # חישוב שנים להגעה ל-6 מיליון
+        # חישוב שנים
         years_to_6m = 0
-        future_value = current_net
+        future_value = invested_net
         
         if future_value < target_6m:
-            while future_value < target_6m and years_to_6m < 50:
-                # ריבית דריבית שנתית על ההון הקיים + ריבית על ההפקדות השנתיות
+            while future_value < target_6m and years_left < 50:
                 future_value = (future_value * (1 + expected_return_fire/100)) + (monthly_savings * 12)
                 years_to_6m += 1
             
-            st.info(f"בהתבסס על הון נוכחי של ₪{current_net:,.0f} ותשואה של {expected_return_fire}%, תגיעו ליעד של 6 מיליון ש\"ח בעוד כ-**{years_to_6m} שנים**.")
+            # טקסט שחור בתוך תיבה (info-box) מותאמת למובייל
+            st.markdown(f"""
+                <div style="background-color: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #cbd5e1; direction: rtl; text-align: right;">
+                    <p style="color: black; font-weight: bold; margin: 0;">
+                        בהתבסס על הון מושקע של ₪{invested_net:,.0f} (ללא נדל"ן) ותשואה של {expected_return_fire}%, 
+                        תגיעו ליעד של 6 מיליון ש"ח בעוד כ-<b>{years_to_6m} שנים</b>.
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
             
-            # גרף קטן להמחשת ההתקדמות (אופציונלי)
-            progress_6m = min(current_net / target_6m, 1.0)
-            st.write(f"השלמתם {progress_6m:.1%} מהדרך ליעד המקסימלי:")
+            # יישור לימין של כותרת התקדמות וטקסט שחור
+            progress_6m = min(invested_net / target_6m, 1.0)
+            st.markdown(f"<p style='text-align: right; color: black; font-weight: bold; margin-top: 15px;'>השלמתם {progress_6m:.1%} מהדרך ליעד (הון מושקע):</p>", unsafe_allow_html=True)
             st.progress(progress_6m)
         else:
-            st.success("מדהים! כבר עברתם את רף ה-6 מיליון ש\"ח.")
+            st.balloons()
+            st.success("מדהים! ההון המושקע שלכם כבר עבר את רף ה-6 מיליון.")
 
-        # טיפ תכלס
+        # תובנה סופית בטקסט שחור בולט
         st.markdown(f"""
-            <div style="background-color: #f8fafc; padding: 15px; border-radius: 10px; border-right: 5px solid black; direction: rtl; text-align: right; margin-top: 15px;">
-                <strong>💡 תובנה לפרישה:</strong> כדי להגיע ליעד של ₪20,000 בחודש (במדדים של היום), 
-                נקודת המפגש שלכם תלויה מאוד בביצועי ה-S&P 500 בתיק שלכם ב-Excellence וב-Interactive.
+            <div style="background-color: white; padding: 15px; border-radius: 10px; border-right: 5px solid black; border-left: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; direction: rtl; text-align: right; margin-top: 20px;">
+                <p style="color: black; margin: 0;">
+                    💡 <b>תובנה לפרישה:</b> החישוב כאן מתעלם משווי הדירה כי היא לא מייצרת קצבה חודשית (אלא אם תמכרו או תעברו למודל של "משכנתא הפוכה"). 
+                    כדי להגיע ל-₪20,000 בחודש, המנוע העיקרי הוא התיק ב-<b>Interactive</b> ו-<b>Excellence</b>.
+                </p>
             </div>
         """, unsafe_allow_html=True)
-    
             
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
