@@ -299,6 +299,7 @@ try:
             for idx in row_indices:
                 if idx < len(raw_data):
                     row = raw_data.iloc[idx]
+                    asset_name = str(row.iloc[1])
                     v_now = clean_val(row.iloc[15])   # עמודה K
                     v_start = clean_val(row.iloc[10])  # עמודה F
                     v_depo = clean_val(row.iloc[16])  # עמודה L
