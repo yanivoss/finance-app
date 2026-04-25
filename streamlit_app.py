@@ -412,22 +412,29 @@ try:
     with tab3:
         st.markdown("<h3 style='text-align:right;'>🚀 מחשבון חופש כלכלי</h3>", unsafe_allow_html=True)
         
-        # 1. פתרון הבעיה העיצובית: הפרדה לעמודות כדי שהסליידר לא יסתיר את המספרים
         col_exp, col_ret = st.columns(2)
         with col_exp:
             monthly_expenses_fire = st.number_input("הוצאה חודשית מבוקשת (₪)", value=15000, step=500, key="fire_input_exp")
         with col_ret:
             expected_return_fire = st.slider("תשואה שנתית משוערת (%)", 1, 12, 7, key="fire_slider_ret")
 
-        # 2. חישוב יעד FIRE (חוק ה-4%)
         fire_target = monthly_expenses_fire * 12 * 25
         
-        # 3. משיכת הנתון האמיתי שלך
-        current_net = n_now
-        
+        # --- תיקון השגיאה: המרת n_now למספר נקי ---
+        try:
+            if isinstance(n_now, str):
+                # הסרת סימני ₪, פסיקים ורווחים כדי להפוך למספר
+                clean_n_now = float(n_now.replace('₪', '').replace(',', '').strip())
+            else:
+                clean_n_now = float(n_now)
+        except:
+            clean_n_now = 0
+            
+        current_net = clean_n_now
+        # ---------------------------------------
+
         progress = min(current_net / fire_target, 1.0) if fire_target > 0 else 0
         
-        # 4. תצוגת הכרטיסים המעוצבת
         st.markdown(f"""
             <div style="display: flex; gap: 15px; direction: rtl; margin-top: 10px;">
                 <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 8px solid #10b981; text-align: right;">
@@ -441,12 +448,8 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-        # 5. מד התקדמות
         st.markdown(f"<div style='text-align: right; margin-top: 20px; font-weight: bold;'>אחוז כיסוי מהיעד: {progress:.1%}</div>", unsafe_allow_html=True)
         st.progress(progress)
-        
-        # תובנה נוספת
-        st.info(f"בתשואה שנתית של {expected_return_fire}%, התיק שלך צפוי לגדול בערך ב-₪{current_net * (expected_return_fire/100):,.0f} בשנה.")
     
         
 except Exception as e:
