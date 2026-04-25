@@ -338,7 +338,46 @@ try:
                 for row, v_now, v_start, v_depo in valid_rows:
                     d_html = get_delta_html(v_now, v_start, v_depo, is_main_card=False)
                     asset_card(row.iloc[1], row.iloc[0], v_now, v_start, v_depo, d_html, display_currency)
-   
+
+        # הפרדה ויזואלית
+        st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:right;color: #e11d48;'>📉 פירוט התחייבויות</h2>", unsafe_allow_html=True)
+
+        try:
+            # שליפת הנתונים מגיליון התחייבויות
+            # שים לב לשנות את "שם הקובץ שלך" לשם המדויק של הקובץ בגוגל דרייב
+            worksheet_debts = client.open("הון עצמי + ביטוחים").worksheet("התחייבויות")
+            df_debts = pd.DataFrame(worksheet_debts.get_all_records())
+            
+            # הגדרת אינדקסים: 0 עבור אתי, 2 עבור משכנתא (מדלגים על פועלים שבשורה 1)
+            debt_indices = [0, 2] 
+
+            for idx in debt_indices:
+                if idx < len(df_debts):
+                    debt_row = df_debts.iloc[idx]
+                    # וידוא שמות עמודות לפי הגיליון שלך
+                    d_name = debt_row['שם החוב']
+                    d_val = clean_val(debt_row['שווי'])
+                    
+                    if d_val > 0:
+                        st.markdown(f"""
+                            <div style="background: white; padding: 16px; border-radius: 16px; 
+                                        box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; 
+                                        border-right: 6px solid #e11d48; direction: rtl;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 1.1rem; font-weight: 800; color: #1e293b;">{d_name}</div>
+                                        <div style="font-size: 0.85rem; color: #64748b;">התחייבות</div>
+                                    </div>
+                                    <div style="text-align: left;">
+                                        <div style="font-size: 1.25rem; font-weight: 800; color: #e11d48;">₪{d_val:,.0f}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        """, unsafe_allow_html=True)
+        except Exception as debt_e:
+            st.info(f"לא נטענו התחייבויות נוספות")
+
 
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
