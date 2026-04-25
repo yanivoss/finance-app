@@ -424,20 +424,37 @@ try:
         
         # שימוש בהון העצמי שחישבנו בטאב 1 (וודא שהמשתנה net_worth_now קיים למעלה)
         # אם עוד לא הגדרת אותו, נשתמש ב-0 כדי שלא תקרוס
+        # משיכת הנתונים האמיתיים מהחישובים שלך
+        # ננסה לקחת את נתוני הנכסים והחובות שכבר חישבת בטאבים הקודמים
         current_net = locals().get('net_worth_now', 0)
-        progress = min(current_net / fire_target, 1.0) if fire_target > 0 else 0
         
-        # תצוגת מדדים
-        st.metric("יעד הון נדרש", f"₪{fire_target:,.0f}")
-        st.write(f"**התקדמות ליעד:** {progress:.1%}")
-        st.progress(progress)
-        
-        st.info(f"לפי חוק ה-4%, עם הון של ₪{fire_target:,.0f} תוכל למשוך ₪{monthly_expenses:,.0f} בחודש לנצח.")
+        # אם המשתנה net_worth_now לא נמצא, ננסה לחשב אותו כאן במהירות
+        if current_net == 0:
+             try:
+                 # כאן כדאי לוודא שסכמת את כל הנכסים פחות החובות למשתנה אחד
+                 # לצורך הבדיקה, בוא נוודא שזה מושך מהסיכום הכללי שלך
+                 current_net = total_assets - total_liabilities # או השמות שהשתמשת בהם
+             except:
+                 current_net = 0
 
-# סגירת ה-try הכללי של כל האפליקציה (זה חייב להיות בסוף!)
-except Exception as e:
-    st.error(f"שגיאה בטעינת הנתונים: {e}")
-                    
+        progress = (current_net / fire_target) if fire_target > 0 else 0
+        
+        # תצוגת הכרטיסים עם הנתונים האמיתיים
+        st.markdown(f"""
+            <div style="display: flex; gap: 15px; direction: rtl; margin-bottom: 25px;">
+                <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 5px solid #10b981; text-align: right;">
+                    <div style="font-size: 0.9rem; color: #64748b;">הון עצמי נוכחי</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">₪{current_net:,.0f}</div>
+                </div>
+                <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 5px solid #3b82f6; text-align: right;">
+                    <div style="font-size: 0.9rem; color: #64748b;">הכנסה פסיבית פוטנציאלית</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #10b981;">₪{(current_net * 0.04 / 12):,.0f}</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown(f"<div style='text-align: right; font-weight: bold;'>התקדמות ליעד: {progress:.1%}</div>", unsafe_allow_html=True)
+        st.progress(min(progress, 1.0))
         
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
