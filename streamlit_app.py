@@ -346,7 +346,7 @@ try:
 
         try:
             df_debts = pd.read_csv(URL_DEBTS)
-            debt_indices = [0, 2] 
+            debt_indices = [2, 0] 
             
             # חישוב סכומים לסיכום הכותרת
             total_debt_now = 0
