@@ -588,6 +588,54 @@ try:
             progress_6m = min(invested_net / target_6m, 1.0)
             st.markdown(f"<p style='text-align: right; color: black; font-weight: bold; margin-top: 15px;'>השלמתם {progress_6m:.1%} מהדרך ליעד (הון מושקע):</p>", unsafe_allow_html=True)
             st.progress(progress_6m)
+
+            st.markdown("<hr style='border: 0.5px solid black; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align: right; color: black;'>🤔 סימולטור \"מה אם?\" וקצבה צפויה</h3>", unsafe_allow_html=True)
+
+        # סליידר להפקדה חודשית - מעוצב שחור/לבן
+        st.markdown("<p style='text-align: right; color: black; font-weight: bold; margin-bottom: 0;'>הפקדה חודשית נוספת (₪)</p>", unsafe_allow_html=True)
+        monthly_savings_sim = st.slider("", min_value=0, max_value=20000, value=5000, step=500, key="sim_savings_slider", label_visibility="collapsed")
+
+        # לוגיקת סימולציה מעודכנת
+        target_6m = 6000000
+        sim_years = 0
+        fv = invested_net
+        while fv < target_6m and sim_years < 50:
+            fv = (fv * (1 + expected_return_fire/100)) + (monthly_savings_sim * 12)
+            sim_years += 1
+
+        # הצגת תוצאת השנים
+        st.markdown(f"""
+            <div style="background-color: black; padding: 20px; border-radius: 12px; direction: rtl; text-align: right; margin-bottom: 20px;">
+                <p style="color: white; font-size: 1.2rem; margin: 0;">
+                    עם הפקדה של ₪{monthly_savings_sim:,.0f}, תגיעו ליעד בעוד: <span style="color: #10b981; font-size: 1.5rem; font-weight: bold;">{sim_years} שנים</span>
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # --- חישוב קצבה משולב ---
+        # נניח מקדם פנסיה של 200 (לפי ה-5,000 ש"ח למיליון שדיברנו עליהם)
+        conversion_rate = 200 
+        monthly_income_from_capital = fv / conversion_rate
+        
+        st.markdown("<p style='text-align: right; color: black; font-weight: bold;'>הכנסה חודשית צפויה בפרישה (ברוטו):</p>", unsafe_allow_html=True)
+        
+        st.markdown(f"""
+            <div style="display: flex; gap: 10px; direction: rtl; margin-top: 10px;">
+                <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 1px solid #d1d5db; text-align: right;">
+                    <div style="font-size: 0.8rem; color: #64748b;">מהון עצמי (חוק ה-4%)</div>
+                    <div style="font-size: 1.1rem; font-weight: bold; color: black;">₪{monthly_income_from_capital:,.0f}</div>
+                </div>
+                <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 1px solid #d1d5db; text-align: right;">
+                    <div style="font-size: 0.8rem; color: #64748b;">קצבת זקנה (משוער)</div>
+                    <div style="font-size: 1.1rem; font-weight: bold; color: black;">₪4,000</div>
+                </div>
+            </div>
+            <div style="background: #f0fdf4; padding: 15px; border-radius: 12px; border: 1px solid #bbf7d0; text-align: center; margin-top: 10px; direction: rtl;">
+                <div style="font-size: 0.9rem; color: #166534;">סה"כ קצבה חודשית מוערכת:</div>
+                <div style="font-size: 1.6rem; font-weight: 900; color: #166534;">₪{monthly_income_from_capital + 4000:,.0f}</div>
+            </div>
+        """, unsafe_allow_html=True)
        
             
 except Exception as e:
