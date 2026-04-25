@@ -183,8 +183,8 @@ try:
     with m2: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#black;">📈 S&P 500</div><div style="font-size:1.1rem; font-weight:800;">{sp_p:,.0f}</div><div style="color:{sp_col}; font-size:0.75rem; font-weight:bold;">{sp_a} {abs(sp_c):.1f}%</div></div>', unsafe_allow_html=True)
     with m3: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#black;">₿ Bitcoin</div><div style="font-size:1.1rem; font-weight:800;">${btc_p:,.0f}</div><div style="color:{btc_col}; font-size:0.75rem; font-weight:bold;">{btc_a} {abs(btc_c):.1f}%</div></div>', unsafe_allow_html=True)
 
-    tab1, tab2 = st.tabs(["🏠 מבט על", "📋 פירוט"])
-
+    tab1, tab2, tab3 = st.tabs(["🏠 מבט על", "📋 פירוט", "🚀 מחשבון פרישה ו-FIRE"])
+    
     with tab1:
         c1, c2 = st.columns(2)
         # הון נטו
@@ -403,6 +403,55 @@ try:
                         </div>
                     """
                     st.markdown(debt_html, unsafe_allow_html=True)
+
+with tab3:
+        st.markdown("<h2 style='text-align:right; color: #1e293b;'>🚀 מחשבון חופש כלכלי (FIRE)</h2>", unsafe_allow_html=True)
+        st.info("מחשבון זה בודק מתי ההון העצמי שלך יספיק כדי לכסות את ההוצאות החודשיות שלך ללא תלות בעבודה.")
+
+        # יצירת פאנל הגדרות ב-3 עמודות
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            monthly_expenses = st.number_input("הוצאה חודשית מבוקשת בפרישה (₪)", value=15000, step=500)
+        with col2:
+            monthly_savings = st.number_input("הפקדה חודשית מתוכננת (₪)", value=2000, step=100)
+        with col3:
+            expected_return = st.slider("תשואה שנתית משוערת (%)", 1, 10, 7)
+
+        # לוגיקה של חוק ה-4% (הון נדרש = הוצאה שנתית כפול 25)
+        annual_expenses = monthly_expenses * 12
+        fire_target = annual_expenses * 25
+        
+        # שימוש בהון העצמי שחושב בטאבים הקודמים
+        # הערה: וודא שהמשתנה net_worth_now מוגדר אצלך למעלה כ (נכסים - התחייבויות)
+        current_net_worth = net_worth_now 
+        
+        progress = (current_net_worth / fire_target) if fire_target > 0 else 0
+        
+        # תצוגת הכרטיסים המרכזיים
+        st.markdown(f"""
+            <div style="display: flex; gap: 15px; direction: rtl; margin-bottom: 25px;">
+                <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 5px solid #3b82f6; text-align: right;">
+                    <div style="font-size: 0.9rem; color: #64748b;">יעד הון נדרש (4%)</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">₪{fire_target:,.0f}</div>
+                </div>
+                <div style="flex: 1; background: #f8fafc; padding: 20px; border-radius: 15px; border-right: 5px solid #10b981; text-align: right;">
+                    <div style="font-size: 0.9rem; color: #64748b;">הכנסה פאסיבית נוכחית</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #10b981;">₪{(current_net_worth * 0.04 / 12):,.0f}</div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # מד התקדמות ויזואלי
+        st.markdown(f"<div style='text-align: right; font-weight: bold;'>התקדמות ליעד: {progress:.1%}</div>", unsafe_allow_html=True)
+        st.progress(min(progress, 1.0))
+        
+        # חישוב שנים נותרות (מקורב)
+        st.markdown("---")
+        st.subheader("🗓️ תחזית צמיחה")
+        if current_net_worth < fire_target:
+            st.write(f"לפי הנתונים שלך, חסר לך סכום של **₪{max(fire_target - current_net_worth, 0):,.0f}** כדי להגיע לעצמאות כלכלית.")
+        else:
+            st.success("מזל טוב! לפי חוק ה-4%, הגעת לעצמאות כלכלית!")
                         
         except Exception as e:
             st.info(f"ממתין לעדכון נתוני התחייבויות... ({e})")
