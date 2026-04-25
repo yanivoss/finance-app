@@ -442,91 +442,72 @@ try:
 
     # כאן מתחיל טאב 3 - שים לב שהוא באותה רמת הזחה (רווחים) כמו with tab2
     with tab3:
-        st.markdown("""
-    <style>
-        /* הכרחת בועת הערך של הסליידר להיות גלויה תמיד */
-        div[data-testid="stSlider"] [data-testid="stThumbValue"] {
-            display: flex !important;
-            color: black !important;
-            font-weight: bold !important;
-            font-size: 1rem !important;
-            background-color: transparent !important;
-        }
-        
-        /* תיקון מיקום הבועה שתהיה מעל הנקודה ולא תוסתר */
-        div[data-testid="stSlider"] [data-baseweb="slider"] {
-            margin-top: 30px;
-        }
-    </style>
-""", unsafe_allow_html=True)
-        
+        # בלוק CSS מאוחד - נקי וממוקד
         st.markdown("""
             <style>
+                /* עיצוב כללי לטקסט שחור בקלטים */
                 div[data-testid="stWidgetLabel"] p {
                     color: black !important;
                     font-weight: bold !important;
+                    text-align: right;
+                }
+                
+                /* עיצוב ה-Pills (הכפתורים) */
+                /* כפתור לא נבחר */
+                div[data-testid="stBaseButton-secondaryPill"] {
+                    border: 1px solid #e2e8f0 !important;
+                    background-color: #f8fafc !important;
+                    color: black !important;
+                    border-radius: 10px !important;
+                }
+                
+                /* כפתור נבחר */
+                div[data-testid="stBaseButton-secondaryPill"][aria-checked="true"] {
+                    background-color: black !important;
+                    color: white !important;
+                    border-color: black !important;
+                    font-weight: bold !important;
+                }
+
+                /* יישור לימין של רכיב ה-Pills */
+                div[data-testid="stPills"] {
+                    direction: rtl;
+                }
+
+                /* עיצוב הודעת ההצלחה (Success) למטה */
+                div.stSuccess {
+                    background-color: #f0fdf4;
+                    color: #166534;
+                    border: 1px solid #bbf7d0;
+                    border-radius: 12px;
+                    text-align: right;
+                    direction: rtl;
                 }
             </style>
         """, unsafe_allow_html=True)
-        
+
         st.markdown("<h3 style='text-align:right; color: black;'>🚀 מחשבון חופש כלכלי (FIRE)</h3>", unsafe_allow_html=True)
         
-        # הפרדה לעמודות עם יחס רוחב שונה כדי למנוע צפיפות
-        col_exp, col_ret = st.columns([2, 3])
-        with col_exp:
-            st.markdown("<p style='color: black; font-weight: bold; margin-bottom: 0px; text-align: right;'>הוצאה חודשית מבוקשת (₪)</p>", unsafe_allow_html=True)
-            monthly_expenses_fire = st.number_input("", value=15000, step=500, key="fire_input_exp_final", label_visibility="collapsed")
-        with col_ret:
-            # 1. כותרת שחורה ומיושרת לימין
-            st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
-            
-            # 2. כפתורי בחירה (Pills)
-            return_options = [4, 6, 7, 8, 10, 12]
-            selected_return = st.pills("", return_options, selection_mode="single", default=7, key="fire_ret_pills", label_visibility="collapsed")
-            
-            # 3. השמת הערך למשתנה החישוב
-            expected_return_fire = selected_return if selected_return else 7
-
-            # 4. CSS משופר: רק הכפתור הנבחר שחור, השאר בהירים
-            st.markdown("""
-                <style>
-                    /* הכפתורים שלא נבחרו - רקע אפור בהיר מאוד וטקסט שחור */
-                    div[data-testid="stBaseButton-secondaryPill"] {
-                        border: 1px solid #e2e8f0 !important;
-                        background-color: #f8fafc !important;
-                        color: black !important;
-                    }
-                    
-                    /* הכפתור שנבחר - הופך לשחור עם טקסט לבן */
-                    div[data-testid="stBaseButton-secondaryPill"][aria-checked="true"] {
-                        background-color: black !important;
-                        color: white !important;
-                        border-color: black !important;
-                    }
-                    
-                    /* יישור הכפתורים לימין במובייל */
-                    div[data-testid="stPills"] {
-                        direction: rtl;
-                        text-align: right;
-                    }
-                </style>
-            """, unsafe_allow_html=True)
+        # במובייל עדיף אחד מתחת לשני כדי שהכפתורים לא יחתכו
+        st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-bottom: 5px;'>הוצאה חודשית מבוקשת (₪)</p>", unsafe_allow_html=True)
+        monthly_expenses_fire = st.number_input("", value=15000, step=500, key="fire_input_exp_final", label_visibility="collapsed")
         
+        st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
+        return_options = [4, 6, 7, 8, 10, 12]
+        selected_return = st.pills("", return_options, selection_mode="single", default=7, key="fire_ret_pills", label_visibility="collapsed")
+        expected_return_fire = selected_return if selected_return else 7
+
+        # חישוב יעד
         fire_target = monthly_expenses_fire * 12 * 25
         
-        # המרה בטוחה של n_now למספר (כדי למנוע את שגיאת ה-str/int)
         try:
-            if isinstance(n_now, str):
-                current_net = float(n_now.replace('₪', '').replace(',', '').strip())
-            else:
-                current_net = float(n_now)
+            current_net = float(str(n_now).replace('₪', '').replace(',', '').strip()) if 'n_now' in locals() else 0
         except:
             current_net = 0
 
         progress = min(current_net / fire_target, 1.0) if fire_target > 0 else 0
         
-        # תצוגה נקייה וסימטרית
-        # כרטיסי מידע משופרים - עיצוב נקי עם צל ועומק
+        # כרטיסי מידע
         st.markdown(f"""
             <div style="display: flex; gap: 12px; direction: rtl; margin-top: 20px;">
                 <div style="flex: 1; background: white; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-right: 6px solid #10b981; text-align: right;">
@@ -543,22 +524,18 @@ try:
         st.markdown(f"<div style='text-align: right; margin-top: 20px; font-weight: bold; color: black;'>אחוז כיסוי מהיעד: {progress:.1%}</div>", unsafe_allow_html=True)
         st.progress(progress)
 
-        # --- החלק החדש: תחזית שנים ---
-        st.markdown("<hr style='border: 1px solid black; margin-top: 20px; margin-bottom: 20px;'>", unsafe_allow_html=True)
+        st.markdown("<hr style='border: 0.5px solid black; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
         st.markdown("<h3 style='text-align: right; color: black;'>🗓️ מתי נגיע ליעד?</h3>", unsafe_allow_html=True)
         
-        # הנחה של הפקדה חודשית ממוצעת (תוכל להוסיף לזה input בעתיד)
         monthly_contribution = 5000 
         
-        # חישוב מקורב של שנים להגעה ליעד (כולל ריבית דריבית)
         years_left = 0
         temp_net = current_net
         if temp_net < fire_target:
             while temp_net < fire_target and years_left < 50:
                 temp_net = (temp_net * (1 + expected_return_fire/100)) + (monthly_contribution * 12)
                 years_left += 1
-            
-            st.success(f"בהנחה של הפקדה חודשית של ₪{monthly_contribution:,.0f}, אתה צפוי להגיע ליעד בעוד כ-**{years_left} שנים**.")
+            st.success(f"בהנחה של הפקדה חודשית של ₪{monthly_contribution:,.0f}, תגיע ליעד בעוד כ-**{years_left} שנים**.")
         else:
             st.balloons()
             st.success("אתה כבר שם! ההון שלך מספיק לכיסוי ההוצאות לפי חוק ה-4%.")
