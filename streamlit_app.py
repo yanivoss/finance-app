@@ -79,36 +79,29 @@ URL_DEBTS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t
 # אנחנו משתמשים בטיקר "ILS=X" שהוא הסימול לדולר/שקל ב-Yahoo Finance
 current_usd, change_pct, color, arrow = get_market_data("ILS=X")
 
-# 1. טעינת הנתונים
-df_data = pd.read_csv(URL_DATA)
-
-# 2. הרצת חישוב הלייב
-live_issta_value, current_issta_price = get_issta_live_value()
-
-# --- בדיקה ויזואלית זמנית ---
-if current_issta_price:
-    st.sidebar.write(f"מחיר מניה שהתקבל: {current_issta_price}")
-    st.sidebar.write(f"שווי אופציות לחישוב: {live_issta_value}")
-
-if live_issta_value is not None:
-    col_name = [c for c in df_data.columns if 'שם' in c][0]
-    col_value = 'שווי' 
-    
-    # ניקוי עמודת השווי (חשוב כדי למנוע את ה-TypeError)
-    df_data[col_value] = df_data[col_value].astype(str).str.replace('₪', '').str.replace(',', '').str.strip()
-    df_data[col_value] = pd.to_numeric(df_data[col_value], errors='coerce')
-    
-    # שימוש בחיפוש רחב יותר כדי לוודא שלא פספסנו את השורה
-    mask = df_data[col_name].astype(str).str.contains('ISSTA|איסתא|issta', case=False, na=False)
-    
-    # בדיקה אם המסיכה מצאה שורה
-    if mask.any():
-        df_data.loc[mask, col_value] = float(live_issta_value)
-        st.sidebar.success("השווי עודכן בטבלה!")
-    else:
-        st.sidebar.error(f"לא נמצאה שורה עם השם 'איסתא' בעמודה '{col_name}'")
-    
-    st.session_state['last_issta_price'] = current_issta_price
+def get_issta_live_value():
+    try:
+        import yfinance as yf
+        # ניסיון למשוך את הטיקר
+        ticker_name = "ISTA.TA"
+        issta = yf.Ticker(ticker_name)
+        
+        # ניסיון להוציא היסטוריה של יום אחד
+        hist = issta.history(period="1d")
+        
+        if hist.empty:
+            st.error(f"שגיאה: לא התקבלו נתונים עבור {ticker_name}. ייתכן שהבורסה סגורה או שהסימול שגוי.")
+            return None, None
+            
+        current_price = hist['Close'].iloc[-1]
+        
+        # חישוב SAME DAY SALE
+        gross_value = (current_price * ISSTA_QTY) - (ISSTA_STRIKE * ISSTA_QTY)
+        return max(0, gross_value), current_price
+        
+    except Exception as e:
+        st.error(f"קרסה הפונקציה של איסתא: {e}")
+        return None, None
 
 # עדכון המשתנה הגלובלי שבו כל האפליקציה משתמשת
 if current_usd > 0:
