@@ -443,35 +443,39 @@ try:
     # כאן מתחיל טאב 3 - שים לב שהוא באותה רמת הזחה (רווחים) כמו with tab2
     with tab3:
         # בלוק CSS מאוחד - נקי וממוקד
+        # בלוק CSS מאוחד ומדויק
         st.markdown("""
             <style>
-                /* עיצוב כללי לטקסט שחור בקלטים */
+                /* 1. טקסט שחור לכותרות */
                 div[data-testid="stWidgetLabel"] p {
-                     color: black !important;
-                     font-weight: bold !important;
+                    color: black !important;
+                    font-weight: bold !important;
                     text-align: right;
                 }
-                /* עיצוב ה-Pills המעודכן */
-                /* כפתור לא נבחר - רקע בהיר */
+                
+                /* 2. כפתור לא נבחר - רקע בהיר, טקסט שחור */
                 button[data-testid="stBaseButton-secondaryPill"] {
-                    background-color: white !important;
-                    color: red !important;border: 1px solid #d1d5db !important;
+                    background-color: #f0f2f6 !important; /* אפור בהיר נקי */
+                    color: black !important; /* שיניתי מאדום לשחור */
+                    border: 1px solid #d1d5db !important;
                     border-radius: 10px !important;
                 }
                 
-                /* כפתור נבחר - רקע שחור */
+                /* 3. כפתור נבחר - רקע שחור, טקסט לבן */
                 button[data-testid="stBaseButton-secondaryPill"][aria-checked="true"] {
+                    background-color: black !important;
+                    color: white !important;
                     border-color: black !important;
                     font-weight: bold !important;
                 }
 
-                /* יישור לימין חזק מותאם למובייל */
+                /* 4. יישור לימין של הכפתורים */
                 div[data-testid="stPills"] > div {
                     justify-content: flex-end !important;
                     flex-direction: row-reverse !important;
                 }
                 
-                /* עיצוב הודעת ההצלחה (Success) למטה */
+                /* 5. עיצוב הודעת ההצלחה */
                 div.stSuccess {
                     background-color: #f0fdf4;
                     color: #166534;
@@ -482,7 +486,7 @@ try:
                 }
             </style>
         """, unsafe_allow_html=True)
-
+        
         st.markdown("<h3 style='text-align:right; color: black;'>🚀 מחשבון חופש כלכלי (FIRE)</h3>", unsafe_allow_html=True)
         
         # במובייל עדיף אחד מתחת לשני כדי שהכפתורים לא יחתכו
