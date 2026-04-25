@@ -255,7 +255,7 @@ try:
         st.markdown("<h2 style='text-align:right;color: black;'>📋 פירוט תיק הנכסים</h2>", unsafe_allow_html=True)
         
         # פונקציה פנימית לעיצוב הכרטיס - כולל נתוני הפקדות ותחילת שנה
-        def asset_card(name, owner, val_now, val_start, deposits, delta_html):
+        def asset_card(name, owner, val_now, val_start, deposits, delta_html, currency="₪"):
             st.markdown(f"""
                 <div style="background: white; padding: 16px; border-radius: 16px; 
                             box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; 
