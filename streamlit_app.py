@@ -183,6 +183,35 @@ try:
     with m2: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#black;">📈 S&P 500</div><div style="font-size:1.1rem; font-weight:800;">{sp_p:,.0f}</div><div style="color:{sp_col}; font-size:0.75rem; font-weight:bold;">{sp_a} {abs(sp_c):.1f}%</div></div>', unsafe_allow_html=True)
     with m3: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#black;">₿ Bitcoin</div><div style="font-size:1.1rem; font-weight:800;">${btc_p:,.0f}</div><div style="color:{btc_col}; font-size:0.75rem; font-weight:bold;">{btc_a} {abs(btc_c):.1f}%</div></div>', unsafe_allow_html=True)
 
+    # הזרקת CSS לתיקון הטאבים: צבע שחור, יישור לימין והדגשה
+    st.markdown("""
+        <style>
+            /* יישור רשימת הטאבים לימין */
+            div[data-testid="stTabs"] [data-baseweb="tab-list"] {
+                display: flex;
+                flex-direction: row-reverse;
+                justify-content: flex-start;
+                gap: 10px;
+            }
+
+            /* עיצוב הטקסט בתוך הטאבים */
+            div[data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p {
+                color: black !important;
+                font-weight: bold !important;
+                font-size: 1rem;
+            }
+
+            /* עיצוב הטאב הנבחר (הקו שמתחתיו) */
+            div[data-testid="stTabs"] button[aria-selected="true"] {
+                border-bottom-color: black !important;
+            }
+            
+            /* התאמה למובייל - מניעת כיווץ של הטקסט */
+            div[data-testid="stTabs"] button {
+                white-space: nowrap;
+            }
+        </style>
+    """, unsafe_allow_html=True)
     tab1, tab2, tab3 = st.tabs(["🏠 מבט על", "📋 פירוט", "🚀 מחשבון פרישה ו-FIRE"])
     
     with tab1:
