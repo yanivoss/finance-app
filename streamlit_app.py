@@ -461,7 +461,7 @@ try:
         st.progress(progress)
 
         # --- החלק החדש: תחזית שנים ---
-        st.markdown("---")
+        st.markdown("<hr style='border: 1px solid black; margin-top: 20px; margin-bottom: 20px;'>", unsafe_allow_html=True)
         st.markdown("<h3 style='text-align: right; color: black;'>🗓️ מתי נגיע ליעד?</h3>", unsafe_allow_html=True)
         
         # הנחה של הפקדה חודשית ממוצעת (תוכל להוסיף לזה input בעתיד)
