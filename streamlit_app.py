@@ -221,7 +221,7 @@ try:
         </style>
     """, unsafe_allow_html=True)
     
-    tab1, tab2, tab3 = st.tabs(["🏠 מבט על", "📋 פירוט", "🚀 מחשבון פרישה"])
+tab1, tab2, tab3 = st.tabs(["🏠 מבט על", "📋 פירוט", "🚀 מחשבון פרישה"])
     
     with tab1:
         c1, c2 = st.columns(2)
