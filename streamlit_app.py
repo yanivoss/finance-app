@@ -460,6 +460,25 @@ try:
             monthly_expenses_fire = st.number_input("", value=15000, step=500, key="fire_input_exp_final", label_visibility="collapsed")
         with col_ret:
             st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
+            # הזרקת CSS לשיפור נראות הסליידר במחשב
+            st.markdown("""
+                <style>
+                    /* צביעת המספרים של הסליידר בשחור */
+                    div[data-testid="stSlider"] [data-baseweb="typography"] {
+                        color: black !important;
+                        font-weight: bold !important;
+                    }
+                    /* הפיכת בועת הערך הצפה לשחורה ובולטת */
+                    div[data-testid="stThumbValue"] {
+                        color: black !important;
+                        font-weight: 800 !important;
+                    }
+                    /* צביעת פס הסליידר עצמו לצבע כהה יותר שייראה טוב */
+                    div[data-testid="stSlider"] > div {
+                        padding-right: 5px;
+                    }
+                </style>
+            """, unsafe_allow_html=True)
             expected_return_fire = st.slider("", 1, 12, 7, key="fire_slider_final", label_visibility="collapsed")
 
         fire_target = monthly_expenses_fire * 12 * 25
