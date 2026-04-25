@@ -353,22 +353,23 @@ try:
                     row = df_debts.iloc[idx]
                     
                     d_name = str(row.iloc[1])
-                    d_val = clean_val(row.iloc[10])     # שווי נוכחי 2026 (עמודה K)
-                    d_val_prev = clean_val(row.iloc[7]) # שווי קודם 2025 (עמודה H)
+                    d_val = clean_val(row.iloc[10])     # 2026 (עמודה K)
+                    d_val_prev = clean_val(row.iloc[7]) # 2025 (עמודה H)
                     
-                    # חישוב הדלתא
+                    # חישוב שינוי
                     diff = d_val - d_val_prev
                     pct_change = (diff / d_val_prev * 100) if d_val_prev != 0 else 0
                     
-                    # בהתחייבות: ירידה בסכום (diff שלילי) היא חיובית עבורנו
+                    # לוגיקה הפוכה לחוב: ירידה (diff שלילי) היא חיובית (צבע ירוק)
                     color = "#4CAF50" if diff <= 0 else "#e11d48"
                     arrow = "▼" if diff <= 0 else "▲"
                     
                     if d_val > 0:
+                        # שים לב לשימוש ב-st.markdown עם unsafe_allow_html=True
                         st.markdown(f"""
                             <div style="background: white; padding: 20px; border-radius: 20px; 
                                         box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 16px; 
-                                        border-right: 8px solid #e11d48; direction: rtl; position: relative;">
+                                        border-right: 8px solid #e11d48; direction: rtl;">
                                 
                                 <div style="display: flex; justify-content: space-between; align-items: start;">
                                     <div style="text-align: right;">
@@ -385,7 +386,7 @@ try:
                                 
                                 <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between;">
                                     <span style="font-size: 0.8rem; color: #64748b;">📅 יתרה ב-2025: <b>₪{d_val_prev:,.0f}</b></span>
-                                    <span style="font-size: 0.8rem; color: #64748b;">📉 שינוי שנתי</span>
+                                    <span style="font-size: 0.8rem; color: #64748b;">📉 שינוי שנתי 📉</span>
                                 </div>
                             </div>
                         """, unsafe_allow_html=True)
