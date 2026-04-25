@@ -542,6 +542,41 @@ try:
         else:
             st.balloons()
             st.success("אתה כבר שם! ההון שלך מספיק לכיסוי ההוצאות לפי חוק ה-4%.")
+        # --- סימולטור פרישה ל-6 מיליון ש"ח ---
+        st.markdown("<hr style='border: 0.5px solid black; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align: right; color: black;'>🎯 הדרך ליעד המחמיר (6 מיליון ש\"ח)</h3>", unsafe_allow_html=True)
+        
+        target_6m = 6000000
+        
+        # נניח הפקדה חודשית ממוצעת - אתה יכול להוסיף לזה input אם תרצה
+        monthly_savings = 5000 
+        
+        # חישוב שנים להגעה ל-6 מיליון
+        years_to_6m = 0
+        future_value = current_net
+        
+        if future_value < target_6m:
+            while future_value < target_6m and years_to_6m < 50:
+                # ריבית דריבית שנתית על ההון הקיים + ריבית על ההפקדות השנתיות
+                future_value = (future_value * (1 + expected_return_fire/100)) + (monthly_savings * 12)
+                years_to_6m += 1
+            
+            st.info(f"בהתבסס על הון נוכחי של ₪{current_net:,.0f} ותשואה של {expected_return_fire}%, תגיעו ליעד של 6 מיליון ש\"ח בעוד כ-**{years_to_6m} שנים**.")
+            
+            # גרף קטן להמחשת ההתקדמות (אופציונלי)
+            progress_6m = min(current_net / target_6m, 1.0)
+            st.write(f"השלמתם {progress_6m:.1%} מהדרך ליעד המקסימלי:")
+            st.progress(progress_6m)
+        else:
+            st.success("מדהים! כבר עברתם את רף ה-6 מיליון ש\"ח.")
+
+        # טיפ תכלס
+        st.markdown(f"""
+            <div style="background-color: #f8fafc; padding: 15px; border-radius: 10px; border-right: 5px solid black; direction: rtl; text-align: right; margin-top: 15px;">
+                <strong>💡 תובנה לפרישה:</strong> כדי להגיע ליעד של ₪20,000 בחודש (במדדים של היום), 
+                נקודת המפגש שלכם תלויה מאוד בביצועי ה-S&P 500 בתיק שלכם ב-Excellence וב-Interactive.
+            </div>
+        """, unsafe_allow_html=True)
     
             
 except Exception as e:
