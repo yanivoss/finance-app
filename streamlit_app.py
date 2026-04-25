@@ -459,8 +459,8 @@ try:
             st.markdown("<p style='color: black; font-weight: bold; margin-bottom: 0px; text-align: right;'>הוצאה חודשית מבוקשת (₪)</p>", unsafe_allow_html=True)
             monthly_expenses_fire = st.number_input("", value=15000, step=500, key="fire_input_exp_final", label_visibility="collapsed")
         with col_ret:
-            st.markdown("<p style='color: black; font-weight: bold; margin-bottom: 0px; text-align: right;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
-            expected_return_fire = st.slider("", 1, 12, 7, key="fire_slider_ret_final", label_visibility="collapsed")
+            st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
+            expected_return_fire = st.slider("", 1, 12, 7, key="fire_slider_final", label_visibility="collapsed")
 
         fire_target = monthly_expenses_fire * 12 * 25
         
