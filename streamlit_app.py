@@ -458,20 +458,3 @@ try:
         
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
-
-except Exception as e:
-    st.error(f"שגיאה בטעינת הנתונים: {e}")
-
-# כאן מתחיל הקוד החדש - שים לב שאין רווחים בתחילת השורה
-with tab3:
-    st.markdown("<h2 style='text-align:right; color: #1e293b;'>🚀 מחשבון חופש כלכלי (FIRE)</h2>", unsafe_allow_html=True)
-    
-    # הגדרות פשוטות
-    exp = st.number_input("הוצאה חודשית רצויה (₪)", value=15000, step=500)
-    
-    # חישוב היעד (לפי חוק ה-4%)
-    target = exp * 12 * 25
-    
-    # הצגת התוצאה בכרטיס מעוצב
-    st.metric("יעד ההון הנדרש שלך", f"₪{target:,.0f}")
-    st.info("זהו הסכום שאתה צריך כדי שהתשואה מההון תכסה את ההוצאות שלך לנצח.")
