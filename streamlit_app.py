@@ -459,28 +459,30 @@ try:
             st.markdown("<p style='color: black; font-weight: bold; margin-bottom: 0px; text-align: right;'>הוצאה חודשית מבוקשת (₪)</p>", unsafe_allow_html=True)
             monthly_expenses_fire = st.number_input("", value=15000, step=500, key="fire_input_exp_final", label_visibility="collapsed")
         with col_ret:
-            st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
-            # הזרקת CSS לשיפור נראות הסליידר במחשב
+            # 1. כותרת שחורה ומיושרת לימין
+            st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
+            
+            # 2. כפתורי בחירה (Pills) - נקי ונוח
+            return_options = [4, 6, 7, 8, 10, 12]
+            selected_return = st.pills("", return_options, selection_mode="single", default=7, key="fire_ret_pills", label_visibility="collapsed")
+            
+            # 3. השמת הערך למשתנה החישוב שלך
+            expected_return_fire = selected_return if selected_return else 7
+
+            # 4. CSS לצביעת הכפתורים בשחור (במקום ה-CSS של הסליידר)
             st.markdown("""
                 <style>
-                    /* צביעת המספרים של הסליידר בשחור */
-                    div[data-testid="stSlider"] [data-baseweb="typography"] {
+                    div[data-testid="stBaseButton-secondaryPill"] {
+                        border: 1px solid black !important;
                         color: black !important;
-                        font-weight: bold !important;
                     }
-                    /* הפיכת בועת הערך הצפה לשחורה ובולטת */
-                    div[data-testid="stThumbValue"] {
-                        color: black !important;
-                        font-weight: 800 !important;
-                    }
-                    /* צביעת פס הסליידר עצמו לצבע כהה יותר שייראה טוב */
-                    div[data-testid="stSlider"] > div {
-                        padding-right: 5px;
+                    div[data-testid="stBaseButton-secondaryPill"][aria-checked="true"] {
+                        background-color: black !important;
+                        color: white !important;
                     }
                 </style>
             """, unsafe_allow_html=True)
-            expected_return_fire = st.slider("", 1, 12, 7, key="fire_ret_fix", label_visibility="collapsed")
-
+        
         fire_target = monthly_expenses_fire * 12 * 25
         
         # המרה בטוחה של n_now למספר (כדי למנוע את שגיאת ה-str/int)
