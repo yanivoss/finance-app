@@ -425,10 +425,10 @@ try:
         col_exp, col_ret = st.columns([2, 3])
         with col_exp:
             st.markdown("<p style='color: black; font-weight: bold; margin-bottom: 0px;'>הוצאה חודשית מבוקשת (₪)</p>", unsafe_allow_html=True)
-            monthly_expenses_fire = st.number_input("הוצאה חודשית מבוקשת (₪)", value=15000, step=500, key="fire_input_exp_final")
+            monthly_expenses_fire = st.number_input("", value=15000, step=500, key="fire_input_exp_final", label_visibility="collapsed")
         with col_ret:
             st.markdown("<p style='color: black; font-weight: bold; margin-bottom: 0px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
-            expected_return_fire = st.slider("תשואה שנתית משוערת (%)", 1, 12, 7, key="fire_slider_ret_final")
+            expected_return_fire = st.slider("", 1, 12, 7, key="fire_slider_ret_final", label_visibility="collapsed")
 
         fire_target = monthly_expenses_fire * 12 * 25
         
