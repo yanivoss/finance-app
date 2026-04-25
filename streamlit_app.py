@@ -3,12 +3,11 @@ import pandas as pd
 import yfinance as yf
 import datetime
 
-# כפתור רענון בתפריט הצד (Sidebar) - אידיאלי למובייל
-    if st.sidebar.button("🔄 רענון נתונים מהדרייב"):
-        # מנקה את כל הזיכרון השמור (Cache) של האפליקציה
-        st.cache_data.clear()
-        # מריץ מחדש את הקוד כדי למשוך נתונים טריים
-        st.rerun()
+# כפתור רענון בתפריט הצד - שים לב שאין רווחים בתחילת השורה
+if st.sidebar.button("🔄 רענון נתונים מהדרייב"):
+    # כאן יש הזחה כי אנחנו בתוך ה-if
+    st.cache_data.clear()
+    st.rerun()
 
 # הגדרת דף
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed", page_icon="💰")
