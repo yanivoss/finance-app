@@ -480,23 +480,34 @@ try:
             # 1. כותרת שחורה ומיושרת לימין
             st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
             
-            # 2. כפתורי בחירה (Pills) - נקי ונוח
+            # 2. כפתורי בחירה (Pills)
             return_options = [4, 6, 7, 8, 10, 12]
             selected_return = st.pills("", return_options, selection_mode="single", default=7, key="fire_ret_pills", label_visibility="collapsed")
             
-            # 3. השמת הערך למשתנה החישוב שלך
+            # 3. השמת הערך למשתנה החישוב
             expected_return_fire = selected_return if selected_return else 7
 
-            # 4. CSS לצביעת הכפתורים בשחור (במקום ה-CSS של הסליידר)
+            # 4. CSS משופר: רק הכפתור הנבחר שחור, השאר בהירים
             st.markdown("""
                 <style>
+                    /* הכפתורים שלא נבחרו - רקע אפור בהיר מאוד וטקסט שחור */
                     div[data-testid="stBaseButton-secondaryPill"] {
-                        border: 1px solid black !important;
+                        border: 1px solid #e2e8f0 !important;
+                        background-color: #f8fafc !important;
                         color: black !important;
                     }
+                    
+                    /* הכפתור שנבחר - הופך לשחור עם טקסט לבן */
                     div[data-testid="stBaseButton-secondaryPill"][aria-checked="true"] {
                         background-color: black !important;
                         color: white !important;
+                        border-color: black !important;
+                    }
+                    
+                    /* יישור הכפתורים לימין במובייל */
+                    div[data-testid="stPills"] {
+                        direction: rtl;
+                        text-align: right;
                     }
                 </style>
             """, unsafe_allow_html=True)
