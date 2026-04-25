@@ -345,44 +345,54 @@ try:
         st.markdown("<h2 style='text-align:right;color: #e11d48;'>📉 פירוט התחייבויות</h2>", unsafe_allow_html=True)
 
         try:
-            # קריאת הנתונים מה-URL החדש
             df_debts = pd.read_csv(URL_DEBTS)
-            
-            # הגדרת אינדקסים לפי מה שראינו (אתי בשורה 2 = אינדקס 0, משכנתא בשורה 4 = אינדקס 2)
             debt_indices = [0, 2] 
 
             for idx in debt_indices:
                 if idx < len(df_debts):
                     row = df_debts.iloc[idx]
                     
-                    # שימוש בשמות העמודות כפי שהם מופיעים ב-CSV
-                    # (אם השמות שונים, הקוד ישתמש במיקום העמודה)
-                    d_name = row.iloc[1] # עמודה B
+                    d_name = str(row.iloc[1])
                     d_val = clean_val(row.iloc[10])     # שווי נוכחי 2026 (עמודה K)
-                    d_val_prev = clean_val(row.iloc[7]) # שווי קודם 2025 (עמודה H)  
+                    d_val_prev = clean_val(row.iloc[7]) # שווי קודם 2025 (עמודה H)
+                    
+                    # חישוב הדלתא
                     diff = d_val - d_val_prev
                     pct_change = (diff / d_val_prev * 100) if d_val_prev != 0 else 0
+                    
+                    # בהתחייבות: ירידה בסכום (diff שלילי) היא חיובית עבורנו
                     color = "#4CAF50" if diff <= 0 else "#e11d48"
                     arrow = "▼" if diff <= 0 else "▲"
                     
                     if d_val > 0:
                         st.markdown(f"""
-                            <div style="background: white; padding: 16px; border-radius: 16px; 
-                                        box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; 
-                                        border-right: 6px solid #e11d48; direction: rtl;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="background: white; padding: 20px; border-radius: 20px; 
+                                        box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 16px; 
+                                        border-right: 8px solid #e11d48; direction: rtl; position: relative;">
+                                
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
                                     <div style="text-align: right;">
-                                        <div style="font-size: 1.1rem; font-weight: 800; color: #1e293b;">{d_name}</div>
-                                        <div style="font-size: 0.85rem; color: #64748b;">התחייבות קיימת</div>
+                                        <div style="font-size: 1.2rem; font-weight: 800; color: #1e293b;">{d_name}</div>
+                                        <div style="font-size: 0.85rem; color: #64748b;">יתרת חוב עדכנית</div>
                                     </div>
                                     <div style="text-align: left;">
-                                        <div style="font-size: 1.25rem; font-weight: 800; color: #e11d48;">₪{d_val:,.0f}</div>
+                                        <div style="font-size: 1.5rem; font-weight: 900; color: #1e293b;">₪{d_val:,.0f}</div>
+                                        <div style="color: {color}; font-size: 0.9rem; font-weight: 600; margin-top: 4px;">
+                                            {arrow} ₪{abs(diff):,.0f} ({abs(pct_change):.1f}%)
+                                        </div>
                                     </div>
+                                </div>
+                                
+                                <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between;">
+                                    <span style="font-size: 0.8rem; color: #64748b;">📅 יתרה ב-2025: <b>₪{d_val_prev:,.0f}</b></span>
+                                    <span style="font-size: 0.8rem; color: #64748b;">📉 שינוי שנתי</span>
                                 </div>
                             </div>
                         """, unsafe_allow_html=True)
+                        
         except Exception as e:
-            st.info("ממתין לעדכון נתוני התחייבויות מהגיליון...")
+            st.info("ממתין לעדכון נתוני התחייבויות...")
+
         
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
