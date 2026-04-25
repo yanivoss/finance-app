@@ -457,7 +457,7 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-        st.markdown(f"<div style='text-align: right; margin-top: 20px; font-weight: bold;'>אחוז כיסוי מהיעד: {progress:.1%}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: right; margin-top: 20px; font-weight: bold; color: black;'>אחוז כיסוי מהיעד: {progress:.1%}</div>", unsafe_allow_html=True)
         st.progress(progress)
 
         # --- החלק החדש: תחזית שנים ---
