@@ -387,7 +387,7 @@ try:
                             <div style='display: flex; justify-content: space-between; align-items: start;'>
                                 <div>
                                     <div style='font-size: 1.2rem; font-weight: 800; color: #1e293b;'>{d_name}</div>
-                                    <div style='font-size: 0.85rem; color: #64748b;'>יתרת חוב עדכנית</div>
+                                    <div style='font-size: 0.85rem; color: #64748b;'>הוחזר השנה</div>
                                 </div>
                                 <div style='text-align: left; direction: ltr;'>
                                     <div style='font-size: 1.5rem; font-weight: 900; color: #1e293b;'>₪{d_val:,.0f}</div>
