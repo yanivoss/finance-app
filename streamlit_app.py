@@ -79,6 +79,19 @@ URL_DEBTS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t
 # אנחנו משתמשים בטיקר "ILS=X" שהוא הסימול לדולר/שקל ב-Yahoo Finance
 current_usd, change_pct, color, arrow = get_market_data("ILS=X")
 
+# ... הכתובות של ה-URL ששלחת ...
+df_data = pd.read_csv(URL_DATA) # נניח שזה ה-DataFrame של הפירוט
+
+# --- כאן נכנס העדכון האוטומטי ---
+live_issta_value, current_issta_price = get_issta_live_value()
+
+if live_issta_value is not None:
+    # מעדכן את השווי בשורה של איסתא בזיכרון של האפליקציה
+    df_data.loc[df_data['נכס'].str.contains('איסתא', na=False), 'שווי'] = live_issta_value
+    
+    # שומר את מחיר המניה למקרה שנרצה להציג אותו כטקסט קטן בטאב 2
+    st.session_state['last_issta_price'] = current_issta_price
+
 # עדכון המשתנה הגלובלי שבו כל האפליקציה משתמשת
 if current_usd > 0:
     USD_RATE = round(current_usd, 2)
