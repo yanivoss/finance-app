@@ -87,7 +87,7 @@ live_issta_value, current_issta_price = get_issta_live_value()
 
 if live_issta_value is not None:
     # מעדכן את השווי בשורה של איסתא בזיכרון של האפליקציה
-    df_data.loc[df_data['נכס'].str.contains('איסתא', na=False), 'שווי'] = live_issta_value
+    df_data.loc[df_data['שם הנייר'].str.contains('איסתא', na=False), 'שווי'] = live_issta_value
     
     # שומר את מחיר המניה למקרה שנרצה להציג אותו כטקסט קטן בטאב 2
     st.session_state['last_issta_price'] = current_issta_price
