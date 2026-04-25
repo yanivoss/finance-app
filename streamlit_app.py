@@ -308,8 +308,8 @@ try:
                     # לוגיקה נקודתית לאינטראקטיב:
                     display_currency = "₪"
                     if "אינטראקטיב" in asset_name:
-                        profit_usd = v_now_raw - v_start_raw - v_depo_raw
-                        profit_pct = (profit_usd / v_start_raw * 100) if v_start_raw != 0 else 0
+                        profit_usd = v_now - v_start - v_depo
+                        profit_pct = (profit_usd / v_start * 100) if v_start != 0 else 0
                         profit_ils = profit_usd * USD_RATE
                         d_html = f"""
                             <div style="color: {'#4CAF50' if profit_usd >= 0 else '#F44336'}; font-size: 0.9rem; font-weight: 600;">
