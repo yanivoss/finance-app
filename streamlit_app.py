@@ -442,75 +442,58 @@ try:
 
     # כאן מתחיל טאב 3 - שים לב שהוא באותה רמת הזחה (רווחים) כמו with tab2
     with tab3:
+        # הזרקת CSS לשיפור המראה במובייל
         st.markdown("""
             <style>
-                div[data-testid="stWidgetLabel"] p {
+                /* הגדלת בועת הערך של הסליידר שתהיה קריאה */
+                div[data-testid="stThumbValue"] {
                     color: black !important;
                     font-weight: bold !important;
                 }
+                /* מניעת דחיסה של ווידג'טים במובייל */
+                .stNumberInput, .stSlider {
+                    margin-bottom: 10px;
+                }
             </style>
         """, unsafe_allow_html=True)
-        
-        st.markdown("<h3 style='text-align:right; color: black;'>🚀 מחשבון חופש כלכלי (FIRE)</h3>", unsafe_allow_html=True)
-        
-        # הפרדה לעמודות עם יחס רוחב שונה כדי למנוע צפיפות
-        col_exp, col_ret = st.columns([2, 3])
-        with col_exp:
-            st.markdown("<p style='color: black; font-weight: bold; margin-bottom: 0px; text-align: right;'>הוצאה חודשית מבוקשת (₪)</p>", unsafe_allow_html=True)
-            monthly_expenses_fire = st.number_input("", value=15000, step=500, key="fire_input_exp_final", label_visibility="collapsed")
-        with col_ret:
-            st.markdown("<p style='color: black; font-weight: bold; margin-bottom: 0px; text-align: right;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
-            expected_return_fire = st.slider("", 1, 12, 7, key="fire_slider_ret_final", label_visibility="collapsed")
 
+        st.markdown("<h3 style='text-align: right; color: black; margin-bottom: 20px;'>🚀 מחשבון חופש כלכלי</h3>", unsafe_allow_html=True)
+        
+        # כותרת והזנה - אחד מתחת לשני למקסימום נוחות במובייל
+        st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-bottom: 5px;'>הוצאה חודשית מבוקשת (₪)</p>", unsafe_allow_html=True)
+        monthly_expenses_fire = st.number_input("", value=15000, step=500, key="fire_input_mobile", label_visibility="collapsed")
+        
+        st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
+        expected_return_fire = st.slider("", 1, 12, 7, key="fire_slider_mobile", label_visibility="collapsed")
+
+        # חישוב יעד
         fire_target = monthly_expenses_fire * 12 * 25
         
-        # המרה בטוחה של n_now למספר (כדי למנוע את שגיאת ה-str/int)
         try:
-            if isinstance(n_now, str):
-                current_net = float(n_now.replace('₪', '').replace(',', '').strip())
-            else:
-                current_net = float(n_now)
+            # המרה בטוחה של n_now
+            current_net = float(str(n_now).replace('₪', '').replace(',', '').strip()) if 'n_now' in locals() else 0
         except:
             current_net = 0
 
         progress = min(current_net / fire_target, 1.0) if fire_target > 0 else 0
         
-        # תצוגה נקייה וסימטרית
+        # כרטיסי מידע - בסידור שמתאים למובייל (אחד ליד השני ברוחב מלא)
         st.markdown(f"""
-            <div style="display: flex; gap: 15px; direction: rtl; margin-top: 10px;">
-                <div style="flex: 1; background: white; padding: 20px; border-radius: 15px; border: 1px solid #e2e8f0; border-right: 8px solid #10b981; text-align: right;">
-                    <div style="font-size: 0.8rem; color: #64748b;">הון עצמי נוכחי</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">₪{current_net:,.0f}</div>
+            <div style="display: flex; gap: 10px; direction: rtl; margin-top: 15px;">
+                <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-right: 6px solid #10b981; text-align: right;">
+                    <div style="font-size: 0.75rem; color: #475569;">הון נוכחי</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: black;">₪{current_net:,.0f}</div>
                 </div>
-                <div style="flex: 1; background: white; padding: 20px; border-radius: 15px; border: 1px solid #e2e8f0; border-right: 8px solid #3b82f6; text-align: right;">
-                    <div style="font-size: 0.8rem; color: #64748b;">יעד הון (4%)</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: #1e293b;">₪{fire_target:,.0f}</div>
+                <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-right: 6px solid #3b82f6; text-align: right;">
+                    <div style="font-size: 0.75rem; color: #475569;">יעד פרישה</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: black;">₪{fire_target:,.0f}</div>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
-        st.markdown(f"<div style='text-align: right; margin-top: 20px; font-weight: bold; color: black;'>אחוז כיסוי מהיעד: {progress:.1%}</div>", unsafe_allow_html=True)
+        # פס התקדמות
+        st.markdown(f"<div style='text-align: right; margin-top: 15px; font-weight: bold; color: black; font-size: 0.9rem;'>אחוז כיסוי מהיעד: {progress:.1%}</div>", unsafe_allow_html=True)
         st.progress(progress)
-
-        # --- החלק החדש: תחזית שנים ---
-        st.markdown("<hr style='border: 1px solid black; margin-top: 20px; margin-bottom: 20px;'>", unsafe_allow_html=True)
-        st.markdown("<h3 style='text-align: right; color: black;'>🗓️ מתי נגיע ליעד?</h3>", unsafe_allow_html=True)
-        
-        # הנחה של הפקדה חודשית ממוצעת (תוכל להוסיף לזה input בעתיד)
-        monthly_contribution = 5000 
-        
-        # חישוב מקורב של שנים להגעה ליעד (כולל ריבית דריבית)
-        years_left = 0
-        temp_net = current_net
-        if temp_net < fire_target:
-            while temp_net < fire_target and years_left < 50:
-                temp_net = (temp_net * (1 + expected_return_fire/100)) + (monthly_contribution * 12)
-                years_left += 1
-            
-            st.success(f"בהנחה של הפקדה חודשית של ₪{monthly_contribution:,.0f}, אתה צפוי להגיע ליעד בעוד כ-**{years_left} שנים**.")
-        else:
-            st.balloons()
-            st.success("אתה כבר שם! ההון שלך מספיק לכיסוי ההוצאות לפי חוק ה-4%.")
     
             
 except Exception as e:
