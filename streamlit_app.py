@@ -57,6 +57,7 @@ def get_market_data(ticker_symbol):
 # נתונים
 URL_SUMMARY = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=1388477026&single=true&output=csv"
 URL_DATA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=0&single=true&output=csv"
+URL_DEBTS = https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t6dqPiGsZGpU2MSf5KZfBibJPOuWCwh1Bn_5bFnHgtWJdLQRWpBjdhU4927QK/pub?gid=1414631518&single=true&output=csv
 # קריאה לפונקציה שלך כדי לקבל את שער הדולר העדכני
 # אנחנו משתמשים בטיקר "ILS=X" שהוא הסימול לדולר/שקל ב-Yahoo Finance
 current_usd, change_pct, color, arrow = get_market_data("ILS=X")
@@ -342,51 +343,22 @@ try:
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align:right;color: #e11d48;'>📉 פירוט התחייבויות</h2>", unsafe_allow_html=True)
-        st.markdown("### 🔍 בדיקת חיבור לגיליון התחייבויות")
-        
-        try:
-            # שלב 1: בדיקת פתיחת הקובץ
-            sh_test = client.open("הון עצמי + ביטוחים")
-            st.success("✅ הקובץ 'הון עצמי + ביטוחים' נמצא ונפתח בהצלחה")
-            
-            # שלב 2: בדיקת הגיליון הספציפי
-            try:
-                ws_test = sh_test.worksheet("התחייבויות")
-                st.success("✅ הגיליון 'התחייבויות' נמצא")
-                
-                # שלב 3: בדיקת שליפת הנתונים
-                data_test = ws_test.get_all_values()
-                if data_test:
-                    st.success(f"✅ נשלפו {len(data_test)} שורות מהגיליון")
-                    # הדפסת השורות הראשונות כדי לראות מה המחשב רואה
-                    st.write("דגימת נתונים (3 שורות ראשונות):")
-                    st.write(data_test[:3])
-                else:
-                    st.warning("⚠️ הגיליון ריק מנתונים")
-            except Exception as e_ws:
-                st.error(f"❌ שגיאה במציאת הגיליון 'התחייבויות': {e_ws}")
-                st.info("בדוק אם יש רווח מיותר בשם הגיליון בתוך ה-Google Sheets (למשל 'התחייבויות ')")
 
-        except Exception as e_sh:
-            st.error(f"❌ שגיאה בפתיחת הקובץ: {e_sh}")
-            st.info("ודא ששם הקובץ ב-Google Drive הוא בדיוק: הון עצמי + ביטוחים")
-            
         try:
-            # שליפת הנתונים מגיליון התחייבויות
-            # שים לב לשנות את "שם הקובץ שלך" לשם המדויק של הקובץ בגוגל דרייב
-            sh_debts = client.open("הון עצמי + ביטוחים")
-            ws_debts = sh_debts.worksheet("התחייבויות")
-            debt_data = ws_debts.get_all_values()
+            # קריאת הנתונים מה-URL החדש
+            df_debts = pd.read_csv(URL_DEBTS)
             
-            # הגדרת אינדקסים: 0 עבור אתי, 2 עבור משכנתא (מדלגים על פועלים שבשורה 1)
-            debt_indices = [1, 3] 
+            # הגדרת אינדקסים לפי מה שראינו (אתי בשורה 2 = אינדקס 0, משכנתא בשורה 4 = אינדקס 2)
+            debt_indices = [0, 2] 
 
             for idx in debt_indices:
                 if idx < len(df_debts):
-                    debt_row = df_debts.iloc[idx]
-                    # וידוא שמות עמודות לפי הגיליון שלך
-                    d_name = str(row.iloc[-1])
-                    d_val = clean_val(row.iloc[9]) # עמודה K
+                    row = df_debts.iloc[idx]
+                    
+                    # שימוש בשמות העמודות כפי שהם מופיעים ב-CSV
+                    # (אם השמות שונים, הקוד ישתמש במיקום העמודה)
+                    d_name = row.iloc[1] # עמודה B
+                    d_val = clean_val(row.iloc[10]) # עמודה K
                     
                     if d_val > 0:
                         st.markdown(f"""
@@ -396,7 +368,7 @@ try:
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <div style="text-align: right;">
                                         <div style="font-size: 1.1rem; font-weight: 800; color: #1e293b;">{d_name}</div>
-                                        <div style="font-size: 0.85rem; color: #64748b;">התחייבות</div>
+                                        <div style="font-size: 0.85rem; color: #64748b;">התחייבות קיימת</div>
                                     </div>
                                     <div style="text-align: left;">
                                         <div style="font-size: 1.25rem; font-weight: 800; color: #e11d48;">₪{d_val:,.0f}</div>
@@ -404,9 +376,8 @@ try:
                                 </div>
                             </div>
                         """, unsafe_allow_html=True)
-        except Exception as debt_e:
-            st.info(f"לא נטענו התחייבויות נוספות")
-
-
+        except Exception as e:
+            st.info("ממתין לעדכון נתוני התחייבויות מהגיליון...")
+        
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
