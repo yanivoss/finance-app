@@ -590,11 +590,12 @@ try:
             st.progress(progress_6m)
 
             st.markdown("<hr style='border: 0.5px solid black; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
-        st.markdown("<h3 style='text-align: right; color: black;'>🤔 סימולטור \"מה אם?\" וקצבה צפויה</h3>", unsafe_allow_html=True)
+            st.markdown("<h3 style='text-align: right; color: black;'>🤔 סימולטור \"מה אם?\" וקצבה צפויה</h3>", unsafe_allow_html=True)
 
         # סליידר להפקדה חודשית - מעוצב שחור/לבן
-        st.markdown("<p style='text-align: right; color: black; font-weight: bold; margin-bottom: 0;'>הפקדה חודשית נוספת (₪)</p>", unsafe_allow_html=True)
-        monthly_savings_sim = st.slider("", min_value=0, max_value=20000, value=5000, step=500, key="sim_savings_slider", label_visibility="collapsed")
+        st.markdown("<p style='text-align: right; color: black; font-weight: bold; margin-bottom: 5px;'>הפקדה חודשית נוספת לחיסכון (₪)</p>", unsafe_allow_html=True)
+        savings_options = [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 10000, 12000, 15000]
+        monthly_savings_sim = st.selectbox("", savings_options, index=5, key="sim_savings_select", label_visibility="collapsed")
 
         # לוגיקת סימולציה מעודכנת
         target_6m = 6000000
