@@ -3,18 +3,13 @@ import pandas as pd
 import yfinance as yf
 import datetime
 
+# --- כפתור רענון בסידבר (מבודד משאר הקוד) ---
+if st.sidebar.button("🔄 רענון נתונים מהדרייב"):
+    st.cache_data.clear()  # מנקה את הזיכרון של הנתונים הישנים
+    st.rerun()             # מריץ את האפליקציה מחדש עם הנתונים הטריים
+
 # הגדרת דף
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed", page_icon="💰")
-
-# 2. פונקציית רענון - נגדיר אותה בנפרד כדי לא להעמיס על הלוגיקה
-def refresh_data():
-    st.cache_data.clear()
-    st.rerun()
-
-# 3. כפתור רענון ב-Sidebar
-# שים לב: ה-if הזה לא "עוטף" את שאר הקוד! הוא עצמאי לחלוטין.
-if st.sidebar.button("🔄 רענון נתונים"):
-    refresh_data()
 
 # --- פונקציות עזר ---
 def clean_val(value):
