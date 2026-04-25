@@ -79,32 +79,29 @@ URL_DEBTS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t
 # אנחנו משתמשים בטיקר "ILS=X" שהוא הסימול לדולר/שקל ב-Yahoo Finance
 current_usd, change_pct, color, arrow = get_market_data("ILS=X")
 
-# 1. טעינת הנתונים מהגיליון
-df_data = pd.read_csv(URL_DATA)
-
-# 2. הרצת חישוב הלייב
-live_issta_value, current_issta_price = get_issta_live_value()
-
-if live_issta_value is not None:
-    # איתור עמודות (0 = שם הנייר, 1 = שווי)
-    col_name = df_data.columns[0]
-    col_value = df_data.columns[1]
-    
-    # ניקוי עמודת השווי כדי שתקבל מספרים
-    df_data[col_value] = pd.to_numeric(
-        df_data[col_value].astype(str).str.replace('₪', '').str.replace(',', '').str.strip(), 
-        errors='coerce'
-    )
-    
-    # חיפוש מדויק של השורה שכתוב בה ISSTA (באנגלית בלבד)
-    mask = df_data[col_name].astype(str).str.contains('ISSTA', case=True, na=False)
-    
-    if mask.any():
-        # עדכון השווי של ISSTA לערך ה-Same Day Sale שחישבנו
-        df_data.loc[mask, col_value] = float(live_issta_value)
+def get_issta_live_value():
+    try:
+        import yfinance as yf
+        # ניסיון למשוך את הטיקר
+        ticker_name = "ISTA.TA"
+        issta = yf.Ticker(ticker_name)
         
-        # שמירת המחיר לשימוש בטאב 4 (התראות)
-        st.session_state['last_issta_price'] = current_issta_price
+        # ניסיון להוציא היסטוריה של יום אחד
+        hist = issta.history(period="1d")
+        
+        if hist.empty:
+            st.error(f"שגיאה: לא התקבלו נתונים עבור {ticker_name}. ייתכן שהבורסה סגורה או שהסימול שגוי.")
+            return None, None
+            
+        current_price = hist['Close'].iloc[-1]
+        
+        # חישוב SAME DAY SALE
+        gross_value = (current_price * ISSTA_QTY) - (ISSTA_STRIKE * ISSTA_QTY)
+        return max(0, gross_value), current_price
+        
+    except Exception as e:
+        st.error(f"קרסה הפונקציה של איסתא: {e}")
+        return None, None
 
 # עדכון המשתנה הגלובלי שבו כל האפליקציה משתמשת
 if current_usd > 0:
@@ -215,19 +212,6 @@ st.markdown("""
 
 try:
     df_s = pd.read_csv(URL_SUMMARY)
-    # 1. הרצת חישוב הלייב (אם לא הורץ קודם)
-    live_issta_value, current_issta_price = get_issta_live_value()
-    
-    if live_issta_value is not None:
-        # 2. עדכון הערך בתוך df_s בשורה הרלוונטית (שורה 4, עמודה 3 - אינדקס 2)
-        # אנחנו מעדכנים ישירות את התא שממנו i_n שואב את המידע
-        df_s.iloc[3, 2] = live_issta_value
-        
-    # 3. שמירת מחיר המניה לשימוש בטאבים
-    st.session_state['last_issta_price'] = current_issta_price
-    
-    # 3. שמירת מחיר המניה לשימוש בטאבים
-    st.session_state['last_issta_price'] = current_issta_price
     df_d = pd.read_csv(URL_DATA)
     sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
     btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
