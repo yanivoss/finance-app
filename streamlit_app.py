@@ -308,9 +308,14 @@ try:
                     # לוגיקה נקודתית לאינטראקטיב:
                     display_currency = "₪"
                     if "אינטראקטיב" in asset_name:
-                        v_now = v_now * USD_RATE  # רק השווי הנוכחי הופך לשקלים
-                        display_currency = "$"    # סימן המטבע לשאר הנתונים יהיה דולר
-                    
+                        profit_usd = v_now_raw - v_start_raw - v_depo_raw
+                        profit_pct = (profit_usd / v_start_raw * 100) if v_start_raw != 0 else 0
+                        profit_ils = profit_usd * USD_RATE
+                        d_html = f"""
+                            <div style="color: {'#4CAF50' if profit_usd >= 0 else '#F44336'}; font-size: 0.9rem; font-weight: 600;">
+                                {'▲' if profit_usd >= 0 else '▼'} (₪{profit_ils:,.0f}) {profit_pct:.1f}%
+                            </div>
+                        """                    
                     # בדיקה שהשורה לא ריקה ויש בה נתונים
                     if not pd.isna(row.iloc[1]) and (v_now != 0 or v_start != 0):
                         g_now += v_now
