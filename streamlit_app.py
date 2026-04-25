@@ -79,18 +79,25 @@ URL_DEBTS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTI6IIUbS6jdiE-M91t
 # אנחנו משתמשים בטיקר "ILS=X" שהוא הסימול לדולר/שקל ב-Yahoo Finance
 current_usd, change_pct, color, arrow = get_market_data("ILS=X")
 
-st.write("העמודות שמצאתי בגיליון הן:", df_data.columns.tolist())
-# ... הכתובות של ה-URL ששלחת ...
-df_data = pd.read_csv(URL_DATA) # נניח שזה ה-DataFrame של הפירוט
+# 1. טעינת הנתונים מהגיליון
+df_data = pd.read_csv(URL_DATA)
 
-# --- כאן נכנס העדכון האוטומטי ---
+# 2. הרצת חישוב הלייב של איסתא
 live_issta_value, current_issta_price = get_issta_live_value()
 
 if live_issta_value is not None:
-    # מעדכן את השווי בשורה של איסתא בזיכרון של האפליקציה
-    df_data.loc[df_data['שם הנייר'].str.contains('איסתא', na=False), 'שווי'] = live_issta_value
+    # הגנה: אנחנו מחפשים את העמודה שמתחילה במילה "שם" (עבור "שם הנייר")
+    # ואת העמודה שנקראת "שווי" (או העמודה השניה בטבלה)
+    col_name = [c for c in df_data.columns if 'שם' in c][0]
+    col_value = 'שווי' # וודא שזה השם המדויק בגיליון הראשי שלך
     
-    # שומר את מחיר המניה למקרה שנרצה להציג אותו כטקסט קטן בטאב 2
+    # חיפוש "ISSTA" או "איסתא" (לא רגיש לאותיות גדולות/קטנות)
+    mask = df_data[col_name].astype(str).str.contains('ISSTA|איסתא', case=False, na=False)
+    
+    # עדכון הערך
+    df_data.loc[mask, col_value] = live_issta_value
+    
+    # שמירת מחיר המניה להצגה מאוחרת
     st.session_state['last_issta_price'] = current_issta_price
 
 # עדכון המשתנה הגלובלי שבו כל האפליקציה משתמשת
