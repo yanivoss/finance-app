@@ -447,14 +447,15 @@ try:
             <style>
                 /* עיצוב כללי לטקסט שחור בקלטים */
                 div[data-testid="stWidgetLabel"] p {
-                    font-weight: bold !important;
+                     color: black !important;
+                     font-weight: bold !important;
                     text-align: right;
                 }
                 /* עיצוב ה-Pills המעודכן */
                 /* כפתור לא נבחר - רקע בהיר */
                 button[data-testid="stBaseButton-secondaryPill"] {
                     background-color: white !important;
-                    color: white !important;border: 1px solid #d1d5db !important;
+                    color: red !important;border: 1px solid #d1d5db !important;
                     border-radius: 10px !important;
                 }
                 
