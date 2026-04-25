@@ -342,7 +342,35 @@ try:
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align:right;color: #e11d48;'>📉 פירוט התחייבויות</h2>", unsafe_allow_html=True)
+        st.markdown("### 🔍 בדיקת חיבור לגיליון התחייבויות")
+        
+        try:
+            # שלב 1: בדיקת פתיחת הקובץ
+            sh_test = client.open("הון עצמי + ביטוחים")
+            st.success("✅ הקובץ 'הון עצמי + ביטוחים' נמצא ונפתח בהצלחה")
+            
+            # שלב 2: בדיקת הגיליון הספציפי
+            try:
+                ws_test = sh_test.worksheet("התחייבויות")
+                st.success("✅ הגיליון 'התחייבויות' נמצא")
+                
+                # שלב 3: בדיקת שליפת הנתונים
+                data_test = ws_test.get_all_values()
+                if data_test:
+                    st.success(f"✅ נשלפו {len(data_test)} שורות מהגיליון")
+                    # הדפסת השורות הראשונות כדי לראות מה המחשב רואה
+                    st.write("דגימת נתונים (3 שורות ראשונות):")
+                    st.write(data_test[:3])
+                else:
+                    st.warning("⚠️ הגיליון ריק מנתונים")
+            except Exception as e_ws:
+                st.error(f"❌ שגיאה במציאת הגיליון 'התחייבויות': {e_ws}")
+                st.info("בדוק אם יש רווח מיותר בשם הגיליון בתוך ה-Google Sheets (למשל 'התחייבויות ')")
 
+        except Exception as e_sh:
+            st.error(f"❌ שגיאה בפתיחת הקובץ: {e_sh}")
+            st.info("ודא ששם הקובץ ב-Google Drive הוא בדיוק: הון עצמי + ביטוחים")
+            
         try:
             # שליפת הנתונים מגיליון התחייבויות
             # שים לב לשנות את "שם הקובץ שלך" לשם המדויק של הקובץ בגוגל דרייב
