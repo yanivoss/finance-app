@@ -403,8 +403,7 @@ try:
                         </div>
                     """
                     st.markdown(debt_html, unsafe_allow_html=True)
-
-with tab3:
+    with tab3:
         st.markdown("<h2 style='text-align:right; color: #1e293b;'>🚀 מחשבון חופש כלכלי (FIRE)</h2>", unsafe_allow_html=True)
         st.info("מחשבון זה בודק מתי ההון העצמי שלך יספיק כדי לכסות את ההוצאות החודשיות שלך ללא תלות בעבודה.")
 
@@ -452,9 +451,6 @@ with tab3:
             st.write(f"לפי הנתונים שלך, חסר לך סכום של **₪{max(fire_target - current_net_worth, 0):,.0f}** כדי להגיע לעצמאות כלכלית.")
         else:
             st.success("מזל טוב! לפי חוק ה-4%, הגעת לעצמאות כלכלית!")
-                        
-        except Exception as e:
-            st.info(f"ממתין לעדכון נתוני התחייבויות... ({e})")
 
 
         
