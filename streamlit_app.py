@@ -215,6 +215,16 @@ st.markdown("""
 
 try:
     df_s = pd.read_csv(URL_SUMMARY)
+    # 1. הרצת חישוב הלייב (אם לא הורץ קודם)
+live_issta_value, current_issta_price = get_issta_live_value()
+
+if live_issta_value is not None:
+    # 2. עדכון הערך בתוך df_s בשורה הרלוונטית (שורה 4, עמודה 3 - אינדקס 2)
+    # אנחנו מעדכנים ישירות את התא שממנו i_n שואב את המידע
+    df_s.iloc[3, 2] = live_issta_value
+    
+    # 3. שמירת מחיר המניה לשימוש בטאבים
+    st.session_state['last_issta_price'] = current_issta_price
     df_d = pd.read_csv(URL_DATA)
     sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
     btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
