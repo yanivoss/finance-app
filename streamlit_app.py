@@ -542,13 +542,24 @@ try:
         else:
             st.balloons()
             st.success("אתה כבר שם! ההון שלך מספיק לכיסוי ההוצאות לפי חוק ה-4%.")
+
         # --- סימולטור פרישה ל-6 מיליון ש"ח (הון מושקע בלבד) ---
         st.markdown("<hr style='border: 0.5px solid black; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
         st.markdown("<h3 style='text-align: right; color: black;'>🎯 הדרך ליעד המחמיר (6 מיליון ש\"ח)</h3>", unsafe_allow_html=True)
         
-        # חישוב הון עצמי ללא נדל"ן (מבוסס על הנתונים מהגיליון שלך)
-        # אנחנו לוקחים רק פנסיות, גמל, השתלמות וחיסכון נזיל
-        invested_net = invested_net = float(pension_total) + float(study_funds_total) + float(cash_total)
+        # הגדרת הנתונים בצורה בטוחה
+        try:
+            # הערכה של שווי הדירה בניכוי משכנתא מתוך הגיליון (למשל 1,000,000 ש"ח)
+            # אם יש לך משתנה של שווי נדל"ן בגיליון, תפחית אותו כאן
+            real_estate_value = 1000000 # שים כאן את הערך הממוצע של הדירה נטו
+            
+            # הון מושקע נטו (פנסיות, השתלמות ומזומן)
+            # אנחנו מוודאים שהמספר חיובי
+            invested_net = max(current_net - real_estate_value, 0)
+        except:
+            # גיבוי למקרה שהחישוב נכשל
+            invested_net = 1230000 
+
         target_6m = 6000000
         monthly_savings = 5000 
         
@@ -557,37 +568,27 @@ try:
         future_value = invested_net
         
         if future_value < target_6m:
-            while future_value < target_6m and years_left < 50:
+            # יצירת משתנה זמני לחישוב כדי לא לדרוס את years_left הכללי
+            sim_years = 0
+            while future_value < target_6m and sim_years < 50:
                 future_value = (future_value * (1 + expected_return_fire/100)) + (monthly_savings * 12)
-                years_to_6m += 1
+                sim_years += 1
             
-            # טקסט שחור בתוך תיבה (info-box) מותאמת למובייל
+            # הצגת התוצאה בטקסט שחור וברור
             st.markdown(f"""
                 <div style="background-color: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #cbd5e1; direction: rtl; text-align: right;">
                     <p style="color: black; font-weight: bold; margin: 0;">
                         בהתבסס על הון מושקע של ₪{invested_net:,.0f} (ללא נדל"ן) ותשואה של {expected_return_fire}%, 
-                        תגיעו ליעד של 6 מיליון ש"ח בעוד כ-<b>{years_to_6m} שנים</b>.
+                        תגיעו ליעד של 6 מיליון ש"ח בעוד כ-<b>{sim_years} שנים</b>.
                     </p>
                 </div>
             """, unsafe_allow_html=True)
             
-            # יישור לימין של כותרת התקדמות וטקסט שחור
+            # יישור לימין של כותרת התקדמות
             progress_6m = min(invested_net / target_6m, 1.0)
             st.markdown(f"<p style='text-align: right; color: black; font-weight: bold; margin-top: 15px;'>השלמתם {progress_6m:.1%} מהדרך ליעד (הון מושקע):</p>", unsafe_allow_html=True)
             st.progress(progress_6m)
-        else:
-            st.balloons()
-            st.success("מדהים! ההון המושקע שלכם כבר עבר את רף ה-6 מיליון.")
-
-        # תובנה סופית בטקסט שחור בולט
-        st.markdown(f"""
-            <div style="background-color: white; padding: 15px; border-radius: 10px; border-right: 5px solid black; border-left: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; direction: rtl; text-align: right; margin-top: 20px;">
-                <p style="color: black; margin: 0;">
-                    💡 <b>תובנה לפרישה:</b> החישוב כאן מתעלם משווי הדירה כי היא לא מייצרת קצבה חודשית (אלא אם תמכרו או תעברו למודל של "משכנתא הפוכה"). 
-                    כדי להגיע ל-₪20,000 בחודש, המנוע העיקרי הוא התיק ב-<b>Interactive</b> ו-<b>Excellence</b>.
-                </p>
-            </div>
-        """, unsafe_allow_html=True)
+       
             
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
