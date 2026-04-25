@@ -389,7 +389,8 @@ try:
                                     <span style="font-size: 0.8rem; color: #64748b;">📉 שינוי שנתי 📉</span>
                                 </div>
                             </div>
-                        """, unsafe_allow_html=True)
+                        """
+                        st.markdown(debt_html, unsafe_allow_html=True)
                         
         except Exception as e:
             st.info("ממתין לעדכון נתוני התחייבויות...")
