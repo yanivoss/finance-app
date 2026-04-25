@@ -351,7 +351,7 @@ try:
             debt_data = ws_debts.get_all_values()
             
             # הגדרת אינדקסים: 0 עבור אתי, 2 עבור משכנתא (מדלגים על פועלים שבשורה 1)
-            debt_indices = [0, 2] 
+            debt_indices = [1, 3] 
 
             for idx in debt_indices:
                 if idx < len(df_debts):
