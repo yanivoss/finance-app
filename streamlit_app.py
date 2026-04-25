@@ -3,6 +3,23 @@ import pandas as pd
 import yfinance as yf
 import datetime
 
+# נתוני אופציות איסתא - קבועים
+ISSTA_QTY = 1500
+ISSTA_STRIKE = 81.3664
+def get_issta_live_value():
+    try:
+        # משיכת מחיר מניה בזמן אמת מ-Yahoo Finance
+        issta = yf.Ticker("ISTA.TA")
+        current_price = issta.history(period="1d")['Close'].iloc[-1]
+        
+        # חישוב SAME DAY SALE: (מחיר נוכחי * כמות) - (מחיר מימוש * כמות)
+        gross_value = (current_price * ISSTA_QTY) - (ISSTA_STRIKE * ISSTA_QTY)
+        
+        # אם המחיר מתחת למימוש, השווי הוא 0 (לא נממש בהפסד)
+        return max(0, gross_value), current_price
+    except Exception as e:
+        return None, None
+
 # הגדרת דף
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed", page_icon="💰")
 
