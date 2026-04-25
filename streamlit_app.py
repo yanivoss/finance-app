@@ -454,16 +454,12 @@ try:
                 /* עיצוב ה-Pills המעודכן */
                 /* כפתור לא נבחר - רקע בהיר */
                 button[data-testid="stBaseButton-secondaryPill"] {
-                    background-color: white !important;
-                    color: black !important;
                     border: 1px solid #d1d5db !important;
                     border-radius: 10px !important;
                 }
                 
                 /* כפתור נבחר - רקע שחור */
                 button[data-testid="stBaseButton-secondaryPill"][aria-checked="true"] {
-                    background-color: white !important;
-                    color: white !important;
                     border-color: black !important;
                     font-weight: bold !important;
                 }
