@@ -548,7 +548,7 @@ try:
         
         # חישוב הון עצמי ללא נדל"ן (מבוסס על הנתונים מהגיליון שלך)
         # אנחנו לוקחים רק פנסיות, גמל, השתלמות וחיסכון נזיל
-        invested_net = current_net # כאן תוודא שהמשתנה current_net בטאבים הקודמים מופרד מהנדל"ן
+        invested_net = invested_net = float(pension_total) + float(study_funds_total) + float(cash_total)
         target_6m = 6000000
         monthly_savings = 5000 
         
