@@ -184,35 +184,44 @@ try:
     with m3: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#black;">₿ Bitcoin</div><div style="font-size:1.1rem; font-weight:800;">${btc_p:,.0f}</div><div style="color:{btc_col}; font-size:0.75rem; font-weight:bold;">{btc_a} {abs(btc_c):.1f}%</div></div>', unsafe_allow_html=True)
 
     # הזרקת CSS לתיקון הטאבים: צבע שחור, יישור לימין והדגשה
+    # הזרקת CSS לשינוי עיצוב הטאבים למראה נקי ומותאם למובייל
     st.markdown("""
         <style>
-            /* יישור רשימת הטאבים לימין */
+            /* יישור כל רצועת הטאבים לימין */
             div[data-testid="stTabs"] [data-baseweb="tab-list"] {
                 display: flex;
-                flex-direction: row-reverse;
+                flex-direction: row-reverse; /* הופך את הסדר לימין לשמאל */
                 justify-content: flex-start;
-                gap: 10px;
+                gap: 8px;
             }
 
-            /* עיצוב הטקסט בתוך הטאבים */
+            /* עיצוב כפתורי הטאבים */
+            div[data-testid="stTabs"] button {
+                padding: 5px 10px !important;
+            }
+
+            /* עיצוב הטקסט בתוך הטאבים - פחות מודגש ויותר קטן למובייל */
             div[data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p {
                 color: black !important;
-                font-weight: bold !important;
-                font-size: 1rem;
+                font-weight: 500 !important; /* Bold עדין יותר */
+                font-size: 0.9rem !important; /* מעט קטן יותר כדי למנוע שבירת שורות */
+                text-align: right;
             }
 
-            /* עיצוב הטאב הנבחר (הקו שמתחתיו) */
+            /* קו תחתון עדין לטאב הנבחר */
             div[data-testid="stTabs"] button[aria-selected="true"] {
                 border-bottom-color: black !important;
             }
             
-            /* התאמה למובייל - מניעת כיווץ של הטקסט */
+            /* מניעת כיווץ יתר של טאבים במובייל */
             div[data-testid="stTabs"] button {
                 white-space: nowrap;
+                min-width: auto !important;
             }
         </style>
     """, unsafe_allow_html=True)
-    tab1, tab2, tab3 = st.tabs(["🏠 מבט על", "📋 פירוט", "🚀 מחשבון פרישה ו-FIRE"])
+
+    tab1, tab2, tab3 = st.tabs(["🏠 מבט על", "📋 פירוט", "🚀 מחשבון פרישה"])
     
     with tab1:
         c1, c2 = st.columns(2)
