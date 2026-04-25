@@ -3,6 +3,13 @@ import pandas as pd
 import yfinance as yf
 import datetime
 
+# כפתור רענון בתפריט הצד (Sidebar) - אידיאלי למובייל
+if st.sidebar.button("🔄 רענון נתונים מהדרייב"):
+    # מנקה את כל הזיכרון השמור (Cache) של האפליקציה
+    st.cache_data.clear()
+    # מריץ מחדש את הקוד כדי למשוך נתונים טריים
+    st.rerun()
+
 # הגדרת דף
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed", page_icon="💰")
 
@@ -216,17 +223,6 @@ try:
     """, unsafe_allow_html=True)
     
     tab1, tab2, tab3 = st.tabs(["🏠 מבט על", "📋 פירוט", "🚀 מחשבון פרישה"])
-    # כפתור רענון בראש ה-Sidebar (תפריט הצד)
-if st.sidebar.button("🔄 רענון נתונים מהדרייב"):
-    # ניקוי זיכרון המטמון של Streamlit כדי להכריח משיכה מחדש
-    st.cache_data.clear()
-    # הרצה מחדש של האפליקציה
-    st.rerun()
-
-# אופציה נוספת: כפתור קטן בראש העמוד הראשי
-if st.button("🔄 עדכן נתונים"):
-    st.cache_data.clear()
-    st.rerun()
     
     with tab1:
         c1, c2 = st.columns(2)
