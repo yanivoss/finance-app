@@ -357,8 +357,8 @@ try:
                 if idx < len(df_debts):
                     debt_row = df_debts.iloc[idx]
                     # וידוא שמות עמודות לפי הגיליון שלך
-                    d_name = str(row.iloc[1])
-                    d_val = clean_val(row.iloc[10]) # עמודה K
+                    d_name = str(row.iloc[-1])
+                    d_val = clean_val(row.iloc[9]) # עמודה K
                     
                     if d_val > 0:
                         st.markdown(f"""
