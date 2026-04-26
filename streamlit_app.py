@@ -212,32 +212,6 @@ st.markdown("""
 
 try:
     df_s = pd.read_csv(URL_SUMMARY)
-    # 2. הגדרת משתנים לפי העמודות (אינדקסים: B=1, C=2, D=3, E=4)
-    names = df_s.iloc[:, 1]          # שם הנכס
-    current_values = df_s.iloc[:, 2] # שווי נוכחי (C)
-    initial_values = df_s.iloc[:, 3] # שווי התחלה 2023 (D)
-    total_deposits = df_s.iloc[:, 4] # סך הפקדות מצטבר (E)
-
-    # 3. חישוב רווח נקי בשקלים (שווי נוכחי פחות כל מה שנכנס לתיק)
-    profit_amount = current_values - (initial_values + total_deposits)
-    
-    # 4. חישוב אחוז תשואה (רווח חלקי סך ההשקעה)
-    total_invested = initial_values + total_deposits
-    # שימוש ב-np.where כדי להימנע מחילוק ב-0
-    profit_percent = np.where(total_invested != 0, (profit_amount / total_invested) * 100, 0)
-
-    # 5. הצגת הכרטיסים (Metrics)
-    # כאן אנחנו רצים על השורות ומציגים את הנתונים המעודכנים
-    for i in range(len(df_s)):
-        # דילוג על שורות ריקות אם יש כאלו
-        if pd.isna(names[i]):
-            continue
-            
-        st.metric(
-            label=names[i],
-            value=f"₪{current_values[i]:,.0f}",
-            delta=f"{profit_percent[i]:.2f}% (₪{profit_amount[i]:,.0f})"
-        )
     df_d = pd.read_csv(URL_DATA)
     sp_p, sp_c, sp_col, sp_a = get_market_data("^GSPC")
     btc_p, btc_c, btc_col, btc_a = get_market_data("BTC-USD")
