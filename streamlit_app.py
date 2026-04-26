@@ -261,7 +261,7 @@ try:
     with tab1:
         c1, c2 = st.columns(2)
         # הון נטו
-        n_now, n_start, n_depo = df_s.iloc[13, 2], df_s.iloc[13, 4], df_s.iloc[13, 6]
+        n_now, n_start, n_depo = df_s.iloc[14, 2], df_s.iloc[14, 4], df_s.iloc[14, 6]
         with c1: st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);"><div class="sub-label" style="color:white; opacity:0.9;">הון נטו</div><div style="font-size:2.3rem; font-weight:800;">₪{clean_val(n_now):,.0f}</div>{get_delta_html(n_now, n_start, n_depo, True)}</div>', unsafe_allow_html=True)
         # התחייבויות
         debt_now = abs(clean_val(df_s.iloc[11, 2])) + abs(clean_val(df_s.iloc[12, 2]))
