@@ -267,7 +267,7 @@ try:
         debt_now = abs(clean_val(df_s.iloc[11, 2])) + abs(clean_val(df_s.iloc[12, 2]))
         debt_start = abs(clean_val(df_s.iloc[11, 4])) + abs(clean_val(df_s.iloc[12, 4]))
         debt_depo = abs(clean_val(df_s.iloc[11, 6])) + abs(clean_val(df_s.iloc[12, 6]))
-        with c2: st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #dc2626, #b91c1c);"><div class="sub-label" style="color:white; opacity:0.9;">התחייבויות</div><div style="font-size:2.3rem; font-weight:800;">₪{debt_now:,.0f}</div>{get_delta_html(debt_now, debt_start, -debt_depo, True)}</div>', unsafe_allow_html=True)
+        with c2: st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #dc2626, #b91c1c);"><sdiv class="sub-label" style="color:white; opacity:0.9;">התחייבויות</div><div style="font-size:2.3rem; font-weight:800;">₪{debt_now:,.0f}</div>{get_delta_html(debt_now, debt_tart, -debt_depo, False)}</div>', unsafe_allow_html=True)
 
         r1c1, r1c2 = st.columns(2)
         with r1c1:
