@@ -290,8 +290,8 @@ try:
 
         r2c1, r2c2 = st.columns(2)
         with r2c1:
-            exc_n, exc_s, exc_d = df_s.iloc[1, 2], df_s.iloc[1, 4], df_s.iloc[1, 5]
-            int_n, int_s, int_d = df_s.iloc[2, 2], df_s.iloc[2, 4], df_s.iloc[2, 5]
+            exc_n, exc_s, exc_d = df_s.iloc[1, 2], df_s.iloc[1, 4], df_s.iloc[1, 6]
+            int_n, int_s, int_d = df_s.iloc[2, 2], df_s.iloc[2, 4], df_s.iloc[2, 6]
             tr_n = clean_val(exc_n) + (clean_val(int_n) * USD_RATE)
             tr_s = clean_val(exc_s) + (clean_val(int_s) * USD_RATE)
             tr_d = clean_val(exc_d) + (clean_val(int_d) * USD_RATE)
@@ -302,12 +302,12 @@ try:
                     <div class="split-item">אינטר': ₪{clean_val(int_n) * USD_RATE:,.0f}{get_delta_html(clean_val(int_n) * USD_RATE, clean_val(int_s) * USD_RATE, clean_val(int_d) * USD_RATE, False, False)}</div>
                 </div></div>''', unsafe_allow_html=True)
         with r2c2:
-            p_n, p_s, p_d = df_s.iloc[8, 2], df_s.iloc[8, 4], df_s.iloc[8, 5]
+            p_n, p_s, p_d = df_s.iloc[8, 2], df_s.iloc[8, 4], df_s.iloc[8, 6]
             st.markdown(f'<div class="sub-card"><div class="sub-label">💰 חסכונות נזילים</div><div class="sub-val">₪{clean_val(p_n):,.0f}</div>{get_delta_html(p_n, p_s, p_d, False)}<div class="split-text"><div style="height: 40px; text-align: center;"> יניב ומיכל</div></div>', unsafe_allow_html=True)
 
         r3c1, r3c2 = st.columns(2)
         with r3c1:
-            k_n, k_s, k_d = df_s.iloc[9, 2], df_s.iloc[9, 4], df_s.iloc[9, 5]
+            k_n, k_s, k_d = df_s.iloc[9, 2], df_s.iloc[9, 4], df_s.iloc[9, 6]
             st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 חסכונות ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
             v_n, v_s, v_d = clean_val(df_d.iloc[10, 15]), clean_val(df_d.iloc[10, 10]), clean_val(df_d.iloc[10, 16])
@@ -323,7 +323,7 @@ try:
                 <div style="font-size:0.8rem; margin-top:10px; font-weight:bold; color:{ltv_color};">LTV: {ltv:.1f}%</div>
                 <div class="ltv-bar" style="background-color: {ltv_color};"></div></div>''', unsafe_allow_html=True)
         with r4c2:
-            i_n, i_s, i_d = df_s.iloc[3, 2], df_s.iloc[3, 4], df_s.iloc[3, 5]
+            i_n, i_s, i_d = df_s.iloc[3, 2], df_s.iloc[3, 4], df_s.iloc[3, 6]
             st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ אופציות איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s, i_d, False)}<div class="split-text">ממתין למימוש </div></div>', unsafe_allow_html=True)
         
     with tab2:
