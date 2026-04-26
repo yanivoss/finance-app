@@ -292,14 +292,14 @@ try:
         with r2c1:
             exc_n, exc_s, exc_d = df_s.iloc[1, 2], df_s.iloc[1, 4], df_s.iloc[1, 6]
             int_n, int_s, int_d = df_s.iloc[2, 2], df_s.iloc[2, 4], df_s.iloc[2, 6]
-            tr_n = clean_val(exc_n) + (clean_val(int_n) * USD_RATE)
-            tr_s = clean_val(exc_s) + (clean_val(int_s) * USD_RATE)
-            tr_d = clean_val(exc_d) + (clean_val(int_d) * USD_RATE)
+            tr_n = clean_val(exc_n) + (clean_val(int_n) 
+            tr_s = clean_val(exc_s) + (clean_val(int_s)
+            tr_d = clean_val(exc_d) + (clean_val(int_d) 
             st.markdown(f'''<div class="sub-card"><div class="sub-label">💎 תיק מסחר</div><div class="sub-val">₪{tr_n:,.0f}</div>{get_delta_html(tr_n, tr_s, tr_d, False)}
                 <div class="split-text">
                     <div class="split-item">אקסלנס: ₪{clean_val(exc_n):,.0f}{get_delta_html(exc_n, exc_s, exc_d, False, False)}</div>
                     <div style="border-left: 1px solid #f1f5f9; height: 30px;"></div>
-                    <div class="split-item">אינטר': ₪{clean_val(int_n) * USD_RATE:,.0f}{get_delta_html(clean_val(int_n) * USD_RATE, clean_val(int_s) * USD_RATE, clean_val(int_d) * USD_RATE, False, False)}</div>
+                    <div class="split-item">אינטר': ₪{clean_val(int_n):,.0f}{get_delta_html(clean_val(int_n), clean_val(int_s), clean_val(int_d) * USD_RATE, False, False)}</div>
                 </div></div>''', unsafe_allow_html=True)
         with r2c2:
             p_n, p_s, p_d = df_s.iloc[8, 2], df_s.iloc[8, 4], df_s.iloc[8, 6]
