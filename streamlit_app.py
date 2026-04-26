@@ -260,18 +260,20 @@ try:
     
     with tab1:
         c1, c2 = st.columns(2)
-        # הון נטו
-        n_now, n_start, n_depo = df_s.iloc[13, 2], df_s.iloc[13, 4], df_s.iloc[13, 5]
+        # הון נטו - עמודה C (אינדקס 2), עמודה D (אינדקס 3), עמודה E (אינדקס 4)
+        n_now, n_start, n_depo = df_s.iloc[13, 2], df_s.iloc[13, 3], df_s.iloc[13, 4]
         with c1: st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);"><div class="sub-label" style="color:white; opacity:0.9;">הון נטו</div><div style="font-size:2.3rem; font-weight:800;">₪{clean_val(n_now):,.0f}</div>{get_delta_html(n_now, n_start, n_depo, True)}</div>', unsafe_allow_html=True)
-        # התחייבויות
+        
+        # התחייבויות - נשאר אותו דבר (עמודה C)
         debt_now = abs(clean_val(df_s.iloc[11, 2])) + abs(clean_val(df_s.iloc[12, 2]))
-        debt_start = abs(clean_val(df_s.iloc[11, 4])) + abs(clean_val(df_s.iloc[12, 4]))
+        debt_start = abs(clean_val(df_s.iloc[11, 3])) + abs(clean_val(df_s.iloc[12, 3]))
         with c2: st.markdown(f'<div class="main-card" style="background: linear-gradient(135deg, #dc2626, #b91c1c);"><div class="sub-label" style="color:white; opacity:0.9;">התחייבויות</div><div style="font-size:2.3rem; font-weight:800;">₪{debt_now:,.0f}</div>{get_delta_html(debt_now, debt_start, 0, True)}</div>', unsafe_allow_html=True)
 
         r1c1, r1c2 = st.columns(2)
         with r1c1:
-            py_n, py_s, py_d = df_s.iloc[4, 2], df_s.iloc[4, 4], df_s.iloc[4, 5]
-            pm_n, pm_s, pm_d = df_s.iloc[6, 2], df_s.iloc[6, 4], df_s.iloc[6, 5]
+            # פנסיות: עכשיו מושכים אינדקס 4 עבור הפקדות
+            py_n, py_s, py_d = df_s.iloc[4, 2], df_s.iloc[4, 3], df_s.iloc[4, 4]
+            pm_n, pm_s, pm_d = df_s.iloc[6, 2], df_s.iloc[6, 3], df_s.iloc[6, 4]
             st.markdown(f'''<div class="sub-card"><div class="sub-label">🏦 פנסיות</div><div class="sub-val">₪{clean_val(py_n)+clean_val(pm_n):,.0f}</div>{get_delta_html(clean_val(py_n)+clean_val(pm_n), clean_val(py_s)+clean_val(pm_s), clean_val(py_d)+clean_val(pm_d), False)}
                 <div class="split-text">
                     <div class="split-item">יניב: ₪{clean_val(py_n):,.0f}{get_delta_html(py_n, py_s, py_d, False, False)}</div>
@@ -279,8 +281,9 @@ try:
                     <div class="split-item">מיכל: ₪{clean_val(pm_n):,.0f}{get_delta_html(pm_n, pm_s, pm_d, False, False)}</div>
                 </div></div>''', unsafe_allow_html=True)
         with r1c2:
-            sy_n, sy_s, sy_d = df_s.iloc[5, 2], df_s.iloc[5, 4], df_s.iloc[5, 5]
-            sm_n, sm_s, sm_d = df_s.iloc[7, 2], df_s.iloc[7, 4], df_s.iloc[7, 5]
+            # השתלמות: עכשיו מושכים אינדקס 4 עבור הפקדות
+            sy_n, sy_s, sy_d = df_s.iloc[5, 2], df_s.iloc[5, 3], df_s.iloc[5, 4]
+            sm_n, sm_s, sm_d = df_s.iloc[7, 2], df_s.iloc[7, 3], df_s.iloc[7, 4]
             st.markdown(f'''<div class="sub-card"><div class="sub-label">📈 קרנות השתלמות</div><div class="sub-val">₪{clean_val(sy_n)+clean_val(sm_n):,.0f}</div>{get_delta_html(clean_val(sy_n)+clean_val(sm_n), clean_val(sy_s)+clean_val(sm_s), clean_val(sy_d)+clean_val(sm_d), False)}
                 <div class="split-text">
                     <div class="split-item">יניב: ₪{clean_val(sy_n):,.0f}{get_delta_html(sy_n, sy_s, sy_d, False, False)}</div>
@@ -290,32 +293,35 @@ try:
 
         r2c1, r2c2 = st.columns(2)
         with r2c1:
-            exc_n, exc_s, exc_d = df_s.iloc[1, 2], df_s.iloc[1, 4], df_s.iloc[1, 5]
-            int_n, int_s, int_d = df_s.iloc[2, 2], df_s.iloc[2, 4], df_s.iloc[2, 5]
+            # תיק מסחר: אינדקס 1 (אקסלנס), אינדקס 2 (אינטראקטיב)
+            exc_n, exc_s, exc_d = df_s.iloc[1, 2], df_s.iloc[1, 3], df_s.iloc[1, 4]
+            int_n, int_s, int_d = df_s.iloc[2, 2], df_s.iloc[2, 3], df_s.iloc[2, 4]
             tr_n = clean_val(exc_n) + (clean_val(int_n) * USD_RATE)
             tr_s = clean_val(exc_s) + (clean_val(int_s) * USD_RATE)
-            tr_d = clean_val(exc_d) + (clean_val(int_d) * USD_RATE)
+            # שים לב: int_d (הפקדות) כבר חושב בשקלים בגיליון, אז לא מכפילים ב-USD_RATE
+            tr_d = clean_val(exc_d) + clean_val(int_d) 
             st.markdown(f'''<div class="sub-card"><div class="sub-label">💎 תיק מסחר</div><div class="sub-val">₪{tr_n:,.0f}</div>{get_delta_html(tr_n, tr_s, tr_d, False)}
                 <div class="split-text">
                     <div class="split-item">אקסלנס: ₪{clean_val(exc_n):,.0f}{get_delta_html(exc_n, exc_s, exc_d, False, False)}</div>
                     <div style="border-left: 1px solid #f1f5f9; height: 30px;"></div>
-                    <div class="split-item">אינטר': ₪{clean_val(int_n) * USD_RATE:,.0f}{get_delta_html(clean_val(int_n) * USD_RATE, clean_val(int_s) * USD_RATE, clean_val(int_d) * USD_RATE, False, False)}</div>
+                    <div class="split-item">אינטר': ₪{clean_val(int_n) * USD_RATE:,.0f}{get_delta_html(clean_val(int_n) * USD_RATE, clean_val(int_s) * USD_RATE, int_d, False, False)}</div>
                 </div></div>''', unsafe_allow_html=True)
         with r2c2:
-            p_n, p_s, p_d = df_s.iloc[8, 2], df_s.iloc[8, 4], df_s.iloc[8, 5]
+            p_n, p_s, p_d = df_s.iloc[8, 2], df_s.iloc[8, 3], df_s.iloc[8, 4]
             st.markdown(f'<div class="sub-card"><div class="sub-label">💰 חסכונות נזילים</div><div class="sub-val">₪{clean_val(p_n):,.0f}</div>{get_delta_html(p_n, p_s, p_d, False)}<div class="split-text"><div style="height: 40px; text-align: center;"> יניב ומיכל</div></div>', unsafe_allow_html=True)
 
         r3c1, r3c2 = st.columns(2)
         with r3c1:
-            k_n, k_s, k_d = df_s.iloc[9, 2], df_s.iloc[9, 4], df_s.iloc[9, 5]
+            k_n, k_s, k_d = df_s.iloc[9, 2], df_s.iloc[9, 3], df_s.iloc[9, 4]
             st.markdown(f'<div class="sub-card"><div class="sub-label">👦👧 חסכונות ילדים</div><div class="sub-val">₪{clean_val(k_n):,.0f}</div>{get_delta_html(k_n, k_s, k_d, False)}<div class="split-text">עמית ונועם</div></div>', unsafe_allow_html=True)
         with r3c2:
+            # כאן המקור הוא df_d (גיליון DATA), אינדקסים 15, 10, 16 נשארים אותו דבר
             v_n, v_s, v_d = clean_val(df_d.iloc[10, 15]), clean_val(df_d.iloc[10, 10]), clean_val(df_d.iloc[10, 16])
             st.markdown(f'<div class="sub-card" style="border-right: 5px solid #3b82f6;"><div class="sub-label">🏖️ חיסכון לחופשה</div><div class="sub-val" style="color: #3b82f6;">₪{clean_val(v_n):,.0f}</div>{get_delta_html(v_n, v_s, v_d, False)}<div class="split-text">לחופשה הבאה שלנו</div></div>', unsafe_allow_html=True)
 
         r4c1, r4c2 = st.columns(2)
         with r4c1:
-            h_n, h_s = df_s.iloc[10, 2], df_s.iloc[10, 4]
+            h_n, h_s = df_s.iloc[10, 2], df_s.iloc[10, 3]
             mortgage = abs(clean_val(df_s.iloc[11, 2]))
             ltv = (mortgage / clean_val(h_n) * 100) if clean_val(h_n) > 0 else 0
             ltv_color = "#16a34a" if ltv < 60 else "#ea580c"
@@ -323,9 +329,10 @@ try:
                 <div style="font-size:0.8rem; margin-top:10px; font-weight:bold; color:{ltv_color};">LTV: {ltv:.1f}%</div>
                 <div class="ltv-bar" style="background-color: {ltv_color};"></div></div>''', unsafe_allow_html=True)
         with r4c2:
-            i_n, i_s, i_d = df_s.iloc[3, 2], df_s.iloc[3, 4], df_s.iloc[3, 5]
+            i_n, i_s, i_d = df_s.iloc[3, 2], df_s.iloc[3, 3], df_s.iloc[3, 4]
             st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ אופציות איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s, i_d, False)}<div class="split-text">ממתין למימוש </div></div>', unsafe_allow_html=True)
-        
+    
+    
     with tab2:
         st.markdown("<h2 style='text-align:right;color: black;'>📋 פירוט תיק הנכסים</h2>", unsafe_allow_html=True)
         
