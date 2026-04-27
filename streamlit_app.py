@@ -420,7 +420,7 @@ try:
                     
                     # בטאב 2, אנחנו רוצים ש-d_html יציג את ההשוואה להתחלה ללא הפקדות
                     # לכן נשלח 0 במקום v_depo ו-False כדי לקבל חץ אדום בירידה (לפי בקשתך הקודמת)
-                    d_html_clean = get_delta_html(v_now, v_start, 0, is_main_card=False, is_debt=("התחייבויות" in group_name))
+                    d_html_clean = get_delta_html(v_now, v_start, 0, False,)
                     
                     # קריאה לכרטיס עם הנתונים המעודכנים
                     asset_card(row.iloc[1], row.iloc[0], v_now, v_start, v_depo, d_html_clean, display_currency)
