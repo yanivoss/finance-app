@@ -379,6 +379,21 @@ try:
                     v_start = clean_val(row.iloc[3])  # עמודה D
                     v_depo = clean_val(row.iloc[16])  # עמודה Q
 
+                    # לוגיקה נקודתית לאינטראקטיב:
+                    display_currency = "₪"
+                    if "אינטראקטיב" in asset_name:
+                        v_now = v_now * USD_RATE
+                        d_html = get_delta_html(v_now, v_start, v_depo, is_main_card=False)
+                    else:
+                        d_html = get_delta_html(v_now, v_start, v_depo, is_main_card=False)
+                        
+                    # בדיקה שהשורה לא ריקה ויש בה נתונים
+                    if not pd.isna(row.iloc[1]) and (v_now != 0 or v_start != 0):
+                        g_now += v_now
+                        g_start += v_start
+                        g_depo += v_depo
+                        valid_rows.append((row, v_now, v_start, v_depo))
+
             # יצירת כותרת Expander עם סיכום כספי
             if g_now != 0: # שיניתי ל-!= כי התחייבויות יכולות להיות שליליות
                 # שינוי הלוגיקה בכותרת: אחוז השינוי מחושב עכשיו ביחס להתחלה בלבד
