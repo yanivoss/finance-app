@@ -376,7 +376,7 @@ try:
                     row = raw_data.iloc[idx]
                     asset_name = str(row.iloc[1])
                     v_now = clean_val(row.iloc[15])   # עמודה P
-                    v_start = clean_val(row.iloc[2])  # עמודה D
+                    v_start = clean_val(row.iloc[3])  # עמודה D
                     v_depo = clean_val(row.iloc[16])  # עמודה Q
 
                     # לוגיקה נקודתית לאינטראקטיב:
