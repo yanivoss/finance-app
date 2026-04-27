@@ -381,11 +381,6 @@ try:
 
                     # לוגיקה נקודתית לאינטראקטיב:
                     display_currency = "₪"
-                    if "אינטראקטיב" in asset_name:
-                        v_now = v_now * USD_RATE
-                        d_html = get_delta_html(v_now, v_start, v_depo, is_main_card=False)
-                    else:
-                        d_html = get_delta_html(v_now, v_start, v_depo, is_main_card=False)
                         
                     # בדיקה שהשורה לא ריקה ויש בה נתונים
                     if not pd.isna(row.iloc[1]) and (v_now != 0 or v_start != 0):
