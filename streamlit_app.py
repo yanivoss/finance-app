@@ -378,6 +378,7 @@ try:
                     v_now = clean_val(row.iloc[15])   # עמודה P
                     v_start = clean_val(row.iloc[3])  # עמודה D
                     v_depo = clean_val(row.iloc[16])  # עמודה Q
+                    v_display_jan = clean_val(row.iloc[10]) # עמודה K - הערך שיוצג ליד הלוח שנה (תחילת שנה)
 
                     # לוגיקה נקודתית לאינטראקטיב:
                     display_currency = "₪"
@@ -387,7 +388,8 @@ try:
                         g_now += v_now
                         g_start += v_start
                         g_depo += v_depo
-                        valid_rows.append((row, v_now, v_start, v_depo))
+                        # במקום מה שיש עכשיו, שנה לזה:
+                        valid_rows.append((row, v_now, v_start, v_depo, v_display_jan))
 
             # יצירת כותרת Expander עם סיכום כספי
             if g_now != 0: # שיניתי ל-!= כי התחייבויות יכולות להיות שליליות
@@ -409,7 +411,8 @@ try:
             with st.expander(header_summary, expanded=True):
                 if not valid_rows:
                     st.write("אין נתונים להצגה בקבוצה זו.")
-                for row, v_now, v_start, v_depo in valid_rows:
+                # הוספנו את v_display_jan לסוף הרשימה
+                for row, v_now, v_start, v_depo, v_display_jan in valid_rows:
                     # חישוב אחוז שינוי נקי לכרטיס הספציפי (לשימוש בתוך asset_card)
                     v_pct_clean = ((v_now / v_start) - 1) * 100 if v_start != 0 else 0
                     
@@ -418,7 +421,7 @@ try:
                     d_html_clean = get_delta_html(v_now, v_start, 0, False,)
                     
                     # קריאה לכרטיס עם הנתונים המעודכנים
-                    asset_card(row.iloc[1], row.iloc[0], v_now, v_start, v_depo, d_html_clean, display_currency)
+                    asset_card(row.iloc[1], row.iloc[0], v_now, v_display_jan, v_depo, d_html_clean, display_currency)
             
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
