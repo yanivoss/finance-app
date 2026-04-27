@@ -424,26 +424,7 @@ try:
                     
                     # קריאה לכרטיס עם הנתונים המעודכנים
                     asset_card(row.iloc[1], row.iloc[0], v_now, v_start, v_depo, d_html_clean, display_currency)
-            # יצירת כותרת Expander עם סיכום כספי
-            if g_now > 0:
-                profit = g_now - g_start - g_depo
-                # קביעת צבע (אמוג'י ירוק/אדום כפתרון פשוט ובולט לכותרת)
-                indicator = "🟢" if profit >= 0 else "🔴"
-                pct = (profit / g_start * 100) if g_start != 0 else 0
-                
-                # הכותרת החדשה עם אינדיקטור ויזואלי
-                header_summary = f"{group_name} | ₪{g_now:,.0f} {indicator} ({pct:+.1f}%)"
-            else:
-                header_summary = group_name
-
-            # הצגת ה-Expander והכרטיסים בתוכו
-            with st.expander(header_summary, expanded=True):
-                if not valid_rows:
-                    st.write("אין נתונים להצגה בקבוצה זו.")
-                for row, v_now, v_start, v_depo in valid_rows:
-                    d_html = get_delta_html(v_now, v_start, v_depo, is_main_card=False)
-                    asset_card(row.iloc[1], row.iloc[0], v_now, v_start, v_depo, d_html, display_currency)
-
+            
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align:right;color: #e11d48;'>📉 פירוט התחייבויות</h2>", unsafe_allow_html=True)
