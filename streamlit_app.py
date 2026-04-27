@@ -375,9 +375,9 @@ try:
                 if idx < len(raw_data):
                     row = raw_data.iloc[idx]
                     asset_name = str(row.iloc[1])
-                    v_now = clean_val(row.iloc[15])   # עמודה K
-                    v_start = clean_val(row.iloc[10])  # עמודה F
-                    v_depo = clean_val(row.iloc[16])  # עמודה L
+                    v_now = clean_val(row.iloc[15])   # עמודה P
+                    v_start = clean_val(row.iloc[3])  # עמודה D
+                    v_depo = clean_val(row.iloc[16])  # עמודה Q
 
                     # לוגיקה נקודתית לאינטראקטיב:
                     display_currency = "₪"
@@ -394,6 +394,36 @@ try:
                         g_depo += v_depo
                         valid_rows.append((row, v_now, v_start, v_depo))
 
+            # יצירת כותרת Expander עם סיכום כספי
+            if g_now != 0: # שיניתי ל-!= כי התחייבויות יכולות להיות שליליות
+                # שינוי הלוגיקה בכותרת: אחוז השינוי מחושב עכשיו ביחס להתחלה בלבד
+                g_profit_clean = g_now - g_start
+                g_pct_clean = (g_profit_clean / g_start * 100) if g_start != 0 else 0
+                
+                # קביעת אינדיקטור לפי הלוגיקה של הקבוצה
+                if "התחייבויות" in group_name:
+                    indicator = "🟢" if g_now <= g_start else "🔴" # ירידה בחוב זה ירוק
+                else:
+                    indicator = "🟢" if g_profit_clean >= 0 else "🔴"
+                    
+                header_summary = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct_clean:+.1f}%)"
+            else:
+                header_summary = group_name
+            
+            # הצגת ה-Expander והכרטיסים בתוכו
+            with st.expander(header_summary, expanded=True):
+                if not valid_rows:
+                    st.write("אין נתונים להצגה בקבוצה זו.")
+                for row, v_now, v_start, v_depo in valid_rows:
+                    # חישוב אחוז שינוי נקי לכרטיס הספציפי (לשימוש בתוך asset_card)
+                    v_pct_clean = ((v_now / v_start) - 1) * 100 if v_start != 0 else 0
+                    
+                    # בטאב 2, אנחנו רוצים ש-d_html יציג את ההשוואה להתחלה ללא הפקדות
+                    # לכן נשלח 0 במקום v_depo ו-False כדי לקבל חץ אדום בירידה (לפי בקשתך הקודמת)
+                    d_html_clean = get_delta_html(v_now, v_start, 0, is_main_card=False, is_debt=("התחייבויות" in group_name))
+                    
+                    # קריאה לכרטיס עם הנתונים המעודכנים
+                    asset_card(row.iloc[1], row.iloc[0], v_now, v_start, v_depo, d_html_clean, display_currency)
             # יצירת כותרת Expander עם סיכום כספי
             if g_now > 0:
                 profit = g_now - g_start - g_depo
