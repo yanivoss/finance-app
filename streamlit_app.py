@@ -372,34 +372,34 @@ try:
             valid_rows = []
 
             for idx in row_indices:
-    if idx < len(raw_data):
-        row = raw_data.iloc[idx]
-        asset_name = str(row.iloc[1]) # שם הנכס (למשל "קרן פנסיה")
-        
-        v_now = clean_val(row.iloc[15])   # עמודה P מ-df_d
-        v_start = clean_val(row.iloc[3])  # עמודה D מ-df_d
-        v_depo = clean_val(row.iloc[16])  # עמודה Q מ-df_d
-        v_display_jan = clean_val(row.iloc[10]) # עמודה K מ-df_d
+            if idx < len(raw_data):
+                row = raw_data.iloc[idx]
+                asset_name = str(row.iloc[1]) # שם הנכס (למשל "קרן פנסיה")
+                
+                v_now = clean_val(row.iloc[15])   # עמודה P מ-df_d
+                v_start = clean_val(row.iloc[3])  # עמודה D מ-df_d
+                v_depo = clean_val(row.iloc[16])  # עמודה Q מ-df_d
+                v_display_jan = clean_val(row.iloc[10]) # עמודה K מ-df_d
 
-        # --- התיקון: שליפת סך ההפקדות מ-df_s (גיליון Summary) לפי שם הנכס ---
-        try:
-            # מחפשים ב-df_s את השורה שבה עמודה B (אינדקס 1) שווה לשם הנכס
-            # ולוקחים את עמודה G (אינדקס 6)
-            v_total_deposits = clean_val(df_s[df_s.iloc[:, 1] == asset_name].iloc[0, 6])
-        except:
-            # אם לא נמצא ב-Summary, נשתמש ב-v_start כברירת מחדל
-            v_total_deposits = v_start
+                # --- התיקון: שליפת סך ההפקדות מ-df_s (גיליון Summary) לפי שם הנכס ---
+                try:
+                    # מחפשים ב-df_s את השורה שבה עמודה B (אינדקס 1) שווה לשם הנכס
+                    # ולוקחים את עמודה G (אינדקס 6)
+                    v_total_deposits = clean_val(df_s[df_s.iloc[:, 1] == asset_name].iloc[0, 6])
+                except:
+                    # אם לא נמצא ב-Summary, נשתמש ב-v_start כברירת מחדל
+                    v_total_deposits = v_start
 
-        # לוגיקה נקודתית לאינטראקטיב:
-        display_currency = "₪"
-        
-        # בדיקה שהשורה לא ריקה ויש בה נתונים
-        if not pd.isna(row.iloc[1]) and (v_now != 0 or v_start != 0):
-            g_now += v_now
-            g_start += v_start
-            g_depo += v_depo
-            # שים לב שאנחנו מוסיפים את v_total_deposits לסוף ה-tuple
-            valid_rows.append((row, v_now, v_start, v_depo, v_display_jan, v_total_deposits))
+                # לוגיקה נקודתית לאינטראקטיב:
+                display_currency = "₪"
+                
+                # בדיקה שהשורה לא ריקה ויש בה נתונים
+                if not pd.isna(row.iloc[1]) and (v_now != 0 or v_start != 0):
+                    g_now += v_now
+                    g_start += v_start
+                    g_depo += v_depo
+                    # שים לב שאנחנו מוסיפים את v_total_deposits לסוף ה-tuple
+                    valid_rows.append((row, v_now, v_start, v_depo, v_display_jan, v_total_deposits))
 
             # יצירת כותרת Expander עם סיכום כספי
             if g_now != 0: # שיניתי ל-!= כי התחייבויות יכולות להיות שליליות
