@@ -476,19 +476,11 @@ try:
             
             debt_header = f"ריכוז התחייבויות | יתרה: ₪{total_debt_now:,.0f} 🟢 ({debt_pct_progress:.1f}% שולם)"
 
-            # תצוגת ה-Expander
             with st.expander(debt_header, expanded=True):
-                if not valid_debts:
-                    st.write("לא נמצאו נתוני התחייבויות תקינים.")
                 for row, d_val, v_total_paid, v_original_val in valid_debts:
-                    # כאן נכנס ה-HTML של הכרטיס שכתבנו קודם...
-                    # (וודא שגם פה יש חישוב אחוזים בטוח)
-                    pass
-
-        except Exception as e:
-            st.error(f"שגיאה בטעינת התחייבויות: {e}")
-            
-                    # חישוב אחוז שנותר לפירעון
+                    d_name = str(row.iloc[1])
+                    # חישוב אחוזים בטוח
+                    paid_pct = (v_total_paid / v_original_val * 100) if v_original_val > 0 else 0
                     remaining_pct = (d_val / v_original_val * 100) if v_original_val > 0 else 0
                     
                     debt_card_html = f"""
