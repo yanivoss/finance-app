@@ -434,33 +434,41 @@ try:
             debt_indices = [2, 0] # משכנתא (2) ואתי נודלמן (0)
             
             total_debt_now = 0
-            total_debt_prev = 0
+            total_debt_start_original = 0 # ערך הלוואה מקורי
             valid_debts = []
 
             for idx in debt_indices:
                 if idx < len(df_debts):
                     row = df_debts.iloc[idx]
-                    d_val = clean_val(row.iloc[10])      # עמודה K
-                    d_val_prev = clean_val(row.iloc[7])  # עמודה H
+                    asset_name = str(row.iloc[1])
+                    d_val_now = clean_val(row.iloc[10]) # יתרה היום (K)
                     
-                    if d_val > 0 or d_val_prev > 0:
-                        total_debt_now += d_val
-                        total_debt_prev += d_val_prev
-                        valid_debts.append((row, d_val, d_val_prev))
-            # חישוב סיכום
-            debt_diff = total_debt_now - total_debt_prev
-            debt_pct = (debt_diff / total_debt_prev * 100) if total_debt_prev != 0 else 0
-            debt_indicator = "🟢" if debt_diff <= 0 else "🔴"
-            debt_header = f"ריכוז התחייבויות | ₪{total_debt_now:,.0f} {debt_indicator} ({debt_pct:+.1f}%)"
+                    # שליפת נתונים מגיליון APP (df_s)
+                    try:
+                        app_row = df_s[df_s.iloc[:, 1].str.contains(asset_name.split()[0])]
+                        v_total_paid = clean_val(app_row.iloc[0, 6])   # עמודה G - כמה הוחזר
+                        v_original_val = clean_val(app_row.iloc[0, 4]) # עמודה E - ערך התחלתי
+                    except:
+                        v_total_paid = 0
+                        v_original_val = d_val_now
 
+                    if d_val_now > 0:
+                        total_debt_now += d_val_now
+                        total_debt_start_original += v_original_val
+                        valid_debts.append((row, d_val_now, v_total_paid, v_original_val))
+
+            # חישוב אחוז פירעון כללי
+            total_paid_all = total_debt_start_original - total_debt_now
+            debt_pct_progress = (total_paid_all / total_debt_start_original * 100) if total_debt_start_original > 0 else 0
+            
+            debt_header = f"ריכוז התחייבויות | יתרה: ₪{total_debt_now:,.0f} 🟢 ({debt_pct_progress:.1f}% שולם)"
+            
             with st.expander(debt_header, expanded=True):
-                for row, d_val, d_val_prev in valid_debts:
+                for row, d_val, v_total_paid, v_original_val in valid_debts:
                     d_name = str(row.iloc[1])
-                    diff = d_val - d_val_prev
-                    pct = (diff / d_val_prev * 100) if d_val_prev != 0 else 0
-                    color = "#4CAF50" if diff <= 0 else "#e11d48"
-                    arrow = "▼" if diff <= 0 else "▲"
-
+                    # חישוב אחוז הפירעון הספציפי
+                    paid_pct = (v_total_paid / v_original_val * 100) if v_original_val > 0 else 0
+                    
                     debt_card_html = f"""
                         <div style='background: white; padding: 20px; border-radius: 20px; 
                                     box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 16px; 
@@ -468,18 +476,18 @@ try:
                             <div style='display: flex; justify-content: space-between; align-items: start;'>
                                 <div>
                                     <div style='font-size: 1.2rem; font-weight: 800; color: #1e293b;'>{d_name}</div>
-                                    <div style='font-size: 0.85rem; color: #64748b;'>סטטוס החזר שנתי</div>
+                                    <div style='font-size: 0.85rem; color: #64748b;'>שווי הלוואה מקורי: ₪{v_original_val:,.0f}</div>
                                 </div>
                                 <div style='text-align: left; direction: ltr;'>
                                     <div style='font-size: 1.5rem; font-weight: 900; color: #1e293b;'>₪{d_val:,.0f}</div>
-                                    <div style='color: {color}; font-size: 0.9rem; font-weight: 600; margin-top: 4px;'>
-                                        {arrow} ₪{abs(diff):,.0f} ({abs(pct):.1f}%)
+                                    <div style='color: #4CAF50; font-size: 0.9rem; font-weight: 600; margin-top: 4px;'>
+                                        הוחזר: ₪{v_total_paid:,.0f} ({paid_pct:.1f}%)
                                     </div>
                                 </div>
                             </div>
                             <div style='margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; direction: rtl;'>
-                                <span style='font-size: 0.8rem; color: #64748b;'>📅 יתרה ב-2025: <b>₪{d_val_prev:,.0f}</b></span>
-                                <span style='font-size: 0.8rem; color: #64748b;'>📉 ירידה בחוב</span>
+                                <span style='font-size: 0.8rem; color: #64748b;'>💰 סך הכל שולם עד היום: <b>₪{v_total_paid:,.0f}</b></span>
+                                <span style='font-size: 0.8rem; color: #4CAF50;'>📉 בתהליך פירעון</span>
                             </div>
                         </div>
                     """
