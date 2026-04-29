@@ -375,10 +375,25 @@ try:
                 if idx < len(raw_data):
                     row = raw_data.iloc[idx]
                     asset_name = str(row.iloc[1])
-                    v_now = clean_val(row.iloc[15])   # עמודה P
-                    v_start = clean_val(row.iloc[3])  # עמודה D
-                    v_depo = clean_val(row.iloc[16])  # עמודה Q
-                    v_display_jan = clean_val(row.iloc[10]) # עמודה K - הערך שיוצג ליד הלוח שנה (תחילת שנה)
+                    v_now = clean_val(row.iloc[15])      # עמודה P
+                    v_start = clean_val(row.iloc[3])     # עמודה D
+                    v_depo = clean_val(row.iloc[16])     # עמודה Q (הפקדות השנה)
+                    v_display_jan = clean_val(row.iloc[10]) # עמודה K (תחילת שנה לתצוגה)
+
+                    # --- 1. שליפת נתונים היסטוריים מגיליון APP (df_s) לחישוב רווח נקי ---
+                    v_original_val = 0
+                    v_total_deposits = 0
+                    
+                    try:
+                        # חיפוש חכם לפי המילה הראשונה בשם הנכס
+                        first_word = asset_name.split()[0] if asset_name else ""
+                        match = df_s[df_s.iloc[:, 1].str.contains(first_word, na=False, case=False)]
+                        
+                        if not match.empty:
+                            v_original_val = clean_val(match.iloc[0, 4])   # עמודה E ב-APP
+                            v_total_deposits = clean_val(match.iloc[0, 6]) # עמודה G ב-APP
+                    except:
+                        pass 
 
                     # לוגיקה נקודתית לאינטראקטיב:
                     display_currency = "₪"
@@ -388,18 +403,16 @@ try:
                         g_now += v_now
                         g_start += v_start
                         g_depo += v_depo
-                        # במקום מה שיש עכשיו, שנה לזה:
-                        valid_rows.append((row, v_now, v_start, v_depo, v_display_jan))
+                        # הוספנו את הנתונים ההיסטוריים לרשימה
+                        valid_rows.append((row, v_now, v_start, v_depo, v_display_jan, v_original_val, v_total_deposits))
 
             # יצירת כותרת Expander עם סיכום כספי
-            if g_now != 0: # שיניתי ל-!= כי התחייבויות יכולות להיות שליליות
-                # שינוי הלוגיקה בכותרת: אחוז השינוי מחושב עכשיו ביחס להתחלה בלבד
+            if g_now != 0:
                 g_profit_clean = g_now - g_start
                 g_pct_clean = (g_profit_clean / g_start * 100) if g_start != 0 else 0
                 
-                # קביעת אינדיקטור לפי הלוגיקה של הקבוצה
                 if "התחייבויות" in group_name:
-                    indicator = "🟢" if g_now <= g_start else "🔴" # ירידה בחוב זה ירוק
+                    indicator = "🟢" if g_now <= g_start else "🔴" 
                 else:
                     indicator = "🟢" if g_profit_clean >= 0 else "🔴"
                     
@@ -407,23 +420,29 @@ try:
             else:
                 header_summary = group_name
             
-            # הצגת ה-Expander והכרטיסים בתוכו
             with st.expander(header_summary, expanded=True):
                 if not valid_rows:
                     st.write("אין נתונים להצגה בקבוצה זו.")
-                # הוספנו את v_display_jan לסוף הרשימה
-                for row, v_now, v_start, v_depo, v_display_jan in valid_rows:
-                    # חישוב אחוז שינוי נקי לכרטיס הספציפי (לשימוש בתוך asset_card)
-                    v_pct_clean = ((v_now / v_start) - 1) * 100 if v_start != 0 else 0
+                
+                for row, v_now, v_start, v_depo, v_display_jan, v_orig, v_total_depo in valid_rows:
+                    # --- 2. חישוב רווח נקי (נוסחה: שווי עכשווי מול השקעה כוללת) ---
+                    total_invested = v_orig + v_total_depo
+                    net_profit_amount = v_now - total_invested
                     
-                    # בטאב 2, אנחנו רוצים ש-d_html יציג את ההשוואה להתחלה ללא הפקדות
-                    # לכן נשלח 0 במקום v_depo ו-False כדי לקבל חץ אדום בירידה (לפי בקשתך הקודמת)
-                    d_html_clean = get_delta_html(v_now, v_start, 0, False,)
+                    if total_invested > 0:
+                        v_pct_net = (net_profit_amount / total_invested) * 100
+                    else:
+                        v_pct_net = 0
                     
-                    # קריאה לכרטיס עם הנתונים המעודכנים
-                    asset_card(row.iloc[1], row.iloc[0], v_now, v_display_jan, v_depo, d_html_clean, display_currency)
-            
-        
+                    # יצירת ה-HTML של החץ לפי הרווח הנקי המצטבר
+                    # משתמשים ב-v_pct_net במקום בחישוב הישן
+                    color = "#4CAF50" if net_profit_amount >= 0 else "#e11d48"
+                    arrow = "▲" if net_profit_amount >= 0 else "▼"
+                    d_html_net = f"<span style='color: {color}; font-weight: 700;'>{arrow} {abs(v_pct_net):.1f}%</span>"
+                    
+                    # קריאה לכרטיס (v_depo כאן הוא הפקדות השנה מעמודה Q)
+                    asset_card(row.iloc[1], row.iloc[0], v_now, v_display_jan, v_depo, d_html_net, display_currency)
+
         
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
