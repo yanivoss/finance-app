@@ -368,7 +368,7 @@ try:
 
         for group_name, row_indices in groups.items():
 
-            # 1. מילון מיפוי: מפתח = שם בגיליון צבעוני | ערך = שם בגיליון APP
+            # 1. מילון המיפוי המדויק שלך (עם התיקון ל-עו"ש)
             mapping = {
                 'הפניקס - קרן פנסיה': 'יניב - פנסיה',
                 'מנורה מבטחים - ביטוח מנהלים פנסיה': 'יניב - פנסיה',
@@ -385,68 +385,41 @@ try:
                 'כספית מיטב 5136544 FAIR - עודפי עו"ש': 'חסכונות',
                 'כספית דולפין 5138698 פועלים - חופשה': 'חיסכון לחופשה'
             }
+
             valid_rows = []
-            g_now, g_start, g_depo = 0, 0, 0
+            g_now, g_jan, g_depo = 0, 0, 0
 
             for idx in row_indices:
                 if idx < len(raw_data):
                     row = raw_data.iloc[idx]
-                    asset_name = str(row.iloc[1]).strip()
+                    v_now = clean_val(row.iloc[15])      # עמודה P
+                    v_jan_val = clean_val(row.iloc[10])  # עמודה K (תחילת שנה)
+                    v_depo_year = clean_val(row.iloc[16]) # עמודה Q (הפקדות 2026)
                     
-                    # נתונים מגיליון צבעוני
-                    v_now = clean_val(row.iloc[15])      # עמודה P (שווי נוכחי)
-                    v_start_colored = clean_val(row.iloc[3]) # עמודה D (ה-100 ש"ח הבעייתיים)
-                    v_display_jan = clean_val(row.iloc[10]) # עמודה K (תחילת שנה לתצוגה)
-                    v_depo_year = clean_val(row.iloc[16])   # עמודה Q (הפקדות 2026)
-
-                    # חיפוש נתונים היסטוריים ב-APP
-                    app_name = mapping.get(asset_name, asset_name)
-                    v_orig_app, v_total_depo_app = 0, 0
-                    
-                    try:
-                        match = df_s[df_s.iloc[:, 1].str.contains(app_name, na=False, case=False)]
-                        if not match.empty:
-                            v_orig_app = clean_val(match.iloc[0, 4])   # עמודה E ב-APP
-                            v_total_depo_app = clean_val(match.iloc[0, 6]) # עמודה G ב-APP
-                    except:
-                        pass
-
-                    if not pd.isna(row.iloc[1]) and (v_now != 0 or v_display_jan != 0):
+                    if not pd.isna(row.iloc[1]) and v_now != 0:
                         g_now += v_now
-                        g_start += v_display_jan # לצורך כותרת ה-Expander נשתמש בתחילת שנה
+                        g_jan += v_jan_val
                         g_depo += v_depo_year
-                        valid_rows.append({
-                            'row': row, 'v_now': v_now, 'v_jan': v_display_jan, 
-                            'v_depo': v_depo_year, 'v_orig': v_orig_app, 'v_total_depo': v_total_depo_app
-                        })
+                        valid_rows.append((row, v_now, v_jan_val, v_depo_year))
 
-            # --- כותרת ה-Expander ---
-            g_pct = ((g_now / g_start) - 1) * 100 if g_start > 0 else 0
-            indicator = "🟢" if g_now >= g_start else "🔴"
+            # חישוב כותרת הקבוצה (השוואה לתחילת שנה)
+            g_diff = g_now - g_jan
+            g_pct = (g_diff / g_jan * 100) if g_jan != 0 else 0
+            indicator = "🟢" if g_diff >= 0 else "🔴"
             header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct:+.1f}%)"
 
             with st.expander(header, expanded=True):
-                for item in valid_rows:
-                    # חישוב רווח נקי אמיתי לפי ה-APP
-                    # בסיס = ערך התחלתי + סך הפקדות היסטורי
-                    basis = item['v_orig'] + item['v_total_depo']
+                for row, v_now, v_jan_val, v_depo_year in valid_rows:
+                    # בתוך הכרטיס הספציפי, נשווה לתחילת שנה כדי למנוע עיוותי מיפוי
+                    diff = v_now - v_jan_val
+                    pct = (diff / v_jan_val * 100) if v_jan_val != 0 else 0
                     
-                    if basis > 1000: # אם מצאנו נתון אמיתי ב-APP (מעל 1000 ש"ח)
-                        net_profit_val = item['v_now'] - basis
-                        pct_to_show = (net_profit_val / basis) * 100
-                    else:
-                        # אם אין נתון ב-APP, נשתמש בהשוואה לתחילת שנה (עמודה K) ולא ל-D
-                        net_profit_val = item['v_now'] - item['v_jan']
-                        pct_to_show = ((item['v_now'] / item['v_jan']) - 1) * 100 if item['v_jan'] > 0 else 0
+                    color = "#4CAF50" if diff >= 0 else "#e11d48"
+                    arrow = "▲" if diff >= 0 else "▼"
+                    d_html = f"<span style='color: {color}; font-weight: 700;'>₪{diff:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
+                    
+                    asset_card(row.iloc[1], row.iloc[0], v_now, v_jan_val, v_depo_year, d_html, "₪")
 
-                    color = "#4CAF50" if net_profit_val >= 0 else "#e11d48"
-                    arrow = "▲" if net_profit_val >= 0 else "▼"
-                    d_html = f"<span style='color: {color}; font-weight: 700;'>₪{net_profit_val:,.0f} ({abs(pct_to_show):.1f}%) {arrow}</span>"
-                    
-                    # הצגת הכרטיס
-                    asset_card(item['row'].iloc[1], item['row'].iloc[0], item['v_now'], 
-                               item['v_jan'], item['v_depo'], d_html, "₪")
-        
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align:right;color: #e11d48;'>📉 פירוט התחייבויות</h2>", unsafe_allow_html=True)
