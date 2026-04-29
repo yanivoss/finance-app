@@ -466,8 +466,8 @@ try:
             with st.expander(debt_header, expanded=True):
                 for row, d_val, v_total_paid, v_original_val in valid_debts:
                     d_name = str(row.iloc[1])
-                    # חישוב אחוז הפירעון הספציפי
-                    paid_pct = (v_total_paid / v_original_val * 100) if v_original_val > 0 else 0
+                    # חישוב אחוז שנותר לפירעון
+                    remaining_pct = (d_val / v_original_val * 100) if v_original_val > 0 else 0
                     
                     debt_card_html = f"""
                         <div style='background: white; padding: 20px; border-radius: 20px; 
@@ -476,7 +476,7 @@ try:
                             <div style='display: flex; justify-content: space-between; align-items: start;'>
                                 <div>
                                     <div style='font-size: 1.2rem; font-weight: 800; color: #1e293b;'>{d_name}</div>
-                                    <div style='font-size: 0.85rem; color: #64748b;'>שווי הלוואה מקורי: ₪{v_original_val:,.0f}</div>
+                                    <div style='font-size: 0.85rem; color: #64748b;'>הלוואה מקורית: ₪{v_original_val:,.0f}</div>
                                 </div>
                                 <div style='text-align: left; direction: ltr;'>
                                     <div style='font-size: 1.5rem; font-weight: 900; color: #1e293b;'>₪{d_val:,.0f}</div>
@@ -486,8 +486,8 @@ try:
                                 </div>
                             </div>
                             <div style='margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; direction: rtl;'>
-                                <span style='font-size: 0.8rem; color: #64748b;'>💰 סך הכל שולם עד היום: <b>₪{v_total_paid:,.0f}</b></span>
-                                <span style='font-size: 0.8rem; color: #4CAF50;'>📉 בתהליך פירעון</span>
+                                <span style='font-size: 0.8rem; color: #64748b;'>📉 נותר לסילוק: <b>{remaining_pct:.1f}%</b> מהקרן</span>
+                                <span style='font-size: 0.8rem; color: #e11d48;'>⏳ יתרה לתשלום</span>
                             </div>
                         </div>
                     """
