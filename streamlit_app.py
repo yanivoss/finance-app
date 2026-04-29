@@ -380,12 +380,6 @@ try:
                     v_depo = clean_val(row.iloc[16])  # עמודה Q
                     v_display_jan = clean_val(row.iloc[10]) # עמודה K - הערך שיוצג ליד הלוח שנה (תחילת שנה)
 
-                    # --- משיכה מגיליון Summary (df_s) במקום מהגיליון הנוכחי ---
-                    try:
-                        v_total_deposits = clean_val(df_s[df_s.iloc[:, 1] == asset_name].iloc[0, 6])
-                    except:
-                        v_total_deposits = v_start
-                        
                     # לוגיקה נקודתית לאינטראקטיב:
                     display_currency = "₪"
                         
@@ -395,7 +389,7 @@ try:
                         g_start += v_start
                         g_depo += v_depo
                         # במקום מה שיש עכשיו, שנה לזה:
-                        valid_rows.append((row, v_now, v_start, v_depo, v_display_jan, v_total_deposits))
+                        valid_rows.append((row, v_now, v_start, v_depo, v_display_jan))
 
             # יצירת כותרת Expander עם סיכום כספי
             if g_now != 0: # שיניתי ל-!= כי התחייבויות יכולות להיות שליליות
@@ -418,13 +412,13 @@ try:
                 if not valid_rows:
                     st.write("אין נתונים להצגה בקבוצה זו.")
                 # הוספנו את v_display_jan לסוף הרשימה
-                for row, v_now, v_start, v_depo, v_display_jan, v_total_deposits in valid_rows:
+                for row, v_now, v_start, v_depo, v_display_jan in valid_rows:
                     # חישוב אחוז שינוי נקי לכרטיס הספציפי (לשימוש בתוך asset_card)
                     v_pct_clean = ((v_now / v_start) - 1) * 100 if v_start != 0 else 0
                     
                     # בטאב 2, אנחנו רוצים ש-d_html יציג את ההשוואה להתחלה ללא הפקדות
                     # לכן נשלח 0 במקום v_depo ו-False כדי לקבל חץ אדום בירידה (לפי בקשתך הקודמת)
-                    d_html_clean = get_delta_html(v_now, v_total_deposits, 0, False)                    
+                    d_html_clean = get_delta_html(v_now, v_start, 0, False,)
                     
                     # קריאה לכרטיס עם הנתונים המעודכנים
                     asset_card(row.iloc[1], row.iloc[0], v_now, v_display_jan, v_depo, d_html_clean, display_currency)
