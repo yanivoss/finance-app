@@ -403,46 +403,50 @@ try:
                         g_now += v_now
                         g_start += v_start
                         g_depo += v_depo
-                        # הוספנו את הנתונים ההיסטוריים לרשימה
+
+                        # הוספת הנתונים לרשימה (כולל הערכים ההיסטוריים מ-APP)
                         valid_rows.append((row, v_now, v_start, v_depo, v_display_jan, v_original_val, v_total_deposits))
 
-            # יצירת כותרת Expander עם סיכום כספי
+            # --- יצירת כותרת ה-Expander ---
             if g_now != 0:
+                # בכותרת הראשית של הקבוצה נשמור על השוואה לתחילת שנה (v_start) כאינדיקטור כללי
                 g_profit_clean = g_now - g_start
                 g_pct_clean = (g_profit_clean / g_start * 100) if g_start != 0 else 0
-                
+                indicator = "🟢" if g_profit_clean >= 0 else "🔴"
                 if "התחייבויות" in group_name:
-                    indicator = "🟢" if g_now <= g_start else "🔴" 
-                else:
-                    indicator = "🟢" if g_profit_clean >= 0 else "🔴"
-                    
+                    indicator = "🟢" if g_now <= g_start else "🔴"
+                
                 header_summary = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct_clean:+.1f}%)"
             else:
                 header_summary = group_name
             
+            # --- הצגת הכרטיסים בתוך ה-Expander ---
             with st.expander(header_summary, expanded=True):
                 if not valid_rows:
                     st.write("אין נתונים להצגה בקבוצה זו.")
                 
                 for row, v_now, v_start, v_depo, v_display_jan, v_orig, v_total_depo in valid_rows:
-                    # --- 2. חישוב רווח נקי (נוסחה: שווי עכשווי מול השקעה כוללת) ---
-                    total_invested = v_orig + v_total_depo
-                    net_profit_amount = v_now - total_invested
+                    # 1. חישוב בסיס ההשקעה: ערך התחלתי (E) + סך הפקדות היסטורי (G) מגיליון APP
+                    total_investment_basis = v_orig + v_total_depo
                     
-                    if total_invested > 0:
-                        v_pct_net = (net_profit_amount / total_invested) * 100
+                    # 2. חישוב הרווח הנקי המצטבר (כסף נוכחי פחות מה שהושקע בפועל)
+                    net_profit_val = v_now - total_investment_basis
+                    
+                    # 3. חישוב אחוז רווח נקי (Money-Weighted)
+                    if total_investment_basis > 0:
+                        v_pct_net = (net_profit_val / total_investment_basis) * 100
                     else:
                         v_pct_net = 0
                     
-                    # יצירת ה-HTML של החץ לפי הרווח הנקי המצטבר
-                    # משתמשים ב-v_pct_net במקום בחישוב הישן
-                    color = "#4CAF50" if net_profit_amount >= 0 else "#e11d48"
-                    arrow = "▲" if net_profit_amount >= 0 else "▼"
-                    d_html_net = f"<span style='color: {color}; font-weight: 700;'>{arrow} {abs(v_pct_net):.1f}%</span>"
+                    # 4. יצירת ה-HTML של החץ והאחוז (החלק הירוק/אדום בכרטיס)
+                    color = "#4CAF50" if net_profit_val >= 0 else "#e11d48"
+                    arrow = "▲" if net_profit_val >= 0 else "▼"
+                    # מציגים גם את הרווח השקלי המוחלט וגם את האחוז
+                    d_html_net = f"<span style='color: {color}; font-weight: 700;'>₪{net_profit_val:,.0f} ({abs(v_pct_net):.1f}%) {arrow}</span>"
                     
-                    # קריאה לכרטיס (v_depo כאן הוא הפקדות השנה מעמודה Q)
+                    # 5. קריאה לפונקציית הכרטיס
+                    # שים לב: v_depo הוא עמודה Q (הפקדות השנה), v_display_jan הוא עמודה K (תחילת שנה)
                     asset_card(row.iloc[1], row.iloc[0], v_now, v_display_jan, v_depo, d_html_net, display_currency)
-
         
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
