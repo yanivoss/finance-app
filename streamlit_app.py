@@ -371,15 +371,41 @@ try:
             g_now, g_start, g_depo = 0, 0, 0
             valid_rows = []
 
-            for idx in row_indices:
-                if idx < len(raw_data):
+            for idx in row_indices:if idx < len(raw_data):
                     row = raw_data.iloc[idx]
                     asset_name = str(row.iloc[1])
-                    v_now = clean_val(row.iloc[15])   # עמודה P
-                    v_start = clean_val(row.iloc[3])  # עמודה D
-                    v_depo = clean_val(row.iloc[16])  # עמודה Q
-                    v_display_jan = clean_val(row.iloc[10]) # עמודה K - הערך שיוצג ליד הלוח שנה (תחילת שנה)
+                    
+                    # נתונים מגיליון "מעקב הון עצמי"
+                    v_now = clean_val(row.iloc[15])      # עמודה P
+                    v_display_jan = clean_val(row.iloc[10]) # עמודה K (תחילת שנה לתצוגה)
+                    v_depo_year = clean_val(row.iloc[16])   # עמודה Q (הפקדות השנה)
 
+                    # שליפת נתונים היסטוריים מגיליון ה-APP (df_s) לחישוב הרווח
+                    v_original_val = 0
+                    v_total_deposits = 0
+                    
+                    try:
+                        # חיפוש חכם לפי המילה הראשונה בשם כדי להתגבר על שמות שונים
+                        first_word = asset_name.split()[0]
+                        match = df_s[df_s.iloc[:, 1].str.contains(first_word, na=False, case=False)]
+                        
+                        if not match.empty:
+                            v_original_val = clean_val(match.iloc[0, 4])   # עמודה E ב-APP
+                            v_total_deposits = clean_val(match.iloc[0, 6]) # עמודה G ב-APP
+                    except:
+                        pass # אם לא נמצא, נשתמש בערכי ברירת מחדל
+                    # סך הכל הושקע = ערך התחלתי + סך כל ההפקדות לאורך השנים
+                    total_invested = v_original_val + v_total_deposits
+                    
+                    # רווח בשקלים
+                    net_profit_amount = v_now - total_invested
+                    
+                    # אחוז רווח נקי
+                    if total_invested > 0:
+                        profit_pct = (net_profit_amount / total_invested) * 100
+                    else:
+                        profit_pct = 0
+                        
                     # לוגיקה נקודתית לאינטראקטיב:
                     display_currency = "₪"
                         
