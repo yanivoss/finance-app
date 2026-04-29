@@ -378,9 +378,14 @@ try:
                     v_now = clean_val(row.iloc[15])   # עמודה P
                     v_start = clean_val(row.iloc[3])  # עמודה D
                     v_depo = clean_val(row.iloc[16])  # עמודה Q
-                    v_total_deposits = clean_val(row.iloc[6])
                     v_display_jan = clean_val(row.iloc[10]) # עמודה K - הערך שיוצג ליד הלוח שנה (תחילת שנה)
 
+                    # --- משיכה מגיליון Summary (df_s) במקום מהגיליון הנוכחי ---
+                    try:
+                        v_total_deposits = clean_val(df_s[df_s.iloc[:, 1] == asset_name].iloc[0, 6])
+                    except:
+                        v_total_deposits = v_start
+                        
                     # לוגיקה נקודתית לאינטראקטיב:
                     display_currency = "₪"
                         
