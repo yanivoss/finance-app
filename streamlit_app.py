@@ -410,13 +410,19 @@ try:
 
             with st.expander(header, expanded=True):
                 for row, v_now, v_jan_val, v_depo_year in valid_rows:
-                    # בתוך הכרטיס הספציפי, נשווה לתחילת שנה כדי למנוע עיוותי מיפוי
-                    diff = v_now - v_jan_val
-                    pct = (diff / v_jan_val * 100) if v_jan_val != 0 else 0
+                    # נוסחת רווח נקי: שווי עכשווי פחות (שווי תחילת שנה + הפקדות השנה)
+                    # זה מנטרל את השפעת ההפקדות החדשות על אחוז הרווח
+                    net_gain_amount = v_now - (v_jan_val + v_depo_year)
                     
-                    color = "#4CAF50" if diff >= 0 else "#e11d48"
-                    arrow = "▲" if diff >= 0 else "▼"
-                    d_html = f"<span style='color: {color}; font-weight: 700;'>₪{diff:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
+                    # חישוב אחוז רווח על בסיס השקעה (תחילת שנה + הפקדות)
+                    investment_basis = v_jan_val + v_depo_year
+                    pct_net = (net_gain_amount / investment_basis * 100) if investment_basis != 0 else 0
+                    
+                    color = "#4CAF50" if net_gain_amount >= 0 else "#e11d48"
+                    arrow = "▲" if net_gain_amount >= 0 else "▼"
+                    
+                    # הצגת הרווח הנקי המחושב
+                    d_html = f"<span style='color: {color}; font-weight: 700;'>₪{net_gain_amount:,.0f} ({abs(pct_net):.1f}%) {arrow}</span>"
                     
                     asset_card(row.iloc[1], row.iloc[0], v_now, v_jan_val, v_depo_year, d_html, "₪")
 
