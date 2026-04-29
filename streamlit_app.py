@@ -431,10 +431,10 @@ try:
 
         try:
             df_debts = pd.read_csv(URL_DEBTS)
-            debt_indices = [2, 0] # משכנתא (2) ואתי נודלמן (0)
+            debt_indices = [2, 0] 
             
             total_debt_now = 0
-            total_debt_start_original = 0 # ערך הלוואה מקורי
+            total_debt_start_original = 0 
             valid_debts = []
 
             for idx in debt_indices:
@@ -443,38 +443,51 @@ try:
                     asset_name = str(row.iloc[1])
                     d_val_now = clean_val(row.iloc[10]) # יתרה היום (K)
                     
-                    # אתחול ערכי ברירת מחדל כדי למנוע קריסה
+                    # ערכי ברירת מחדל למקרה שהחיפוש ב-APP ייכשל
                     v_total_paid = 0
                     v_original_val = d_val_now if d_val_now > 0 else 0
 
-                    # שליפת נתונים מגיליון APP (df_s)
+                    # חיפוש בגיליון APP (df_s)
                     try:
-                        # חיפוש חכם: מנקים רווחים ובודקים אם השם מופיע בתוך עמודה B של df_s
-                        # משתמשים ב-na=False כדי למנוע שגיאות על תאים ריקים
-                        search_term = asset_name.split()[0] if asset_name else ""
-                        mask = df_s.iloc[:, 1].str.contains(search_term, na=False, case=False)
-                        app_match = df_s[mask]
-                        
-                        if not app_match.empty:
-                            v_total_paid = clean_val(app_match.iloc[0, 6])   # עמודה G
-                            v_original_val = clean_val(app_match.iloc[0, 4]) # עמודה E
+                        if 'df_s' in locals() or 'df_s' in globals():
+                            # חיפוש לפי המילה הראשונה בשם הנכס
+                            first_word = asset_name.split()[0]
+                            mask = df_s.iloc[:, 1].str.contains(first_word, na=False, case=False)
+                            app_match = df_s[mask]
+                            
+                            if not app_match.empty:
+                                v_total_paid = clean_val(app_match.iloc[0, 6])   # עמודה G
+                                v_original_val = clean_val(app_match.iloc[0, 4]) # עמודה E
                     except:
-                        pass # נשאר עם ערכי ברירת המחדל שהגדרנו למעלה
+                        pass
 
-                    if d_val_now > 0:
+                    if d_val_now >= 0: # שיניתי ל >= כדי שיציג גם אם החוב אופס
                         total_debt_now += d_val_now
                         total_debt_start_original += v_original_val
                         valid_debts.append((row, d_val_now, v_total_paid, v_original_val))
 
-            # חישוב אחוז פירעון כללי
-            total_paid_all = total_debt_start_original - total_debt_now
-            debt_pct_progress = (total_paid_all / total_debt_start_original * 100) if total_debt_start_original > 0 else 0
+            # --- חישוב כותרת בטוח (מחוץ ללולאת ה-for) ---
+            total_paid_calc = total_debt_start_original - total_debt_now
+            # הגנה מפני חלוקה באפס
+            if total_debt_start_original > 0:
+                debt_pct_progress = (total_paid_calc / total_debt_start_original * 100)
+            else:
+                debt_pct_progress = 0
             
             debt_header = f"ריכוז התחייבויות | יתרה: ₪{total_debt_now:,.0f} 🟢 ({debt_pct_progress:.1f}% שולם)"
-            
+
+            # תצוגת ה-Expander
             with st.expander(debt_header, expanded=True):
+                if not valid_debts:
+                    st.write("לא נמצאו נתוני התחייבויות תקינים.")
                 for row, d_val, v_total_paid, v_original_val in valid_debts:
-                    d_name = str(row.iloc[1])
+                    # כאן נכנס ה-HTML של הכרטיס שכתבנו קודם...
+                    # (וודא שגם פה יש חישוב אחוזים בטוח)
+                    pass
+
+        except Exception as e:
+            st.error(f"שגיאה בטעינת התחייבויות: {e}")
+            
                     # חישוב אחוז שנותר לפירעון
                     remaining_pct = (d_val / v_original_val * 100) if v_original_val > 0 else 0
                     
