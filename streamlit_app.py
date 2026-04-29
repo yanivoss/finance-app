@@ -443,14 +443,23 @@ try:
                     asset_name = str(row.iloc[1])
                     d_val_now = clean_val(row.iloc[10]) # יתרה היום (K)
                     
+                    # אתחול ערכי ברירת מחדל כדי למנוע קריסה
+                    v_total_paid = 0
+                    v_original_val = d_val_now if d_val_now > 0 else 0
+
                     # שליפת נתונים מגיליון APP (df_s)
                     try:
-                        app_row = df_s[df_s.iloc[:, 1].str.contains(asset_name.split()[0])]
-                        v_total_paid = clean_val(app_row.iloc[0, 6])   # עמודה G - כמה הוחזר
-                        v_original_val = clean_val(app_row.iloc[0, 4]) # עמודה E - ערך התחלתי
+                        # חיפוש חכם: מנקים רווחים ובודקים אם השם מופיע בתוך עמודה B של df_s
+                        # משתמשים ב-na=False כדי למנוע שגיאות על תאים ריקים
+                        search_term = asset_name.split()[0] if asset_name else ""
+                        mask = df_s.iloc[:, 1].str.contains(search_term, na=False, case=False)
+                        app_match = df_s[mask]
+                        
+                        if not app_match.empty:
+                            v_total_paid = clean_val(app_match.iloc[0, 6])   # עמודה G
+                            v_original_val = clean_val(app_match.iloc[0, 4]) # עמודה E
                     except:
-                        v_total_paid = 0
-                        v_original_val = d_val_now
+                        pass # נשאר עם ערכי ברירת המחדל שהגדרנו למעלה
 
                     if d_val_now > 0:
                         total_debt_now += d_val_now
