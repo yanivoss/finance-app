@@ -423,15 +423,16 @@ try:
                     # קריאה לכרטיס עם הנתונים המעודכנים
                     asset_card(row.iloc[1], row.iloc[0], v_now, v_display_jan, v_depo, d_html_clean, display_currency)
             
+        
+        
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align:right;color: #e11d48;'>📉 פירוט התחייבויות</h2>", unsafe_allow_html=True)
 
         try:
             df_debts = pd.read_csv(URL_DEBTS)
-            debt_indices = [2, 0] 
+            debt_indices = [2, 0] # משכנתא (2) ואתי נודלמן (0)
             
-            # חישוב סכומים לסיכום הכותרת
             total_debt_now = 0
             total_debt_prev = 0
             valid_debts = []
@@ -439,22 +440,19 @@ try:
             for idx in debt_indices:
                 if idx < len(df_debts):
                     row = df_debts.iloc[idx]
-                    d_val = clean_val(row.iloc[10])
-                    d_val_prev = clean_val(row.iloc[7])
-                    if d_val > 0:
+                    d_val = clean_val(row.iloc[10])      # עמודה K
+                    d_val_prev = clean_val(row.iloc[7])  # עמודה H
+                    
+                    if d_val > 0 or d_val_prev > 0:
                         total_debt_now += d_val
                         total_debt_prev += d_val_prev
                         valid_debts.append((row, d_val, d_val_prev))
-
-            # יצירת כותרת עם סיכום (כמו בנכסים)
+            # חישוב סיכום
             debt_diff = total_debt_now - total_debt_prev
             debt_pct = (debt_diff / total_debt_prev * 100) if total_debt_prev != 0 else 0
-            
-            # בחוב: אם ירד (שלילי) זה ירוק, אם עלה זה אדום
             debt_indicator = "🟢" if debt_diff <= 0 else "🔴"
             debt_header = f"ריכוז התחייבויות | ₪{total_debt_now:,.0f} {debt_indicator} ({debt_pct:+.1f}%)"
 
-            # יצירת ה-Expander
             with st.expander(debt_header, expanded=True):
                 for row, d_val, d_val_prev in valid_debts:
                     d_name = str(row.iloc[1])
@@ -463,14 +461,14 @@ try:
                     color = "#4CAF50" if diff <= 0 else "#e11d48"
                     arrow = "▼" if diff <= 0 else "▲"
 
-                    debt_html = f"""
+                    debt_card_html = f"""
                         <div style='background: white; padding: 20px; border-radius: 20px; 
                                     box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 16px; 
                                     border-right: 8px solid #e11d48; direction: rtl; text-align: right;'>
                             <div style='display: flex; justify-content: space-between; align-items: start;'>
                                 <div>
                                     <div style='font-size: 1.2rem; font-weight: 800; color: #1e293b;'>{d_name}</div>
-                                    <div style='font-size: 0.85rem; color: #64748b;'>הוחזר השנה</div>
+                                    <div style='font-size: 0.85rem; color: #64748b;'>סטטוס החזר שנתי</div>
                                 </div>
                                 <div style='text-align: left; direction: ltr;'>
                                     <div style='font-size: 1.5rem; font-weight: 900; color: #1e293b;'>₪{d_val:,.0f}</div>
@@ -481,14 +479,14 @@ try:
                             </div>
                             <div style='margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; direction: rtl;'>
                                 <span style='font-size: 0.8rem; color: #64748b;'>📅 יתרה ב-2025: <b>₪{d_val_prev:,.0f}</b></span>
-                                <span style='font-size: 0.8rem; color: #64748b;'>📉 שינוי שנתי</span>
+                                <span style='font-size: 0.8rem; color: #64748b;'>📉 ירידה בחוב</span>
                             </div>
                         </div>
                     """
                     st.markdown(debt_card_html, unsafe_allow_html=True)
-                        
+
         except Exception as e:
-            st.info(f"ממתין לעדכון נתוני התחייבויות...")
+            st.info("ממתין לעדכון נתוני התחייבויות...")            
 
     # כאן מתחיל טאב 3 - שים לב שהוא באותה רמת הזחה (רווחים) כמו with tab2
     with tab3:
