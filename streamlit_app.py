@@ -368,28 +368,11 @@ try:
 
         for group_name, row_indices in groups.items():
 
-            # 1. מילון המיפוי המדויק שלך (עם התיקון ל-עו"ש)
+            # המיפוי שמחבר בין השם בגיליון הראשי לשם שהזנת ב-APP
             mapping = {
-                # השקעות (תיקון השמות כדי שימשכו מהשורות החדשות ב-APP)
                 'חשבון מסחר עצמאי - אקסלנס': 'תיק אקסלנס',
                 'חשבון מסחר עצמאי - אינטראקטיב': 'תיק אינטראקטיב',
-                '1,500 אופציות איסתא - IBI': 'אופציות איסתא',
-                
-                # חסכונות (התאמה לשמות המדויקים שהוספת ב-APP)
-                'חירום איילון כספית 5117700 - הפועלים': 'חירום איילון כספית 5117700 - הפועלים',
-                '4 מניות בנק הפועלים מתנה': '4 מניות בנק הפועלים מתנה',
-                'כספית מיטב 5136544 FAIR - עודפי עו"ש': 'כספית מיטב 5136544 FAIR - עודפי עו"ש',
-                
-                # ילדים
-                'חיסכון לכל ילד - אלטשולר/אנליסט': 'חיסכון לכל ילד - אלטשולר/אנליסט',
-                'קופת גמל להשקעה - הפניקס': 'קופת גמל להשקעה - הפניקס',
-                
-                # פנסיה והשתלמות (מיפוי לשורות המפורטות החדשות)
-                'הפניקס - קרן פנסיה': 'הפניקס - קרן פנסיה',
-                'מנורה מבטחים - ביטוח מנהלים פנסיה': 'מנורה מבטחים - ביטוח מנהלים פנסיה',
-                'מור - קרן השתלמות': 'מור - קרן השתלמות',
-                'הפניקס גמל פנסיה': 'הפניקס גמל פנסיה',
-                'הפניקס/אקסלנס - קרן השתלמות': 'הפניקס/אקסלנס - קרן השתלמות'
+                '1,500 אופציות איסתא - IBI': 'אופציות איסתא'
             }
 
             valid_rows = []
@@ -398,33 +381,25 @@ try:
             for idx in row_indices:
                 if idx < len(raw_data):
                     row = raw_data.iloc[idx]
-                    asset_name = str(row.iloc[1]).strip() # שם הנכס מהגיליון הראשי
-                    v_now = clean_val(row.iloc[15])      # עמודה P
-                    v_jan_val = clean_val(row.iloc[10])  # עמודה K
-                    v_depo_year = clean_val(row.iloc[16]) # עמודה Q
+                    asset_name = str(row.iloc[1]).strip()
+                    v_now = clean_val(row.iloc[15])       # עמודה P
+                    v_jan_val = clean_val(row.iloc[10])   # עמודה K
+                    v_depo_year = clean_val(row.iloc[16])  # עמודה Q
                     
                     v_orig_app, v_past_depo_app = 0, 0
                     has_app_match = False
                     
-                    # שלב 1: חיפוש התאמה ישירה ב-APP (לפי השורות החדשות שהוספת)
+                    # בדיקה: האם השם קיים במיפוי? אם כן, השתמש בשם מהמיפוי. אם לא, השתמש בשם המקורי.
+                    app_search_name = mapping.get(asset_name, asset_name)
+                    
                     try:
-                        match = df_s[df_s.iloc[:, 1].str.strip() == asset_name]
+                        # חיפוש השם (הממופה או המקורי) בגיליון ה-APP
+                        match = df_s[df_s.iloc[:, 1].str.strip() == app_search_name]
                         if not match.empty:
-                            v_orig_app = clean_val(match.iloc[0, 4])       # עמודה E ב-APP (ערך התחלתי)
-                            v_past_depo_app = clean_val(match.iloc[0, 6])   # עמודה G ב-APP (הפקדות עבר)
+                            v_orig_app = clean_val(match.iloc[0, 4])        # עמודה E ב-APP
+                            v_past_depo_app = clean_val(match.iloc[0, 6])    # עמודה G ב-APP
                             has_app_match = True
                     except: pass
-                    
-                    # שלב 2: אם לא נמצאה התאמה ישירה, נסה להשתמש ב-Mapping לקטגוריה הכללית
-                    if not has_app_match:
-                        app_search_name = mapping.get(asset_name, asset_name)
-                        try:
-                            match = df_s[df_s.iloc[:, 1].str.strip() == app_search_name]
-                            if not match.empty:
-                                v_orig_app = clean_val(match.iloc[0, 4])
-                                v_past_depo_app = clean_val(match.iloc[0, 6])
-                                has_app_match = True
-                        except: pass
 
                     if not pd.isna(row.iloc[1]) and v_now != 0:
                         g_now += v_now
@@ -436,7 +411,6 @@ try:
                             'v_past_depo': v_past_depo_app, 'has_app': has_app_match
                         })
             
-            # חישוב כותרת הקבוצה (תצוגת YTD - מה קרה השנה)
             g_diff_ytd = g_now - (g_jan + g_depo)
             g_pct_ytd = (g_diff_ytd / (g_jan + g_depo) * 100) if (g_jan + g_depo) != 0 else 0
             indicator = "🟢" if g_diff_ytd >= 0 else "🔴"
@@ -444,19 +418,15 @@ try:
 
             with st.expander(header, expanded=True):
                 for item in valid_rows:
-                    # בסיס ההשקעה כולל את מה שהיה בהתחלה + כל ההפקדות שבוצעו אי פעם
-                    # אנחנו משתמשים בעמודה E (התחלתי) ו-G (עבר) מה-APP, פלוס Q (השנה) מהראשי
-                    total_investment = item['v_orig'] + item['v_past_depo'] + item['v_depo']
-                    
-                    # אם נמצאה התאמה ב-APP, נציג רווח All-time (כמו באקסל)
-                    # אחרת, נציג רווח YTD (מתחילת שנה)
-                    if item['has_app'] and item['v_orig'] > 100: # סינון למקרים של ערך 100 סמלי
+                    # אם נמצאה התאמה ב-APP, מחשבים רווח All-time
+                    if item['has_app']:
+                        # בסיס השקעה = ערך התחלתי (E) + הפקדות עבר (G) + הפקדות השנה (Q)
+                        total_investment = item['v_orig'] + item['v_past_depo'] + item['v_depo']
                         net_gain_amount = item['v_now'] - total_investment
-                        label_prefix = "" # רווח All-time
                     else:
+                        # אם לא נמצא ב-APP, מחשבים רווח שנתי (YTD) כברירת מחדל
                         total_investment = item['v_jan'] + item['v_depo']
                         net_gain_amount = item['v_now'] - total_investment
-                        label_prefix = "" # רווח שנתי
 
                     pct_gain = (net_gain_amount / total_investment * 100) if total_investment != 0 else 0
                     color = "#4CAF50" if net_gain_amount >= 0 else "#e11d48"
