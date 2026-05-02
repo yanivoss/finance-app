@@ -405,7 +405,7 @@ try:
                         match = df_s[df_s.iloc[:, 1].str.strip() == app_name]
                         if not match.empty:
                             # שינוי לעמודה D (אינדקס 3) עבור הערך המקורי
-                            v_orig_app = clean_val(match.iloc[0, 3])       
+                            v_orig_app = clean_val(match.iloc[0, 2])       
                             # עמודה G (אינדקס 6) עבור הפקדות עבר
                             v_total_depo_app = clean_val(match.iloc[0, 6]) 
                     except: pass
