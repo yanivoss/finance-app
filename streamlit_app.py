@@ -365,51 +365,45 @@ try:
     
         # df_s הוא גיליון ה-APP, df_d הוא הגיליון הראשי
         for app_cat_name, display_name in groups_config.items():
-            # 1. סינון שורות ה-APP השייכות לקטגוריה הנוכחית בלבד (עמודה I)
-            relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == app_cat_name].copy()
+        # שליפת שורות מה-APP ששייכות לקטגוריה - כאן נקבעת הכמות
+        relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == app_cat_name].copy()
+        
+        valid_rows = []
+        total_now, total_invested = 0, 0
+
+        for _, app_row in relevant_app_rows.iterrows():
+            row_id = str(app_row.iloc[0]).strip() # מזהה כמו C17
             
-            if relevant_app_rows.empty:
-                continue
-    
-            valid_rows = []
-            total_now = 0
-            total_invested = 0
-    
-            # רצים על כל שורה ב-APP פעם אחת בלבד
-            for _, app_row in relevant_app_rows.iterrows():
-                # מזהה השורה הייחודי (C2, C17 וכו') נמצא בעמודה A ב-APP
-                row_id = str(app_row.iloc[0]).strip()
-                
-                # 2. שליפת שם המחזיק מהגיליון הראשי לפי ה-ID התואם (עמודה A בראשי)
-                main_row_match = df_d[df_d.iloc[:, 0].astype(str).str.strip() == row_id]
-                
-                if not main_row_match.empty:
-                    owner = str(main_row_match.iloc[0, 0]).strip() # עמודה A בראשי - שם המחזיק
-                else:
-                    owner = "משותף" # ברירת מחדל אם לא נמצאה התאמה
-    
-                # 3. משיכת הנתונים - אך ורק מגיליון ה-APP (df_s)
-                asset_name = str(app_row.iloc[1]).strip() # שם הנכס (עמודה B)
-                v_now = clean_val(app_row.iloc[2])        # שווי נוכחי (עמודה C)
-                v_orig = clean_val(app_row.iloc[4])       # ערך התחלתי (עמודה E)
-                v_ytd_depo = clean_val(app_row.iloc[5])   # הפקדות YTD (עמודה F)
-                v_total_depo = clean_val(app_row.iloc[6]) # סך הפקדות (עמודה G)
-                
-                # חישוב רווח והשקעה לכל שורה בנפרד
-                invested = v_orig + v_total_depo
-                gain = v_now - invested
-                
-                total_now += v_now
-                total_invested += invested
-                
-                valid_rows.append({
-                    'owner': owner,
-                    'name': asset_name,
-                    'v_now': v_now,
-                    'v_ytd_depo': v_ytd_depo,
-                    'invested': invested,
-                    'gain': gain
-                })
+            # תיקון חיפוש המחזיק: מחפשים בעמודה A בראשי (איפה שכתוב C2, C3...)
+            # שים לב שאנחנו מחפשים את ה-ID בעמודה שבה הוא מופיע בראשי
+            main_row_match = df_d[df_d.iloc[:, 0].astype(str).str.strip() == row_id]
+            
+            if not main_row_match.empty:
+                # בגיליון הראשי שם המחזיק נמצא בעמודה A (אינדקס 0)
+                owner = str(main_row_match.iloc[0, 0]).strip() 
+            else:
+                owner = "יניב/מיכל"
+
+            asset_name = str(app_row.iloc[1]).strip()
+            v_now = clean_val(app_row.iloc[2])
+            v_orig = clean_val(app_row.iloc[4])
+            v_ytd_depo = clean_val(app_row.iloc[5])
+            v_total_depo = clean_val(app_row.iloc[6])
+            
+            invested = v_orig + v_total_depo
+            gain = v_now - invested
+            
+            total_now += v_now
+            total_invested += invested
+            
+            valid_rows.append({
+                'owner': owner,
+                'name': asset_name,
+                'v_now': v_now,
+                'v_ytd_depo': v_ytd_depo,
+                'invested': invested,
+                'gain': gain
+            })
     
             # הצגת הקבוצה ב-Dashboard
             if valid_rows:
