@@ -355,6 +355,85 @@ try:
 
         # הגדרת הקבוצות לפי אינדקסים בגיליון DATA
         # 1. הקבוצות נשארות עם אימוג'ים בשביל התצוגה ב-Dashboard
+        # הקבוצות כפי שהגדרת - הקוד יחפש את המילים (בלי האימוג'י) בעמודה I ב-APP
+        groups = {
+            "🏦 קרנות פנסיה": [0, 1, 3, 16, 17],
+            "📈 קרנות השתלמות": [2, 4],
+            "💎 תיק השקעות ומסחר": [8, 9, 7],
+            "👦 חיסכון לילדים": [13, 14, 15],
+            "🏥 חיסכון הורים": [5, 6, 12, 18, 19, 20],
+            "✈️ חיסכון לחופשה": [11]
+        }
+    
+        raw_data = df_d.copy() # גיליון ראשי
+    
+        for group_name, row_indices in groups.items():
+            # ניקוי אימוג'י לטובת חיפוש בעמודה I ב-APP
+            clean_group_name = "".join([c for c in group_name if c.isalnum() or c.isspace()]).strip()
+            
+            valid_rows = []
+            g_now, g_total_invested = 0, 0
+    
+            # MAPPING - כאן אנחנו מגשרים על הבדלי השמות בין הגיליונות
+            mapping = {
+                'תיק אקסלנס': 'חשבון מסחר עצמאי - אקסלנס',
+                'תיק אינטראקטיב': 'חשבון מסחר עצמאי - אינטראקטיב',
+                'אופציות איסתא': '1,500 אופציות איסתא - IBI',
+                'מיכל - פנסיה': 'מיכל - פנסיה',
+                'מיכל - השתלמות': 'מיכל - השתלמות',
+                'חיסכון לחופשה': 'חיסכון לחופשה'
+            }
+    
+            for idx in row_indices:
+                if idx < len(raw_data):
+                    row = raw_data.iloc[idx]
+                    owner_name = str(row.iloc[0]).strip() # עמודה A בראשי - שם המחזיק
+                    asset_name = str(row.iloc[1]).strip() # עמודה B בראשי - שם הנכס
+                    
+                    # בדיקה מה השם לחיפוש ב-APP
+                    app_search_name = mapping.get(asset_name, asset_name).strip()
+                    
+                    try:
+                        # חיפוש בגיליון ה-APP (עמודה B)
+                        match = df_s[df_s.iloc[:, 1].astype(str).str.strip() == app_search_name]
+                        
+                        if not match.empty:
+                            v_now = clean_val(match.iloc[0, 2])
+                            v_orig = clean_val(match.iloc[0, 4])
+                            v_total_depo = clean_val(match.iloc[0, 6])
+                            v_ytd_depo = clean_val(match.iloc[0, 5])
+                            
+                            invested = v_orig + v_total_depo
+                            gain = v_now - invested
+                            
+                            g_now += v_now
+                            g_total_invested += invested
+                            
+                            valid_rows.append({
+                                'owner': owner_name,
+                                'name': asset_name,
+                                'v_now': v_now,
+                                'v_ytd_depo': v_ytd_depo,
+                                'invested': invested,
+                                'gain': gain
+                            })
+                    except: pass
+    
+            # תצוגה
+            if valid_rows:
+                g_pct = ((g_now - g_total_invested) / g_total_invested * 100) if g_total_invested != 0 else 0
+                indicator = "🟢" if g_now >= g_total_invested else "🔴"
+                header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct:+.1f}%)"
+    
+                with st.expander(header, expanded=True):
+                    for item in valid_rows:
+                        pct = (item['gain'] / item['invested'] * 100) if item['invested'] != 0 else 0
+                        color = "#4CAF50" if item['gain'] >= 0 else "#e11d48"
+                        arrow = "▲" if item['gain'] >= 0 else "▼"
+                        d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
+                        
+                        asset_card(item['name'], f"מחזיק: {item['owner']}", item['v_now'], 0, item['v_ytd_depo'], d_html, "₪")
+            
         groups = {
         "🏦 קרנות פנסיה": [0, 1, 3],     # יניב (0,1), מיכל (4), הפניקס (16), מנורה (17)
         "📈 קרנות השתלמות": [2, 4],             # יניב (2), מיכל (5)
