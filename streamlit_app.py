@@ -421,39 +421,31 @@ try:
             header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct:+.1f}%)"
 
             with st.expander(header, expanded=True):
-                for item in valid_rows:
-                    # בדיקה האם הנכס הוא פנסיה (לפי שם הנכס)
-                    is_pension = "פנסיה" in item['name'] or "מנורה" in item['name']
+                for row, v_now, v_jan_val, v_depo_year in valid_rows:
+                    # חישוב רווח נקי מתחילת שנה (YTD) ברמת הכרטיס הבודד
+                    # בסיס השקעה = שווי ב-1 בינואר (עמודה K) + הפקדות השנה (עמודה Q)
+                    investment_basis = v_jan_val + v_depo_year
                     
-                    if is_pension:
-                        # חישוב YTD עבור פנסיה: שווי נוכחי פחות (שווי ב-1 בינואר + הפקדות השנה)
-                        net_gain_amount = item['v_now'] - (item['v_jan'] + item['v_depo'])
-                        investment_basis = item['v_jan'] + item['v_depo']
-                    else:
-                        # חישוב תשואה כוללת עבור השתלמות ואחרים (לפי אינדקסים 3 ו-6 מה-APP)
-                        # בסיס = ערך מקורי (D) + הפקדות עבר (G) + הפקדות השנה (Q)
-                        investment_basis = item['v_orig'] + item['v_total_depo'] + item['v_depo']
-                        net_gain_amount = item['v_now'] - investment_basis
-
-                    # חישוב אחוז הרווח מהבסיס שנקבע
+                    # רווח שקלי = שווי נוכחי (עמודה P) פחות בסיס ההשקעה
+                    net_gain_amount = v_now - investment_basis
+                    
+                    # אחוז רווח YTD
                     pct_net = (net_gain_amount / investment_basis * 100) if investment_basis != 0 else 0
                     
-                    # קביעת צבע וחץ לפי התוצאה
+                    # עיצוב ויזואלי
                     color = "#4CAF50" if net_gain_amount >= 0 else "#e11d48"
                     arrow = "▲" if net_gain_amount >= 0 else "▼"
-                    
-                    # יצירת ה-HTML להצגה בכרטיס
                     d_html = f"<span style='color: {color}; font-weight: 700;'>₪{net_gain_amount:,.0f} ({abs(pct_net):.1f}%) {arrow}</span>"
                     
-                    # יצירת כרטיס הנכס
+                    # הצגת הכרטיס עם הנתונים מהגיליון הראשי בלבד
                     asset_card(
-                        item['row'].iloc[1],   # שם הנכס
-                        item['row'].iloc[0],   # סוג/תיאור
-                        item['v_now'],         # שווי נוכחי
-                        item['v_jan'],         # שווי ינואר
-                        item['v_depo'],        # הפקדות השנה
-                        d_html,                # רווח מחושב
-                        "₪"                    # מטבע
+                        row.iloc[1],    # שם הנכס (עמודה B)
+                        row.iloc[0],    # סוג הנכס (עמודה A)
+                        v_now,          # שווי נוכחי (עמודה P)
+                        v_jan_val,      # שווי ינואר (עמודה K)
+                        v_depo_year,    # הפקדות 2026 (עמודה Q)
+                        d_html,         # הרווח המחושב
+                        "₪"
                     )
             
         # הפרדה ויזואלית
