@@ -397,28 +397,30 @@ try:
                     v_jan_val = clean_val(row.iloc[10])  # עמודה K
                     v_depo_year = clean_val(row.iloc[16]) # עמודה Q
                     
-                    # --- שליפת נתונים היסטוריים מגיליון APP עבור תשואה כוללת ---
+                    # --- שליפת נתונים מגיליון הון עצמי (APP) ---
                     app_name = mapping.get(asset_name, asset_name)
                     v_orig_app, v_total_depo_app = 0, 0
                     try:
+                        # חיפוש התאמה לפי שם הנכס בעמודה B של גיליון ה-APP
                         match = df_s[df_s.iloc[:, 1].str.strip() == app_name]
                         if not match.empty:
-                            v_orig_app = clean_val(match.iloc[0, 4])       # עמודה E (ערך התחלתי)
-                            v_total_depo_app = clean_val(match.iloc[0, 6]) # עמודה G (הפקדות עבר)
+                            # שינוי לעמודה D (אינדקס 3) עבור הערך המקורי
+                            v_orig_app = clean_val(match.iloc[0, 3])       
+                            # עמודה G (אינדקס 6) עבור הפקדות עבר
+                            v_total_depo_app = clean_val(match.iloc[0, 6]) 
                     except: pass
 
                     if not pd.isna(row.iloc[1]) and v_now != 0:
                         g_now += v_now
                         g_jan += v_jan_val
                         g_depo += v_depo_year
-                        # שומרים את כל הנתונים הדרושים לחישוב
                         valid_rows.append({
                             'row': row, 'v_now': v_now, 'v_jan': v_jan_val, 
                             'v_depo': v_depo_year, 'v_orig': v_orig_app, 
                             'v_total_depo': v_total_depo_app, 'name': asset_name
                         })
 
-            # חישוב כותרת הקבוצה (נשאר YTD לפי בקשתך)
+            # חישוב כותרת הקבוצה (YTD)
             g_diff = g_now - g_jan
             g_pct = (g_diff / g_jan * 100) if g_jan != 0 else 0
             indicator = "🟢" if g_diff >= 0 else "🔴"
@@ -426,16 +428,15 @@ try:
 
             with st.expander(header, expanded=True):
                 for item in valid_rows:
-                    # זיהוי האם מדובר בקרן פנסיה
                     is_pension = "פנסיה" in item['name'] or "מנורה" in item['name']
                     
                     if is_pension:
-                        # פנסיה: רווח מתחילת שנה (YTD)
+                        # רווח YTD (מתחילת שנה)
                         net_gain_amount = item['v_now'] - (item['v_jan'] + item['v_depo'])
                         investment_basis = item['v_jan'] + item['v_depo']
                     else:
-                        # השתלמות ושאר האפיקים: תשואה כוללת (All-time)
-                        # בסיס = ערך מקורי + הפקדות עבר + הפקדות השנה
+                        # רווח All-time (מבוסס עמודה D בגיליון ה-APP)
+                        # בסיס = ערך מקורי (D) + הפקדות עבר (G) + הפקדות השנה (Q)
                         investment_basis = item['v_orig'] + item['v_total_depo'] + item['v_depo']
                         net_gain_amount = item['v_now'] - investment_basis
 
