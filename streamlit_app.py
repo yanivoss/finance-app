@@ -392,31 +392,23 @@ try:
             for idx in row_indices:
                 if idx < len(raw_data):
                     row = raw_data.iloc[idx]
-                    asset_name = str(row.iloc[1]).strip()
                     v_now = clean_val(row.iloc[15])      # עמודה P בראשי
                     v_jan_val = clean_val(row.iloc[10])  # עמודה K בראשי
                     v_depo_year = clean_val(row.iloc[16]) # עמודה Q בראשי
                     
-                    app_name = mapping.get(asset_name, asset_name)
-                    v_orig_app, v_total_depo_app = 0, 0
-                    try:
-                        match = df_s[df_s.iloc[:, 1].str.strip() == app_name]
-                        if not match.empty:
-                            # --- תיקון לפי צילום המסך שלך ---
-                            v_orig_app = clean_val(match.iloc[0, 3])       # עמודה D (אינדקס 3)
-                            v_total_depo_app = clean_val(match.iloc[0, 6]) # עמודה G (אינדקס 6)
-                    except: pass
-
                     if not pd.isna(row.iloc[1]) and v_now != 0:
-                        valid_rows.append({
-                            'row': row, 'v_now': v_now, 'v_jan': v_jan_val, 
-                            'v_depo': v_depo_year, 'v_orig': v_orig_app, 
-                            'v_total_depo': v_total_depo_app, 'name': asset_name
-                        })
+                        # צוברים נתונים לכותרת הקבוצה
+                        g_now += v_now
+                        g_jan += v_jan_val
+                        g_depo += v_depo_year
+                        
+                        # שומרים בפורמט של רשימה (Tuple) כדי להתאים ללולאת התצוגה למטה
+                        valid_rows.append((row, v_now, v_jan_val, v_depo_year))
             
-            # חישוב כותרת הקבוצה (YTD)
-            g_diff = g_now - g_jan
-            g_pct = (g_diff / g_jan * 100) if g_jan != 0 else 0
+            # חישוב כותרת הקבוצה (YTD מדויק שכולל הפקדות)
+            # רווח = שווי נוכחי פחות (ינואר + הפקדות השנה)
+            g_diff = g_now - (g_jan + g_depo)
+            g_pct = (g_diff / (g_jan + g_depo) * 100) if (g_jan + g_depo) != 0 else 0
             indicator = "🟢" if g_diff >= 0 else "🔴"
             header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct:+.1f}%)"
 
