@@ -552,27 +552,39 @@ try:
             </style>
         """, unsafe_allow_html=True)
         
-        # --- תיקון חישוב הון מושקע ---
+        # --- 1. חישוב נתונים בסיסיים (חישוב ישיר מהטבלה למניעת 0) ---
         try:
-            # 1. סכימה ישירה של הנכסים הרלוונטיים (עמודה C בגיליון)
-            # אנחנו סוכמים את כל השורות בטבלה שהן לא הנדל"ן למגורים
+            # פונקציה פנימית לניקוי והמרת ערכים למספר
+            def to_num(val):
+                try:
+                    if isinstance(val, (int, float)): return float(val)
+                    s = str(val).replace('₪', '').replace(',', '').replace('%', '').strip()
+                    return float(s) if s else 0.0
+                except: return 0.0
+
+            # סכימת כל הערכים בעמודה C (אינדקס 2)
+            # אנחנו מוציאים מהחישוב את שורה 12 (אינדקס 11) ואת שורות הכותרת/סיכום אם יש
+            all_values = []
+            for i, row in df_s.iterrows():
+                # נדלג על שורה 12 (הבית) ועל שורות ריקות/כותרות
+                if i == 11: continue 
+                
+                val = to_num(row.iloc[2]) # עמודה C היא אינדקס 2
+                if val > 0:
+                    all_values.append(val)
             
-            # הגדרת שווי הבית (שורה 12 בגיליון = אינדקס 11)
-            home_value_val = clean_val(df_s.iloc[11, 2]) 
+            invested_net = sum(all_values)
             
-            # סך כל ההון (n_now) כפי שחושב בטאבים הקודמים
-            total_assets = current_net 
-            
-            # חישוב הון מושקע: הון כללי פחות הבית
-            invested_net = total_assets - home_value_val
-            
-            # אם בטעות יצא שלילי (בגלל בעיית נתונים), נציג לפחות את ערך תיקי המסחר
-            if invested_net <= 0:
-                invested_net = 0
+            # אם עדיין יוצא 0, ננסה למשוך ישירות מהמשתנה n_now אם הוא קיים
+            if invested_net == 0 and 'n_now' in locals():
+                home_val = to_num(df_s.iloc[11, 2])
+                total_val = to_num(n_now)
+                invested_net = max(total_val - home_val, 0)
+
         except Exception as e:
             st.error(f"שגיאה בחישוב הון מושקע: {e}")
             invested_net = 0
-
+        
         # נתוני הפקדות
         monthly_pension = 3228.65 + 2899.5
         monthly_hishtalmut = 1400 + 1500
