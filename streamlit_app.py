@@ -628,29 +628,32 @@ try:
 
         # --- 7. פירוט הפקדות ---
         with st.expander("🔍 פירוט הזרמת הכספים החודשית"):
-            # 1. בונים את שורות הנתונים הבסיסיות
-            rows_html = f"""
-                <p>💰 <b>פנסיות (זוגי):</b> ₪{monthly_pension:,.0f}</p>
-                <p>📈 <b>קרנות השתלמות:</b> ₪{monthly_hishtalmut:,.0f}</p>
-                <p>💎 <b>השקעה עצמאית:</b> ₪{monthly_independent:,.0f}</p>
-            """
-            
-            # 2. מוסיפים את שורת האקסטרה רק אם היא קיימת (בלי f-string מורכב מדי)
-            extra_html = ""
+            # הכנת הערכים מראש כדי למנוע חישובים בתוך ה-HTML
+            pension_txt = f"{monthly_pension:,.0f}"
+            hishtalmut_txt = f"{monthly_hishtalmut:,.0f}"
+            independent_txt = f"{monthly_independent:,.0f}"
+            extra_txt = f"{extra_savings:,.0f}"
+            total_txt = f"{total_monthly_sim:,.0f}"
+
+            # בניית שורת התוספת רק אם רלוונטי
+            extra_row = ""
             if extra_savings > 0:
-                extra_html = f'<p style="color: #10b981;">➕ <b>תוספת סימולציה:</b> ₪{extra_savings:,.0f}</p>'
-            
-            # 3. מחברים הכל למעטפת אחת נקייה
-            final_html = f"""
-            <div style="direction: rtl; text-align: right; font-family: sans-serif;">
-                {rows_html}
-                {extra_html}
-                <hr style="border: 0.5px solid #eee; margin: 10px 0;">
-                <p style="font-size: 1.1rem; font-weight: bold; margin: 0;">סה"כ חסכון חודשי: ₪{total_monthly_sim:,.0f}</p>
+                extra_row = f'<p style="color: #10b981; margin: 5px 0;"><b>➕ תוספת סימולציה:</b> ₪{extra_txt}</p>'
+
+            # יצירת הבלוק המרכזי
+            html_layout = f"""
+            <div style="direction: rtl; text-align: right; font-family: sans-serif; line-height: 1.6;">
+                <p style="margin: 5px 0;">💰 <b>פנסיות (זוגי):</b> ₪{pension_txt}</p>
+                <p style="margin: 5px 0;">📈 <b>קרנות השתלמות:</b> ₪{hishtalmut_txt}</p>
+                <p style="margin: 5px 0;">💎 <b>השקעה עצמאית:</b> ₪{independent_txt}</p>
+                {extra_row}
+                <hr style="border: none; border-top: 1px solid #eee; margin: 10px 0;">
+                <p style="font-size: 1.1rem; font-weight: bold; color: #1e293b; margin: 0;">
+                    סה"כ חסכון חודשי: ₪{total_txt}
+                </p>
             </div>
             """
-            
-            st.markdown(final_html, unsafe_allow_html=True)
+            st.markdown(html_layout, unsafe_allow_html=True)
         
         # --- 8. קוביה ירוקה מסכמת (הצפי) ---
         st.markdown(f"""
