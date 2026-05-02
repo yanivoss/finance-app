@@ -363,48 +363,43 @@ try:
             "✈️ חיסכון לחופשה": [10], 
         }
 
-        # טעינת נתונים גולמיים מהגיליון
-        relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == group_name].copy()
-
+        # לולאת הקטגוריות
         for group_name, row_indices in groups.items():
-
-            # המיפוי שמחבר בין השם בגיליון הראשי לשם שהזנת ב-APP
+        
+            # 1. סינון גיליון ה-APP לפי הקטגוריה הנוכחית
+            relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == group_name].copy()
+            
+            valid_rows = []
+            g_now, g_total_invested = 0, 0
+        
+            # המיפוי שסוגר את הפער בין השם בראשי לשם ב-APP
             mapping = {
                 'חשבון מסחר עצמאי - אקסלנס': 'תיק אקסלנס',
                 'חשבון מסחר עצמאי - אינטראקטיב': 'תיק אינטראקטיב',
                 '1,500 אופציות איסתא - IBI': 'אופציות איסתא'
             }
-            
-            # הגדרת שם הקבוצה לסינון (תוודא שהשם זהה למה שכתבת בעמודה I ב-APP)
-            # אם הקוד רץ בתוך לולאת הקטגוריות שלך, המשתנה כבר קיים. 
-            # אם לא, הגדר אותו כאן: group_name = "השקעות ומסחר"
-            
-            # סינון גיליון ה-APP לפי הקטגוריה בעמודה I (אינדקס 8)
-            relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == group_name].copy()
-            
-            # הגדרת נתוני הבסיס מהגיליון הראשי (עם קפיצות של 2)
-            # group_indices הם האינדקסים ששייכים לקטגוריה הנוכחית (למשל השקעות)
-            valid_rows = []
-            g_now, g_total_invested = 0, 0
-
+        
+            # 2. מעבר על האינדקסים (בקפיצות של 2)
             for idx in row_indices:
                 if idx < len(raw_data):
                     row = raw_data.iloc[idx]
                     asset_name = str(row.iloc[1]).strip() # שם הנכס מהגיליון הראשי
                     
-                    # חיפוש בגיליון ה-APP לפי השם המדויק
-                    # אנחנו משתמשים ב-astype(str).str.strip() כדי למנוע בעיות של רווחים נסתרים
+                    # בדיקה האם לשם הנכס יש שם שונה בגיליון ה-APP
+                    app_search_name = mapping.get(asset_name, asset_name).strip()
+                    
+                    # חיפוש התאמה בגיליון ה-APP לפי השם הממופה
                     try:
-                        match = df_s[df_s.iloc[:, 1].astype(str).str.strip() == asset_name]
+                        match = df_s[df_s.iloc[:, 1].astype(str).str.strip() == app_search_name]
                         
                         if not match.empty:
-                            v_now = clean_val(match.iloc[0, 2])          # עמודה C: שווי נוכחי
-                            v_orig = clean_val(match.iloc[0, 4])         # עמודה E: ערך התחלתי
-                            v_ytd_depo = clean_val(match.iloc[0, 5])     # עמודה F: הפקדות YTD
-                            v_total_depo = clean_val(match.iloc[0, 6])   # עמודה G: סך הפקדות
+                            v_now = clean_val(match.iloc[0, 2])          # עמודה C
+                            v_orig = clean_val(match.iloc[0, 4])         # עמודה E
+                            v_ytd_depo = clean_val(match.iloc[0, 5])     # עמודה F
+                            v_total_depo = clean_val(match.iloc[0, 6])   # עמודה G
                             
                             if v_now != 0:
-                                # בסיס ההשקעה לחישוב All-time
+                                # חישוב All-time
                                 invested = v_orig + v_total_depo
                                 gain = v_now - invested
                                 
@@ -420,29 +415,32 @@ try:
                                 })
                     except:
                         pass
-
-            # חישוב כותרת הקבוצה (All-time)
-            g_pct = ((g_now - g_total_invested) / g_total_invested * 100) if g_total_invested != 0 else 0
-            indicator = "🟢" if g_now >= g_total_invested else "🔴"
-            header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct:+.1f}%)"
-
-            with st.expander(header, expanded=True):
-                for item in valid_rows:
-                    pct = (item['gain'] / item['invested'] * 100) if item['invested'] != 0 else 0
-                    color = "#4CAF50" if item['gain'] >= 0 else "#e11d48"
-                    arrow = "▲" if item['gain'] >= 0 else "▼"
-                    
-                    d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
-                    
-                    asset_card(
-                        item['name'], 
-                        "", 
-                        item['v_now'], 
-                        0, 
-                        item['v_ytd_depo'], 
-                        d_html, 
-                        "₪"
-                    )
+        
+            # 3. חישוב כותרת הקבוצה ותצוגה
+            if g_total_invested != 0 or g_now != 0:
+                g_pct = ((g_now - g_total_invested) / g_total_invested * 100) if g_total_invested != 0 else 0
+                indicator = "🟢" if g_now >= g_total_invested else "🔴"
+                header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct:+.1f}%)"
+        
+                with st.expander(header, expanded=True):
+                    for item in valid_rows:
+                        pct = (item['gain'] / item['invested'] * 100) if item['invested'] != 0 else 0
+                        color = "#4CAF50" if item['gain'] >= 0 else "#e11d48"
+                        arrow = "▲" if item['gain'] >= 0 else "▼"
+                        
+                        d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
+                        
+                        asset_card(
+                            item['name'], 
+                            "", 
+                            item['v_now'], 
+                            0, 
+                            item['v_ytd_depo'], 
+                            d_html, 
+                            "₪"
+                        )
+        
+        
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align:right;color: #e11d48;'>📉 פירוט התחייבויות</h2>", unsafe_allow_html=True)
