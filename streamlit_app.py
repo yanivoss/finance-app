@@ -421,14 +421,14 @@ try:
                         d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
                         
                         asset_card(
-                            item['name'], 
-                            f"מחזיק: {item['owner']}", 
-                            item['v_now'], 
-                            0, 
-                            item['v_ytd_depo'], 
-                            d_html, 
-                            "₪"
-                        )
+                        item['name'], 
+                        item['owner'],  # כאן הורדתי את ה-f"מחזיק: {item['owner']}"
+                        item['v_now'], 
+                        0, 
+                        item['v_ytd_depo'], 
+                        d_html, 
+                        "₪"
+                    )
         
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
