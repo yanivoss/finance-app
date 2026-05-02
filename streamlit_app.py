@@ -392,14 +392,19 @@ try:
                     # בדיקה: האם השם קיים במיפוי? אם כן, השתמש בשם מהמיפוי. אם לא, השתמש בשם המקורי.
                     app_search_name = mapping.get(asset_name, asset_name)
                     
+                    # הגדרת השם לחיפוש: אם קיים במיפוי נשתמש בערך הממופה, אם לא - בשם המקורי
+                    app_search_name = mapping.get(asset_name, asset_name).strip()
+                    
                     try:
-                        # חיפוש השם (הממופה או המקורי) בגיליון ה-APP
-                        match = df_s[df_s.iloc[:, 1].str.strip() == app_search_name]
+                        # השינוי כאן: הוספת astype(str) ו-strip() על עמודת השמות ב-APP
+                        match = df_s[df_s.iloc[:, 1].astype(str).str.strip() == app_search_name]
+                        
                         if not match.empty:
-                            v_orig_app = clean_val(match.iloc[0, 4])        # עמודה E ב-APP
-                            v_past_depo_app = clean_val(match.iloc[0, 6])    # עמודה G ב-APP
+                            v_orig_app = clean_val(match.iloc[0, 4])        # עמודה E (ערך התחלתי)
+                            v_past_depo_app = clean_val(match.iloc[0, 6])    # עמודה G (הפקדות עבר)
                             has_app_match = True
-                    except: pass
+                    except:
+                        pass
 
                     if not pd.isna(row.iloc[1]) and v_now != 0:
                         g_now += v_now
