@@ -354,76 +354,68 @@ try:
             """, unsafe_allow_html=True)
 
         # הגדרת הקבוצות לפי אינדקסים בגיליון DATA
-        # 1. הקבוצות נשארות עם אימוג'ים בשביל התצוגה ב-Dashboard
-        # הקבוצות כפי שהגדרת - הקוד יחפש את המילים (בלי האימוג'י) בעמודה I ב-APP
-        groups = {
-        "🏦 קרנות פנסיה": [0, 1, 3],
-        "📈 קרנות השתלמות": [2, 4],
-        "💎 תיק השקעות ומסחר": [7, 8, 9],
-        "👦 חיסכון לילדים": [12, 13, 14],
-        "🏥 חיסכון הורים": [5, 6, 11, 15],
-        "✈️ חיסכון לחופשה": [10],
-    }
+        groups_config = {
+            "קרנות פנסיה": "🏦 קרנות פנסיה",
+            "קרנות השתלמות": "📈 קרנות השתלמות",
+            "תיק השקעות ומסחר": "💎 תיק השקעות ומסחר",
+            "חיסכון לילדים": "👦 חיסכון לילדים",
+            "חיסכון ההורים": "🏥 נזיל וקופות גמל",
+            "חיסכון לחופשה": "✈️ חיסכון לחופשה"
+        }
     
-        raw_data = df_d.copy() # גיליון ראשי
-    
-        for group_name, row_indices in groups.items():
-            # ניקוי אימוג'י לטובת חיפוש בעמודה I ב-APP
-            clean_group_name = "".join([c for c in group_name if c.isalnum() or c.isspace()]).strip()
+        # df_s הוא גיליון ה-APP, df_d הוא הגיליון הראשי
+        for app_cat_name, display_name in groups_config.items():
+            # 1. סינון שורות ה-APP השייכות לקטגוריה הנוכחית בלבד (עמודה I)
+            relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == app_cat_name].copy()
             
+            if relevant_app_rows.empty:
+                continue
+    
             valid_rows = []
-            g_now, g_total_invested = 0, 0
+            total_now = 0
+            total_invested = 0
     
-            # MAPPING - כאן אנחנו מגשרים על הבדלי השמות בין הגיליונות
-            mapping = {
-                'תיק אקסלנס': 'חשבון מסחר עצמאי - אקסלנס',
-                'תיק אינטראקטיב': 'חשבון מסחר עצמאי - אינטראקטיב',
-                'אופציות איסתא': '1,500 אופציות איסתא - IBI',
-                'מיכל - פנסיה': 'מיכל - פנסיה',
-                'מיכל - השתלמות': 'מיכל - השתלמות',
-                'חיסכון לחופשה': 'חיסכון לחופשה'
-            }
+            # רצים על כל שורה ב-APP פעם אחת בלבד
+            for _, app_row in relevant_app_rows.iterrows():
+                # מזהה השורה הייחודי (C2, C17 וכו') נמצא בעמודה A ב-APP
+                row_id = str(app_row.iloc[0]).strip()
+                
+                # 2. שליפת שם המחזיק מהגיליון הראשי לפי ה-ID התואם (עמודה A בראשי)
+                main_row_match = df_d[df_d.iloc[:, 0].astype(str).str.strip() == row_id]
+                
+                if not main_row_match.empty:
+                    owner = str(main_row_match.iloc[0, 0]).strip() # עמודה A בראשי - שם המחזיק
+                else:
+                    owner = "משותף" # ברירת מחדל אם לא נמצאה התאמה
     
-            for idx in row_indices:
-                if idx < len(raw_data):
-                    row = raw_data.iloc[idx]
-                    owner_name = str(row.iloc[0]).strip() # עמודה A בראשי - שם המחזיק
-                    asset_name = str(row.iloc[1]).strip() # עמודה B בראשי - שם הנכס
-                    
-                    # בדיקה מה השם לחיפוש ב-APP
-                    app_search_name = mapping.get(asset_name, asset_name).strip()
-                    
-                    try:
-                        # חיפוש בגיליון ה-APP (עמודה B)
-                        match = df_s[df_s.iloc[:, 1].astype(str).str.strip() == app_search_name]
-                        
-                        if not match.empty:
-                            v_now = clean_val(match.iloc[0, 2])
-                            v_orig = clean_val(match.iloc[0, 4])
-                            v_total_depo = clean_val(match.iloc[0, 6])
-                            v_ytd_depo = clean_val(match.iloc[0, 5])
-                            
-                            invested = v_orig + v_total_depo
-                            gain = v_now - invested
-                            
-                            g_now += v_now
-                            g_total_invested += invested
-                            
-                            valid_rows.append({
-                                'owner': owner_name,
-                                'name': asset_name,
-                                'v_now': v_now,
-                                'v_ytd_depo': v_ytd_depo,
-                                'invested': invested,
-                                'gain': gain
-                            })
-                    except: pass
+                # 3. משיכת הנתונים - אך ורק מגיליון ה-APP (df_s)
+                asset_name = str(app_row.iloc[1]).strip() # שם הנכס (עמודה B)
+                v_now = clean_val(app_row.iloc[2])        # שווי נוכחי (עמודה C)
+                v_orig = clean_val(app_row.iloc[4])       # ערך התחלתי (עמודה E)
+                v_ytd_depo = clean_val(app_row.iloc[5])   # הפקדות YTD (עמודה F)
+                v_total_depo = clean_val(app_row.iloc[6]) # סך הפקדות (עמודה G)
+                
+                # חישוב רווח והשקעה לכל שורה בנפרד
+                invested = v_orig + v_total_depo
+                gain = v_now - invested
+                
+                total_now += v_now
+                total_invested += invested
+                
+                valid_rows.append({
+                    'owner': owner,
+                    'name': asset_name,
+                    'v_now': v_now,
+                    'v_ytd_depo': v_ytd_depo,
+                    'invested': invested,
+                    'gain': gain
+                })
     
-            # תצוגה
+            # הצגת הקבוצה ב-Dashboard
             if valid_rows:
-                g_pct = ((g_now - g_total_invested) / g_total_invested * 100) if g_total_invested != 0 else 0
-                indicator = "🟢" if g_now >= g_total_invested else "🔴"
-                header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct:+.1f}%)"
+                g_pct = ((total_now - total_invested) / total_invested * 100) if total_invested != 0 else 0
+                indicator = "🟢" if total_now >= total_invested else "🔴"
+                header = f"{display_name} | ₪{total_now:,.0f} {indicator} ({g_pct:+.1f}%)"
     
                 with st.expander(header, expanded=True):
                     for item in valid_rows:
@@ -432,81 +424,16 @@ try:
                         arrow = "▲" if item['gain'] >= 0 else "▼"
                         d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
                         
-                        asset_card(item['name'], f"מחזיק: {item['owner']}", item['v_now'], 0, item['v_ytd_depo'], d_html, "₪")
-            
-        groups = {
-        "🏦 קרנות פנסיה": [0, 1, 3],     # יניב (0,1), מיכל (4), הפניקס (16), מנורה (17)
-        "📈 קרנות השתלמות": [2, 4],             # יניב (2), מיכל (5)
-        "💎 תיק השקעות ומסחר": [9, 8, 7],      # אקסלנס, אינטראקטיב, איסתא
-        "👦 חיסכון לילדים": [14, 12, 13], # עמית, נועם, וילד (21-23)
-        "🏥 נזיל וקופות גמל": [6, 5, 11], # עו"ש, כספיות וכו'
-        "✈️ חיסכון לחופשה": [10],               # שורה 12 בגיליון (אינדקס 11)
-    }
-    
-        raw_data = df_d.copy()
-    
-        for group_name, row_indices in groups.items():
-            # ניקוי האימוג'י משם הקבוצה לצורך חיפוש בגיליון (מסיר הכל חוץ מאותיות ורווחים)
-            clean_group_name = "".join([char for char in group_name if not char in "🏦📈💎👦🏥✈️ "]).strip()
-            
-            # סינון ה-APP לפי השם הנקי (למשל "קרנות פנסיה")
-            relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.contains(clean_group_name)].copy()
-            
-            valid_rows = []
-            g_now, g_total_invested = 0, 0
-    
-            mapping = {
-                'חשבון מסחר עצמאי - אקסלנס': 'תיק אקסלנס',
-                'חשבון מסחר עצמאי - אינטראקטיב': 'תיק אינטראקטיב',
-                '1,500 אופציות איסתא - IBI': 'אופציות איסתא'
-            }
-    
-            for idx in row_indices:
-                if idx < len(raw_data):
-                    row = raw_data.iloc[idx]
-                    owner_name = str(row.iloc[0]).strip()  # עמודה A בראשי
-                    asset_name = str(row.iloc[1]).strip()  # עמודה B בראשי
-                    
-                    app_search_name = mapping.get(asset_name, asset_name).strip()
-                    
-                    try:
-                        match = df_s[df_s.iloc[:, 1].astype(str).str.strip() == app_search_name]
-                        
-                        if not match.empty:
-                            v_now = clean_val(match.iloc[0, 2])
-                            v_orig = clean_val(match.iloc[0, 4])
-                            v_ytd_depo = clean_val(match.iloc[0, 5])
-                            v_total_depo = clean_val(match.iloc[0, 6])
-                            
-                            invested = v_orig + v_total_depo
-                            gain = v_now - invested
-                            
-                            g_now += v_now
-                            g_total_invested += invested
-                            
-                            valid_rows.append({
-                                'owner': owner_name,
-                                'name': asset_name,
-                                'v_now': v_now,
-                                'v_ytd_depo': v_ytd_depo,
-                                'invested': invested,
-                                'gain': gain
-                            })
-                    except: pass
-    
-            if valid_rows:
-                g_pct = ((g_now - g_total_invested) / g_total_invested * 100) if g_total_invested != 0 else 0
-                indicator = "🟢" if g_now >= g_total_invested else "🔴"
-                header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct:+.1f}%)"
-    
-                with st.expander(header, expanded=True):
-                    for item in valid_rows:
-                        pct = (item['gain'] / item['invested'] * 100) if item['invested'] != 0 else 0
-                        color = "#4CAF50" if item['gain'] >= 0 else "#e11d48"
-                        arrow = "▲" if item['gain'] >= 0 else "▼"
-                        d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
-                        
-                        asset_card(item['name'], f"מחזיק: {item['owner']}", item['v_now'], 0, item['v_ytd_depo'], d_html, "₪")
+                        # הצגת הכרטיס עם שם המחזיק והנתונים המפורטים
+                        asset_card(
+                            item['name'], 
+                            f"מחזיק: {item['owner']}", 
+                            item['v_now'], 
+                            0, 
+                            item['v_ytd_depo'], 
+                            d_html, 
+                            "₪"
+                        )
         
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
