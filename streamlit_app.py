@@ -580,6 +580,39 @@ try:
         except Exception as e:
             st.error(f"שגיאה במשיכת נתונים לפי קטגוריה: {e}")
             invested_net = 0
+
+            # --- ממשק הגדרות (מתחת לחישוב) ---
+    col_fire1, col_fire2 = st.columns(2)
+
+    with col_fire1:
+        st.markdown("<p style='font-weight: bold; text-align: right;'>קצבה חודשית מבוקשת</p>", unsafe_allow_html=True)
+        # הכפתור שביקשת עם קפיצות של 1,000
+        desired_income = st.number_input("", value=25000, step=1000, key="income_target_num", label_visibility="collapsed")
+        
+        # חישוב יעד הון (פחות קצבת זקנה משוערת)
+        target_capital = max(desired_income - 4000, 0) * 12 * 25 
+        
+    with col_fire2:
+        st.markdown("<p style='font-weight: bold; text-align: right;'>תשואה שנתית (%)</p>", unsafe_allow_html=True)
+        expected_return_fire = st.selectbox("", [4,5,6,7,8,9,10], index=3, key="fire_ret_select", label_visibility="collapsed")
+    
+    # חישוב שנים ליעד
+    years_to_goal = 0
+    fv = invested_net
+    total_monthly_sim = base_monthly_contribution # הסכום שחושב מהטבלה
+    
+    if fv < target_capital:
+        while fv < target_capital and years_to_goal < 50:
+            fv = (fv * (1 + expected_return_fire/100)) + (total_monthly_sim * 12)
+            years_to_goal += 1
+
+# תצוגת התוצאה הסופית בתיבה השחורה
+st.markdown(f"""
+    <div style="background-color: black; padding: 20px; border-radius: 15px; direction: rtl; text-align: right;">
+        <p style="color: white; margin: 0;">ליעד של ₪{desired_income:,.0f} בחודש (הון נדרש: ₪{target_capital:,.0f})</p>
+        <p style="color: #10b981; font-size: 24px; font-weight: bold; margin: 10px 0;">בעוד {years_to_goal} שנים (גיל {48 + years_to_goal})</p>
+    </div>
+""", unsafe_allow_html=True)
         
         # נתוני הפקדות
         monthly_pension = 3228.65 + 2899.5
