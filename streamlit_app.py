@@ -428,27 +428,37 @@ try:
 
             with st.expander(header, expanded=True):
                 for item in valid_rows:
+                    # --- שורות בדיקה זמניות ---
+                    st.write(f"🔍 **בדיקת אינדקסים עבור: {item['name']}**")
+                    # הדפסת 10 האינדקסים הראשונים של השורה מה-APP כדי למצוא את עמודה D
+                    try:
+                        app_name = mapping.get(item['name'], item['name'])
+                        match = df_s[df_s.iloc[:, 1].str.strip() == app_name]
+                        if not match.empty:
+                            debug_data = {f"אינדקס {i}": match.iloc[0, i] for i in range(len(match.columns[:12]))}
+                            st.json(debug_data) # מציג רשימה ברורה של אינדקס וערך
+                    except Exception as e:
+                        st.error(f"שגיאה בסריקת אינדקסים: {e}")
+                    # -----------------------
+
                     is_pension = "פנסיה" in item['name'] or "מנורה" in item['name']
                     
                     if is_pension:
-                        # רווח YTD (מתחילת שנה)
-                        net_gain_amount = item['v_now'] - (item['v_jan'] + item['v_depo'])
-                        investment_basis = item['v_jan'] + item['v_depo']
+                        gain_amount = item['v_now'] - (item['v_jan'] + item['v_depo'])
+                        basis = item['v_jan'] + item['v_depo']
                     else:
-                        # רווח All-time (מבוסס עמודה D בגיליון ה-APP)
-                        # בסיס = ערך מקורי (D) + הפקדות עבר (G) + הפקדות השנה (Q)
-                        investment_basis = item['v_orig'] + item['v_total_depo'] + item['v_depo']
-                        net_gain_amount = item['v_now'] - investment_basis
+                        # כרגע משתמשים באינדקס 5 (D+2), נתקן אחרי שנראה את ההדפסה
+                        basis = item['v_orig'] + item['v_total_depo'] + item['v_depo']
+                        gain_amount = item['v_now'] - basis
 
-                    pct_net = (net_gain_amount / investment_basis * 100) if investment_basis != 0 else 0
-                    color = "#4CAF50" if net_gain_amount >= 0 else "#e11d48"
-                    arrow = "▲" if net_gain_amount >= 0 else "▼"
-                    
-                    d_html = f"<span style='color: {color}; font-weight: 700;'>₪{net_gain_amount:,.0f} ({abs(pct_net):.1f}%) {arrow}</span>"
+                    pct_net = (gain_amount / basis * 100) if basis != 0 else 0
+                    color = "#4CAF50" if gain_amount >= 0 else "#e11d48"
+                    d_html = f"<span style='color: {color}; font-weight: 700;'>₪{gain_amount:,.0f} ({abs(pct_net):.1f}%)</span>"
                     
                     asset_card(item['row'].iloc[1], item['row'].iloc[0], item['v_now'], 
                                item['v_jan'], item['v_depo'], d_html, "₪")
             
+           
             
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
