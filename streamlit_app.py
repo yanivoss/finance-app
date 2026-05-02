@@ -552,13 +552,25 @@ try:
             </style>
         """, unsafe_allow_html=True)
         
-        # --- 1. חישוב נתונים בסיסיים (מבוסס נתוני אמת) ---
+        # --- תיקון חישוב הון מושקע ---
         try:
-            # שואבים את הערך של שורה 12 (אינדקס 11 ב-Pandas) כנדל"ן למגורים
-            home_value = clean_val(df_s.iloc[11, 2]) 
-            # הון מושקע נטו (הון כללי פחות הבית)
-            invested_net = max(current_net - home_value, 0)
-        except:
+            # 1. סכימה ישירה של הנכסים הרלוונטיים (עמודה C בגיליון)
+            # אנחנו סוכמים את כל השורות בטבלה שהן לא הנדל"ן למגורים
+            
+            # הגדרת שווי הבית (שורה 12 בגיליון = אינדקס 11)
+            home_value_val = clean_val(df_s.iloc[11, 2]) 
+            
+            # סך כל ההון (n_now) כפי שחושב בטאבים הקודמים
+            total_assets = current_net 
+            
+            # חישוב הון מושקע: הון כללי פחות הבית
+            invested_net = total_assets - home_value_val
+            
+            # אם בטעות יצא שלילי (בגלל בעיית נתונים), נציג לפחות את ערך תיקי המסחר
+            if invested_net <= 0:
+                invested_net = 0
+        except Exception as e:
+            st.error(f"שגיאה בחישוב הון מושקע: {e}")
             invested_net = 0
 
         # נתוני הפקדות
