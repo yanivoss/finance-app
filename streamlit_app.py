@@ -553,7 +553,7 @@ try:
         """, unsafe_allow_html=True)
         
         # --- 1. כותרת ראשית ---
-        st.markdown("<h2 style='text-align: right;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: right; color: black;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
         st.write("") # ריווח
 
         # --- 2. לוגיקת חישוב הון מושקע (קטגוריות נבחרות) ---
@@ -585,15 +585,15 @@ try:
         col_fire1, col_fire2 = st.columns(2)
 
         with col_fire1:
-            st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 5px;'>קצבה חודשית מבוקשת</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 5px; color: black;'>קצבה חודשית מבוקשת</p>", unsafe_allow_html=True)
             desired_income = st.number_input("", value=25000, step=1000, key="income_target_num", label_visibility="collapsed")
             target_capital = max(desired_income - 4000, 0) * 12 * 25 
             
         with col_fire2:
-            st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 5px;'>תשואה שנתית (%)</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 5px; color: black;'>תשואה שנתית (%)</p>", unsafe_allow_html=True)
             expected_return_fire = st.selectbox("", [4,5,6,7,8,9,10], index=3, key="fire_ret_select", label_visibility="collapsed")
 
-        st.markdown("<p style='font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px;'>תוספת הפקדה חודשית (₪)</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px; color: black;'>תוספת הפקדה חודשית (₪)</p>", unsafe_allow_html=True)
         extra_savings = st.number_input("", value=0, step=500, key="extra_savings_sim", label_visibility="collapsed")
 
         # סך הכל הפקדה לסימולציה
@@ -637,9 +637,9 @@ try:
 
             # בניית ה-HTML בחלקים נפרדים
             html = '<div style="direction: rtl; text-align: right; font-family: sans-serif;">'
-            html += '<p>💰 <b>פנסיות (זוגי):</b> ₪' + p_val + '</p>'
-            html += '<p>📈 <b>קרנות השתלמות:</b> ₪' + h_val + '</p>'
-            html += '<p>💎 <b>השקעה עצמאית:</b> ₪' + i_val + '</p>'
+            html += '<p style="color: black;">💰 <b>פנסיות (זוגי):</b> ₪' + p_val + '</p>'
+            html += '<p style="color: black;">📈 <b>קרנות השתלמות:</b> ₪' + h_val + '</p>'
+            html += '<p style="color: black;">💎 <b>השקעה עצמאית:</b> ₪' + i_val + '</p>'
             
             if extra_savings > 0:
                 html += '<p style="color: #10b981;">➕ <b>תוספת סימולציה:</b> ₪' + e_val + '</p>'
