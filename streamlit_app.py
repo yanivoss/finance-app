@@ -363,69 +363,72 @@ try:
             "חיסכון הורים": "🏥 נזיל וקופות גמל",
             "חיסכון לחופשה": "✈️ חיסכון לחופשה"
         }
-    
+
         # 2. לולאת ריצה על הקטגוריות
         for app_cat_name, display_name in groups_config.items():
-        relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == app_cat_name].copy()
-        
-        if relevant_app_rows.empty:
-            continue
+            # סינון שורות ה-APP ששייכות לקטגוריה הנוכחית
+            relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == app_cat_name].copy()
+            
+            if relevant_app_rows.empty:
+                continue
 
-        valid_rows = []
-        total_now, total_invested = 0, 0
+            valid_rows = []
+            total_now, total_invested = 0, 0
 
-        for _, app_row in relevant_app_rows.iterrows():
-            # מושך את שם המחזיק ישירות מעמודה J (אינדקס 9) בגיליון ה-APP
-            try:
-                owner = str(app_row.iloc[9]).strip() 
-                if owner == "nan" or owner == "":
+            # 3. לולאת ריצה על השורות בתוך הקטגוריה
+            for _, app_row in relevant_app_rows.iterrows():
+                # משיכת שם המחזיק ישירות מעמודה J (אינדקס 9) בגיליון ה-APP
+                try:
+                    owner = str(app_row.iloc[9]).strip() 
+                    if owner == "nan" or owner == "":
+                        owner = "משותף"
+                except:
                     owner = "משותף"
-            except:
-                owner = "משותף"
 
-            # נתונים כספיים מה-APP
-            asset_name = str(app_row.iloc[1]).strip()
-            v_now = clean_val(app_row.iloc[2])
-            v_orig = clean_val(app_row.iloc[4])
-            v_ytd_depo = clean_val(app_row.iloc[5])
-            v_total_depo = clean_val(app_row.iloc[6])
-            
-            invested = v_orig + v_total_depo
-            gain = v_now - invested
-            
-            total_now += v_now
-            total_invested += invested
-            
-            valid_rows.append({
-                'owner': owner,
-                'name': asset_name,
-                'v_now': v_now,
-                'v_ytd_depo': v_ytd_depo,
-                'invested': invested,
-                'gain': gain
-            })
+                # נתונים כספיים מה-APP
+                asset_name = str(app_row.iloc[1]).strip()
+                v_now = clean_val(app_row.iloc[2])
+                v_orig = clean_val(app_row.iloc[4])
+                v_ytd_depo = clean_val(app_row.iloc[5])
+                v_total_depo = clean_val(app_row.iloc[6])
+                
+                invested = v_orig + v_total_depo
+                gain = v_now - invested
+                
+                total_now += v_now
+                total_invested += invested
+                
+                valid_rows.append({
+                    'owner': owner,
+                    'name': asset_name,
+                    'v_now': v_now,
+                    'v_ytd_depo': v_ytd_depo,
+                    'invested': invested,
+                    'gain': gain
+                })
 
-        if valid_rows:
-            g_pct = ((total_now - total_invested) / total_invested * 100) if total_invested != 0 else 0
-            indicator = "🟢" if total_now >= total_invested else "🔴"
-            header = f"{display_name} | ₪{total_now:,.0f} {indicator} ({g_pct:+.1f}%)"
+            # 4. יצירת התצוגה (Expander)
+            if valid_rows:
+                g_pct = ((total_now - total_invested) / total_invested * 100) if total_invested != 0 else 0
+                indicator = "🟢" if total_now >= total_invested else "🔴"
+                header = f"{display_name} | ₪{total_now:,.0f} {indicator} ({g_pct:+.1f}%)"
 
-            with st.expander(header, expanded=True):
-                for item in valid_rows:
-                    pct = (item['gain'] / item['invested'] * 100) if item['invested'] != 0 else 0
-                    color = "#4CAF50" if item['gain'] >= 0 else "#e11d48"
-                    arrow = "▲" if item['gain'] >= 0 else "▼"
-                    d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
-                    
-                    asset_card(
-                        item['name'], 
-                        f"מחזיק: {item['owner']}", 
-                        item['v_now'], 
-                        0, 
-                        item['v_ytd_depo'], 
-                        d_html, 
-                        "₪"
-                    )
+                with st.expander(header, expanded=True):
+                    for item in valid_rows:
+                        pct = (item['gain'] / item['invested'] * 100) if item['invested'] != 0 else 0
+                        color = "#4CAF50" if item['gain'] >= 0 else "#e11d48"
+                        arrow = "▲" if item['gain'] >= 0 else "▼"
+                        d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
+                        
+                        asset_card(
+                            item['name'], 
+                            f"מחזיק: {item['owner']}", 
+                            item['v_now'], 
+                            0, 
+                            item['v_ytd_depo'], 
+                            d_html, 
+                            "₪"
+                        )
         
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
