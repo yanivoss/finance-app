@@ -405,9 +405,9 @@ try:
                         match = df_s[df_s.iloc[:, 1].str.strip() == app_name]
                         if not match.empty:
                             # שינוי לעמודה D (אינדקס 3) עבור הערך המקורי
-                            v_orig_app = clean_val(match.iloc[0, 5])       
+                            v_orig_app = clean_val(match.iloc[0, 3])       
                             # עמודה G (אינדקס 6) עבור הפקדות עבר
-                            v_total_depo_app = clean_val(match.iloc[0, 8]) 
+                            v_total_depo_app = clean_val(match.iloc[0, 4]) 
                     except: pass
 
                     if not pd.isna(row.iloc[1]) and v_now != 0:
