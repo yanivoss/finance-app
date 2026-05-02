@@ -392,40 +392,45 @@ try:
             for idx in row_indices:
                 if idx < len(raw_data):
                     row = raw_data.iloc[idx]
-                    asset_name = str(row.iloc[1]).strip() # שם הנכס מעמודה B
-                    v_now = clean_val(row.iloc[15])      # שווי נוכחי מעמודה P
-                    v_jan_val = clean_val(row.iloc[10])  # שווי ינואר מעמודה K
-                    v_depo_year = clean_val(row.iloc[16]) # הפקדות 2026 מעמודה Q
+                    asset_name = str(row.iloc[1]).strip() # שם הנכס מהגיליון הראשי
+                    v_now = clean_val(row.iloc[15])      # עמודה P
+                    v_jan_val = clean_val(row.iloc[10])  # עמודה K
+                    v_depo_year = clean_val(row.iloc[16]) # עמודה Q
                     
-                    # ניסיון למצוא נתונים היסטוריים בגיליון ה-APP לפי המיפוי
                     v_orig_app, v_past_depo_app = 0, 0
                     has_app_match = False
                     
-                    # שימוש במילון ה-mapping שכבר הגדרת למעלה
-                    app_search_name = mapping.get(asset_name, asset_name)
-                    
+                    # שלב 1: חיפוש התאמה ישירה ב-APP (לפי השורות החדשות שהוספת)
                     try:
-                        # חיפוש התאמה בגיליון ה-APP (עמודה B היא אינדקס 1)
-                        match = df_s[df_s.iloc[:, 1].str.strip() == app_search_name]
+                        match = df_s[df_s.iloc[:, 1].str.strip() == asset_name]
                         if not match.empty:
-                            v_orig_app = clean_val(match.iloc[0, 3])       # עמודה D ב-APP
-                            v_past_depo_app = clean_val(match.iloc[0, 6])   # עמודה G ב-APP
+                            v_orig_app = clean_val(match.iloc[0, 4])       # עמודה E ב-APP (ערך התחלתי)
+                            v_past_depo_app = clean_val(match.iloc[0, 6])   # עמודה G ב-APP (הפקדות עבר)
                             has_app_match = True
                     except: pass
+                    
+                    # שלב 2: אם לא נמצאה התאמה ישירה, נסה להשתמש ב-Mapping לקטגוריה הכללית
+                    if not has_app_match:
+                        app_search_name = mapping.get(asset_name, asset_name)
+                        try:
+                            match = df_s[df_s.iloc[:, 1].str.strip() == app_search_name]
+                            if not match.empty:
+                                v_orig_app = clean_val(match.iloc[0, 4])
+                                v_past_depo_app = clean_val(match.iloc[0, 6])
+                                has_app_match = True
+                        except: pass
 
                     if not pd.isna(row.iloc[1]) and v_now != 0:
-                        # צוברים נתונים לכותרת הקבוצה (תצוגת YTD - מה קרה השנה)
                         g_now += v_now
                         g_jan += v_jan_val
                         g_depo += v_depo_year
-                        
                         valid_rows.append({
                             'row': row, 'v_now': v_now, 'v_jan': v_jan_val, 
                             'v_depo': v_depo_year, 'v_orig': v_orig_app, 
                             'v_past_depo': v_past_depo_app, 'has_app': has_app_match
                         })
             
-            # חישוב כותרת הקבוצה (YTD - רווח/הפסד השנה בלבד)
+            # חישוב כותרת הקבוצה (תצוגת YTD - מה קרה השנה)
             g_diff_ytd = g_now - (g_jan + g_depo)
             g_pct_ytd = (g_diff_ytd / (g_jan + g_depo) * 100) if (g_jan + g_depo) != 0 else 0
             indicator = "🟢" if g_diff_ytd >= 0 else "🔴"
@@ -433,31 +438,32 @@ try:
 
             with st.expander(header, expanded=True):
                 for item in valid_rows:
-                    if item['has_app']:
-                        # --- חישוב ALL-TIME (מתחילת הפעילות) ---
-                        # בסיס השקעה = שווי מקורי + הפקדות עבר + הפקדות 2026
-                        total_investment = item['v_orig'] + item['v_past_depo'] + item['v_depo']
+                    # בסיס ההשקעה כולל את מה שהיה בהתחלה + כל ההפקדות שבוצעו אי פעם
+                    # אנחנו משתמשים בעמודה E (התחלתי) ו-G (עבר) מה-APP, פלוס Q (השנה) מהראשי
+                    total_investment = item['v_orig'] + item['v_past_depo'] + item['v_depo']
+                    
+                    # אם נמצאה התאמה ב-APP, נציג רווח All-time (כמו באקסל)
+                    # אחרת, נציג רווח YTD (מתחילת שנה)
+                    if item['has_app'] and item['v_orig'] > 100: # סינון למקרים של ערך 100 סמלי
                         net_gain_amount = item['v_now'] - total_investment
+                        label_prefix = "" # רווח All-time
                     else:
-                        # --- חישוב YTD (מתחילת שנה) ---
-                        # אם אין נתונים ב-APP, הבסיס הוא שווי בינואר + הפקדות השנה
                         total_investment = item['v_jan'] + item['v_depo']
                         net_gain_amount = item['v_now'] - total_investment
+                        label_prefix = "" # רווח שנתי
 
-                    # חישוב אחוז הרווח ביחס לבסיס שנבחר
                     pct_gain = (net_gain_amount / total_investment * 100) if total_investment != 0 else 0
-                    
                     color = "#4CAF50" if net_gain_amount >= 0 else "#e11d48"
                     arrow = "▲" if net_gain_amount >= 0 else "▼"
                     d_html = f"<span style='color: {color}; font-weight: 700;'>₪{net_gain_amount:,.0f} ({abs(pct_gain):.1f}%) {arrow}</span>"
                     
                     asset_card(
-                        item['row'].iloc[1],    # שם הנכס
-                        item['row'].iloc[0],    # סוג/מחזיק
-                        item['v_now'],          # שווי נוכחי
-                        item['v_jan'],          # שווי ינואר
-                        item['v_depo'],         # הפקדות 2026
-                        d_html,                 # הרווח המחושב (All-time או YTD)
+                        item['row'].iloc[1], 
+                        item['row'].iloc[0], 
+                        item['v_now'], 
+                        item['v_jan'], 
+                        item['v_depo'], 
+                        d_html, 
                         "₪"
                     )
             
