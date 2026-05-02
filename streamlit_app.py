@@ -634,8 +634,8 @@ try:
                 <p>📈 <b>קרנות השתלמות:</b> ₪{monthly_hishtalmut:,.0f}</p>
                 <p>💎 <b>השקעה עצמאית:</b> ₪{monthly_independent:,.0f}</p>
                 {f'<p style="color: #10b981;">➕ <b>תוספת סימולציה:</b> ₪{extra_savings:,.0f}</p>' if extra_savings > 0 else ''}
-                <hr style="border: 0.5px solid #eee;">
-                <p style="font-size: 1.1rem;"><b>סה"כ חסכון חודשי: ₪{total_monthly_sim:,.0f}</b></p>
+                <hr style="border: 0.5px solid #eee; margin: 10px 0;">
+                <p style="font-size: 1.1rem; font-weight: bold; margin: 0;">סה"כ חסכון חודשי: ₪{total_monthly_sim:,.0f}</p>
             </div>
             """, unsafe_allow_html=True)
 
