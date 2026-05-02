@@ -664,21 +664,27 @@ try:
         st.write("") 
 
         # --- 8. פירוט הפקדות (Expander) ---
+        # --- 8. פירוט הפקדות (Expander) ---
         with st.expander("🔍 פירוט הזרמת הכספים החודשית"):
-            # הכנת נתונים פורמטיביים
+            # הכנת נתוני המספרים
             p_val = f"{monthly_pension:,.0f}"
             h_val = f"{monthly_hishtalmut:,.0f}"
             i_val = f"{monthly_independent:,.0f}"
             e_val = f"{extra_savings:,.0f}"
             t_val = f"{total_monthly_sim:,.0f}"
 
-            # בניית ה-HTML
+            # בניית שורת התוספת רק אם היא קיימת
+            extra_html = ""
+            if extra_savings > 0:
+                extra_html = f'<p style="color: #10b981; margin-bottom: 8px;">➕ <b>תוספת סימולציה:</b> ₪{e_val}</p>'
+
+            # בניית ה-HTML המלא
             html = f"""
             <div style="direction: rtl; text-align: right; font-family: sans-serif;">
                 <p style="color: black; margin-bottom: 8px;">💰 <b>פנסיות (זוגי):</b> ₪{p_val}</p>
                 <p style="color: black; margin-bottom: 8px;">📈 <b>קרנות השתלמות:</b> ₪{h_val}</p>
                 <p style="color: black; margin-bottom: 8px;">💎 <b>השקעה עצמאית:</b> ₪{i_val}</p>
-                {f'<p style="color: #10b981; margin-bottom: 8px;">➕ <b>תוספת סימולציה:</b> ₪{e_val}</p>' if extra_savings > 0 else ""}
+                {extra_html}
                 <hr style="border: none; border-top: 1px solid #eee; margin: 10px 0;">
                 <p style="font-size: 1.1rem; font-weight: bold; color: black; margin-top: 10px;">סה"כ חסכון חודשי: ₪{t_val}</p>
             </div>
