@@ -517,29 +517,13 @@ try:
 
     # כאן מתחיל טאב 3 - שים לב שהוא באותה רמת הזחה (רווחים) כמו with tab2
     with tab3:
-        # --- בלוק CSS מאוחד (נשמר מהמקור שלך) ---
+        # --- בלוק CSS מאוחד ---
         st.markdown("""
             <style>
                 div[data-testid="stWidgetLabel"] p {
                     color: black !important;
                     font-weight: bold !important;
                     text-align: right;
-                }
-                button[data-testid="stBaseButton-secondaryPill"] {
-                    background-color: #f0f2f6 !important;
-                    color: black !important;
-                    border: 1px solid #d1d5db !important;
-                    border-radius: 10px !important;
-                }
-                button[data-testid="stBaseButton-secondaryPill"][aria-checked="true"] {
-                    background-color: black !important;
-                    color: white !important;
-                    border-color: black !important;
-                    font-weight: bold !important;
-                }
-                div[data-testid="stPills"] > div {
-                    justify-content: flex-end !important;
-                    flex-direction: row-reverse !important;
                 }
                 div.stSuccess {
                     background-color: #f0fdf4;
@@ -549,23 +533,6 @@ try:
                     text-align: right;
                     direction: rtl;
                 }
-                [data-testid="stExpanderDetails"] previousSibling p {
-                color: black !important;
-                }
-                .st-emotion-cache-pgh4tt p {
-                    color: black !important;
-                    }
-                /* תיקון נקודתי לצבע כותרת האקספנדר */
-                .stExpander summary p, .stExpander summary svg {
-                    color: black !important;
-                    fill: black !important;
-                }
-                
-                /* ליתר ביטחון עבור גרסאות ספציפיות */
-                [data-testid="stExpanderSummary"] p {
-                    color: black !important;
-                }
-                /* עיצוב כללי של האקספנדר כדי שיהיה בולט */
                 .stExpander {
                     background-color: #ffffff !important;
                     border: 1px solid #e2e8f0 !important;
@@ -573,39 +540,26 @@ try:
                     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
                     margin-bottom: 1rem !important;
                 }
-
-                /* צביעת כותרת האקספנדר בשחור והפיכתה לבולטת */
                 .stExpander details summary p {
                     color: black !important;
                     font-weight: 600 !important;
-                    font-size: 1.05rem !important;
                 }
-                
-                /* צביעת האייקון (החץ) של האקספנדר בשחור */
                 .stExpander details summary svg {
                     fill: black !important;
-                }
-
-                /* הסרת קו הגבול הדיפולטיבי של Streamlit כשפותחים את האקספנדר */
-                .stExpander details {
-                    border: none !important;
                 }
             </style>
         """, unsafe_allow_html=True)
         
-        # --- 1. כותרת ראשית ---
-        st.markdown("<h2 style='text-align: right; color: black;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
-        st.write("") # ריווח
+        # --- 1. הגדרות וחישובי בסיס (חייבים להיות ראשונים) ---
+        def to_num(val):
+            try:
+                if isinstance(val, (int, float)): return float(val)
+                s = str(val).replace('₪', '').replace(',', '').replace('%', '').strip()
+                return float(s) if s else 0.0
+            except: return 0.0
 
-        # --- 2. לוגיקת חישוב הון מושקע (קטגוריות נבחרות) ---
+        # חישוב הון מושקע
         try:
-            def to_num(val):
-                try:
-                    if isinstance(val, (int, float)): return float(val)
-                    s = str(val).replace('₪', '').replace(',', '').replace('%', '').strip()
-                    return float(s) if s else 0.0
-                except: return 0.0
-
             target_categories = ["תיק השקעות ומסחר", "קרנות השתלמות", "קרנות פנסיה", "חיסכון הורים"]
             invested_net = 0
             for i, row in df_s.iterrows():
@@ -616,16 +570,27 @@ try:
         except:
             invested_net = 0
 
-        # --- 3. נתוני הפקדות בסיסיים ---
+        # נתוני הפקדות קבועים
         monthly_pension = 3228.65 + 2899.5
         monthly_hishtalmut = 1400 + 1500
         monthly_independent = 2700
         base_monthly_contribution = monthly_pension + monthly_hishtalmut + monthly_independent
 
-         # --- 2. חלק עליון: קוביות סיכום (Metrics) ---
+        # שימוש ב-Session State כדי למנוע שגיאות הגדרה
+        current_extra = st.session_state.get('extra_savings_sim', 0)
+        current_desired_income = st.session_state.get('income_target_num', 25000)
+        
+        total_monthly_sim = base_monthly_contribution + current_extra
+        # חישוב יעד הון (לפי הכלל שלכם: הכנסה פחות 4000 כפול 300)
+        current_target_capital = max(current_desired_income - 4000, 0) * 12 * 25
+
+        # --- 2. כותרת ראשית ---
+        st.markdown("<h2 style='text-align: right; color: black;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
+        st.write("") 
+
+        # --- 3. חלק עליון: קוביות סיכום (Metrics) ---
         col_m1, col_m2 = st.columns(2)
         
-        # חישוב הון מושקע (שימוש ב-invested_net שחישבנו מהטבלה)
         with col_m1:
             st.markdown(f"""
                 <div style="background-color: white; padding: 20px; border-radius: 15px; border-right: 5px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: right;">
@@ -642,25 +607,26 @@ try:
                 </div>
             """, unsafe_allow_html=True)
 
-        # --- 3. שורת אחוז השלמת היעד ---
-        progress_pct = (invested_net / target_capital * 100) if target_capital > 0 else 0
+        # --- 4. שורת אחוז השלמת היעד ---
+        progress_pct = (invested_net / current_target_capital * 100) if current_target_capital > 0 else 0
         
         st.write("")
         st.markdown(f"""
             <div style="direction: rtl; text-align: right; margin-bottom: 5px;">
-                <span style="font-weight: bold; font-size: 1rem;">השלמתם {progress_pct:.1f}% מהדרך ליעד (הון מושקע):</span>
+                <span style="font-weight: bold; font-size: 1rem; color: black;">השלמתם {progress_pct:.1f}% מהדרך ליעד (הון מושקע):</span>
             </div>
         """, unsafe_allow_html=True)
         st.progress(min(progress_pct / 100, 1.0))
         
-        st.markdown("---") # קו מפריד לפני הגדרות הסימולציה
+        st.markdown("---") 
 
-        # --- 4. ממשק הגדרות סימולציה ---
+        # --- 5. ממשק הגדרות סימולציה (Inputs) ---
         col_fire1, col_fire2 = st.columns(2)
 
         with col_fire1:
             st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 5px; color: black;'>קצבה חודשית מבוקשת</p>", unsafe_allow_html=True)
             desired_income = st.number_input("", value=25000, step=1000, key="income_target_num", label_visibility="collapsed")
+            # עדכון יעד ההון לפי הקלט בפועל
             target_capital = max(desired_income - 4000, 0) * 12 * 25 
             
         with col_fire2:
@@ -670,10 +636,7 @@ try:
         st.markdown("<p style='font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px; color: black;'>תוספת הפקדה חודשית (₪)</p>", unsafe_allow_html=True)
         extra_savings = st.number_input("", value=0, step=500, key="extra_savings_sim", label_visibility="collapsed")
 
-        # סך הכל הפקדה לסימולציה
-        total_monthly_sim = base_monthly_contribution + extra_savings
-
-        # --- 5. חישוב סימולציה ---
+        # --- 6. חישוב סימולציה ---
         years_to_goal = 0
         fv = invested_net
         if fv < target_capital:
@@ -683,7 +646,7 @@ try:
         
         retirement_age = 48 + years_to_goal
 
-        # --- 6. תצוגת התוצאה בתיבה השחורה ---
+        # --- 7. תצוגת התוצאה בתיבה השחורה ---
         st.markdown(f"""
             <div style="background-color: black; padding: 25px; border-radius: 16px; direction: rtl; text-align: right; margin-top: 20px; border-right: 8px solid #10b981;">
                 <p style="color: white; font-size: 1.1rem; margin: 0;">
@@ -698,33 +661,29 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-        st.write("") # ריווח
+        st.write("") 
 
-        # --- 7. פירוט הפקדות ---
+        # --- 8. פירוט הפקדות (Expander) ---
         with st.expander("🔍 פירוט הזרמת הכספים החודשית"):
-            # הכנת נתונים
             p_val = f"{monthly_pension:,.0f}"
             h_val = f"{monthly_hishtalmut:,.0f}"
             i_val = f"{monthly_independent:,.0f}"
             e_val = f"{extra_savings:,.0f}"
             t_val = f"{total_monthly_sim:,.0f}"
 
-            # בניית ה-HTML בחלקים נפרדים
-            html = '<div style="direction: rtl; text-align: right; font-family: sans-serif;">'
-            html += '<p style="color: black;">💰 <b>פנסיות (זוגי):</b> ₪' + p_val + '</p>'
-            html += '<p style="color: black;">📈 <b>קרנות השתלמות:</b> ₪' + h_val + '</p>'
-            html += '<p style="color: black;">💎 <b>השקעה עצמאית:</b> ₪' + i_val + '</p>'
-            
-            if extra_savings > 0:
-                html += '<p style="color: #10b981;">➕ <b>תוספת סימולציה:</b> ₪' + e_val + '</p>'
-            
-            html += '<hr style="border: none; border-top: 1px solid #eee; margin: 10px 0;">'
-            html += '<p style="font-size: 1.1rem; font-weight: bold; color: black;">סה"כ חסכון חודשי: ₪' + t_val + '</p>'
-            html += '</div>'
-
+            html = f"""
+            <div style="direction: rtl; text-align: right; font-family: sans-serif;">
+                <p style="color: black;">💰 <b>פנסיות (זוגי):</b> ₪{p_val}</p>
+                <p style="color: black;">📈 <b>קרנות השתלמות:</b> ₪{h_val}</p>
+                <p style="color: black;">💎 <b>השקעה עצמאית:</b> ₪{i_val}</p>
+                {"<p style='color: #10b981;'>➕ <b>תוספת סימולציה:</b> ₪" + e_val + "</p>" if extra_savings > 0 else ""}
+                <hr style="border: none; border-top: 1px solid #eee; margin: 10px 0;">
+                <p style="font-size: 1.1rem; font-weight: bold; color: black;">סה"כ חסכון חודשי: ₪{t_val}</p>
+            </div>
+            """
             st.markdown(html, unsafe_allow_html=True)
         
-        # --- 8. קוביה ירוקה מסכמת (הצפי) ---
+        # --- 9. קוביה ירוקה מסכמת ---
         st.markdown(f"""
             <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0; text-align: center; margin-top: 25px; direction: rtl;">
                 <div style="font-size: 1rem; color: #166534; font-weight: bold;">קצבה חודשית ברוטו פוטנציאלית (כולל הכל):</div>
