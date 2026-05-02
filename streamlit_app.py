@@ -389,86 +389,75 @@ try:
             valid_rows = []
             g_now, g_jan, g_depo = 0, 0, 0
 
-            # מילון המיפוי שלך להצלבה בין הגיליונות
-            mapping = {
-                'הפניקס - קרן פנסיה': 'יניב - פנסיה',
-                'מנורה מבטחים - ביטוח מנהלים פנסיה': 'יניב - פנסיה',
-                'מור - קרן השתלמות': 'יניב - השתלמות',
-                'הפניקס גמל פנסיה': 'מיכל - פנסיה',
-                'הפניקס/אקסלנס - קרן השתלמות': 'מיכל - השתלמות',
-                'חשבון מסחר עצמאי - אקסלנס': 'תיק אקסלנס',
-                'חשבון מסחר עצמאי - אינטראקטיב': 'תיק אינטראקטיב',
-                'חירום איילון כספית 5117700 - הפועלים': 'חסכונות',
-                'חיסכון לכל ילד - אלטשולר/אנליסט': 'חסכונות ילדים',
-                'קופת גמל להשקעה - הפניקס': 'חסכונות ילדים',
-                '1,500 אופציות איסתא - IBI': 'אופציות איסתא',
-                '4 מניות בנק הפועלים מתנה': 'חסכונות',
-                'כספית מיטב 5136544 FAIR - עודפי עו"ש': 'חסכונות',
-                'כספית דולפין 5138698 פועלים - חופשה': 'חיסכון לחופשה'
-            }
-
             for idx in row_indices:
                 if idx < len(raw_data):
                     row = raw_data.iloc[idx]
-                    asset_name = str(row.iloc[1]).strip() # עמודה B
-                    v_now = clean_val(row.iloc[15])      # עמודה P
-                    v_jan_val = clean_val(row.iloc[10])  # עמודה K
-                    v_depo_year = clean_val(row.iloc[16]) # עמודה Q
+                    asset_name = str(row.iloc[1]).strip() # שם הנכס מעמודה B
+                    v_now = clean_val(row.iloc[15])      # שווי נוכחי מעמודה P
+                    v_jan_val = clean_val(row.iloc[10])  # שווי ינואר מעמודה K
+                    v_depo_year = clean_val(row.iloc[16]) # הפקדות 2026 מעמודה Q
                     
-                    # הצלבה מול גיליון APP באמצעות המיפוי
+                    # ניסיון למצוא נתונים היסטוריים בגיליון ה-APP לפי המיפוי
                     v_orig_app, v_past_depo_app = 0, 0
-                    has_app_data = False
+                    has_app_match = False
                     
+                    # שימוש במילון ה-mapping שכבר הגדרת למעלה
                     app_search_name = mapping.get(asset_name, asset_name)
+                    
                     try:
-                        # חיפוש בגיליון APP (df_s) בעמודה B (אינדקס 1)
+                        # חיפוש התאמה בגיליון ה-APP (עמודה B היא אינדקס 1)
                         match = df_s[df_s.iloc[:, 1].str.strip() == app_search_name]
                         if not match.empty:
-                            v_orig_app = clean_val(match.iloc[0, 3])       # עמודה D
-                            v_past_depo_app = clean_val(match.iloc[0, 6])   # עמודה G
-                            has_app_data = True
+                            v_orig_app = clean_val(match.iloc[0, 3])       # עמודה D ב-APP
+                            v_past_depo_app = clean_val(match.iloc[0, 6])   # עמודה G ב-APP
+                            has_app_match = True
                     except: pass
 
                     if not pd.isna(row.iloc[1]) and v_now != 0:
+                        # צוברים נתונים לכותרת הקבוצה (תצוגת YTD - מה קרה השנה)
                         g_now += v_now
                         g_jan += v_jan_val
                         g_depo += v_depo_year
+                        
                         valid_rows.append({
                             'row': row, 'v_now': v_now, 'v_jan': v_jan_val, 
                             'v_depo': v_depo_year, 'v_orig': v_orig_app, 
-                            'v_past_depo': v_past_depo_app, 'has_app': has_app_data
+                            'v_past_depo': v_past_depo_app, 'has_app': has_app_match
                         })
             
-            # כותרת הקבוצה (נשארת YTD כדי להראות ביצועים שנתיים)
-            g_diff = g_now - (g_jan + g_depo)
-            g_pct = (g_diff / (g_jan + g_depo) * 100) if (g_jan + g_depo) != 0 else 0
-            indicator = "🟢" if g_diff >= 0 else "🔴"
-            header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct:+.1f}%)"
+            # חישוב כותרת הקבוצה (YTD - רווח/הפסד השנה בלבד)
+            g_diff_ytd = g_now - (g_jan + g_depo)
+            g_pct_ytd = (g_diff_ytd / (g_jan + g_depo) * 100) if (g_jan + g_depo) != 0 else 0
+            indicator = "🟢" if g_diff_ytd >= 0 else "🔴"
+            header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct_ytd:+.1f}%)"
 
             with st.expander(header, expanded=True):
                 for item in valid_rows:
                     if item['has_app']:
-                        # חישוב רווח All-time (כולל נתונים היסטוריים מה-APP)
-                        investment_basis = item['v_orig'] + item['v_past_depo'] + item['v_depo']
-                        net_gain_amount = item['v_now'] - investment_basis
+                        # --- חישוב ALL-TIME (מתחילת הפעילות) ---
+                        # בסיס השקעה = שווי מקורי + הפקדות עבר + הפקדות 2026
+                        total_investment = item['v_orig'] + item['v_past_depo'] + item['v_depo']
+                        net_gain_amount = item['v_now'] - total_investment
                     else:
-                        # חישוב רווח YTD (אם אין התאמה ב-APP)
-                        investment_basis = item['v_jan'] + item['v_depo']
-                        net_gain_amount = item['v_now'] - investment_basis
+                        # --- חישוב YTD (מתחילת שנה) ---
+                        # אם אין נתונים ב-APP, הבסיס הוא שווי בינואר + הפקדות השנה
+                        total_investment = item['v_jan'] + item['v_depo']
+                        net_gain_amount = item['v_now'] - total_investment
 
-                    pct_net = (net_gain_amount / investment_basis * 100) if investment_basis != 0 else 0
+                    # חישוב אחוז הרווח ביחס לבסיס שנבחר
+                    pct_gain = (net_gain_amount / total_investment * 100) if total_investment != 0 else 0
                     
                     color = "#4CAF50" if net_gain_amount >= 0 else "#e11d48"
                     arrow = "▲" if net_gain_amount >= 0 else "▼"
-                    d_html = f"<span style='color: {color}; font-weight: 700;'>₪{net_gain_amount:,.0f} ({abs(pct_net):.1f}%) {arrow}</span>"
+                    d_html = f"<span style='color: {color}; font-weight: 700;'>₪{net_gain_amount:,.0f} ({abs(pct_gain):.1f}%) {arrow}</span>"
                     
                     asset_card(
-                        item['row'].iloc[1], 
-                        item['row'].iloc[0], 
-                        item['v_now'], 
-                        item['v_jan'], 
-                        item['v_depo'], 
-                        d_html, 
+                        item['row'].iloc[1],    # שם הנכס
+                        item['row'].iloc[0],    # סוג/מחזיק
+                        item['v_now'],          # שווי נוכחי
+                        item['v_jan'],          # שווי ינואר
+                        item['v_depo'],         # הפקדות 2026
+                        d_html,                 # הרווח המחושב (All-time או YTD)
                         "₪"
                     )
             
