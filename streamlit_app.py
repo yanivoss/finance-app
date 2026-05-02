@@ -553,7 +553,6 @@ try:
         """, unsafe_allow_html=True)
         
         # --- 1. חישוב הון מושקע ממוקד לפי קטגוריות ---
-        # --- 1. חישוב הון מושקע ממוקד לפי קטגוריות ---
         try:
             def to_num(val):
                 try:
@@ -615,36 +614,31 @@ try:
         retirement_age = 48 + years_to_goal
 
         # --- 5. תצוגת התוצאה הסופית בתיבה השחורה ---
-        st.markdown(f"""
-            <div style="background-color: black; padding: 25px; border-radius: 16px; direction: rtl; text-align: right; margin-top: 20px; border-right: 8px solid #10b981;">
-                <p style="color: white; font-size: 1.1rem; margin: 0;">
-                    ליעד הכנסה של <span style="color: #10b981; font-weight: bold;">₪{desired_income:,.0f}</span> בחודש (הון נדרש: ₪{target_capital:,.0f})
-                </p>
-                <p style="color: white; font-size: 1.4rem; margin-top: 15px; margin-bottom: 0;">
-                    בקצב הזה, תגיעו ליעד בעוד: <span style="color: #10b981; font-size: 1.8rem; font-weight: bold;">{years_to_goal} שנים</span>
-                </p>
-                <p style="color: #cbd5e1; font-size: 1.1rem; margin-top: 10px;">
-                    הגיל המשוער שלכם יהיה: <span style="font-weight: bold; color: white;">{retirement_age}</span>
-                </p>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # פירוט הפקדות לביקורת
-        with st.expander("🔍 פירוט הזרמת כספים חודשית שנלקחה בחשבון"):
-            st.write(f"פנסיות: ₪{monthly_pension:,.2f}")
-            st.write(f"השתלמות: ₪{monthly_hishtalmut:,.2f}")
-            st.write(f"עצמאי: ₪{monthly_independent:,.2f}")
-            st.write(f"**סה\"כ הפקדה: ₪{base_monthly_contribution:,.2f}**")
+        if invested_net < target_capital:
+            st.markdown(f"""
+                <div style="background-color: black; padding: 25px; border-radius: 16px; direction: rtl; text-align: right; margin-top: 20px; border-right: 8px solid #10b981;">
+                    <p style="color: white; font-size: 1.1rem; margin: 0;">
+                        ליעד הכנסה של <span style="color: #10b981; font-weight: bold;">₪{desired_income:,.0f}</span> בחודש (הון נדרש: ₪{target_capital:,.0f})
+                    </p>
+                    <p style="color: white; font-size: 1.4rem; margin-top: 15px; margin-bottom: 0;">
+                        בקצב הזה, תגיעו ליעד בעוד: <span style="color: #10b981; font-size: 1.8rem; font-weight: bold;">{years_to_goal} שנים</span>
+                    </p>
+                    <p style="color: #cbd5e1; font-size: 1.1rem; margin-top: 10px;">
+                        הגיל המשוער שלכם יהיה: <span style="font-weight: bold; color: white;">{retirement_age}</span>
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
             
-            progress_6m = min(invested_net / target_6m, 1.0)
-            st.markdown(f"<p style='text-align: right; color: black; font-weight: bold; margin-top: 15px;'>השלמתם {progress_6m:.1%} מהדרך ליעד (הון מושקע):</p>", unsafe_allow_html=True)
-            st.progress(progress_6m)
+            # פס התקדמות
+            progress_pct = min(invested_net / target_capital, 1.0)
+            st.markdown(f"<p style='text-align: right; color: black; font-weight: bold; margin-top: 15px;'>השלמתם {progress_pct:.1%} מהדרך ליעד ההון:</p>", unsafe_allow_html=True)
+            st.progress(progress_pct)
         else:
             st.balloons()
-            st.success("מדהים! ההון המושקע שלכם כבר חצה את רף ה-6 מיליון ש\"ח.")
+            st.success(f"מדהים! ההון המושקע שלכם (₪{invested_net:,.0f}) כבר חצה את רף היעד הנדרש.")
 
         # --- 6. פירוט הפקדות וצפי קצבה ---
-        st.markdown("<hr style='border: 0.5px solid black; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
+        st.markdown("<hr style='border: 0.5px solid #ccc; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
         
         with st.expander("🔍 פירוט הזרמת הכספים החודשית"):
             st.markdown(f"""
@@ -652,20 +646,16 @@ try:
                 <p>💰 <b>פנסיות (יניב ומיכל):</b> ₪{monthly_pension:,.0f}</p>
                 <p>📈 <b>קרנות השתלמות:</b> ₪{monthly_hishtalmut:,.0f}</p>
                 <p>💎 <b>השקעה עצמאית (אקסלנס):</b> ₪{monthly_independent:,.0f}</p>
-                {f'<p>➕ <b>תוספת סימולציה:</b> ₪{extra_savings:,.0f}</p>' if extra_savings > 0 else ''}
-                <hr>
-                <p><b>סה"כ חסכון חודשי: ₪{total_monthly_sim:,.0f}</b></p>
+                <hr style="border: 0.5px solid #eee;">
+                <p style="font-size: 1.1rem;"><b>סה"כ חסכון חודשי למודל: ₪{base_monthly_contribution:,.0f}</b></p>
             </div>
             """, unsafe_allow_html=True)
 
-        # חישוב קצבה לפי כלל ה-4% (6 מיליון ש"ח / 300 או חלקי 25 שנים)
-        conversion_rate = 200 # מקדם הערכה שמרני לקצבה
-        monthly_from_capital = target_6m / conversion_rate
-        
+        # כרטיס קצבה צפויה (ירוק)
         st.markdown(f"""
             <div style="background: #f0fdf4; padding: 15px; border-radius: 12px; border: 1px solid #bbf7d0; text-align: center; margin-top: 20px; direction: rtl;">
-                <div style="font-size: 0.9rem; color: #166534;">קצבה חודשית צפויה מהון של 6 מיליון ש"ח (ברוטו):</div>
-                <div style="font-size: 1.6rem; font-weight: 900; color: #166534;">₪{monthly_from_capital + 4000:,.0f}</div>
+                <div style="font-size: 0.9rem; color: #166534;">קצבה חודשית ברוטו מהון היעד (לפי כלל ה-4%):</div>
+                <div style="font-size: 1.6rem; font-weight: 900; color: #166534;">₪{desired_income:,.0f}</div>
                 <div style="font-size: 0.8rem; color: #166534;">(כולל קצבת זקנה משוערת של ₪4,000)</div>
             </div>
         """, unsafe_allow_html=True)
