@@ -382,32 +382,44 @@ try:
             # סינון גיליון ה-APP לפי הקטגוריה בעמודה I (אינדקס 8)
             relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == group_name].copy()
             
+            # הגדרת נתוני הבסיס מהגיליון הראשי (עם קפיצות של 2)
+            # group_indices הם האינדקסים ששייכים לקטגוריה הנוכחית (למשל השקעות)
             valid_rows = []
             g_now, g_total_invested = 0, 0
 
-            for _, row in relevant_app_rows.iterrows():
-                asset_name = str(row.iloc[1]).strip()       # עמודה B: שם הנכס
-                v_now = clean_val(row.iloc[2])              # עמודה C: שווי נוכחי
-                v_orig = clean_val(row.iloc[4])             # עמודה E: ערך התחלתי
-                v_ytd_depo = clean_val(row.iloc[5])         # עמודה F: הפקדות השנה (YTD)
-                v_total_depo = clean_val(row.iloc[6])       # עמודה G: סך הפקדות
-                
-                if v_now != 0:
-                    # בסיס ההשקעה לחישוב All-time: ערך התחלתי + סך כל ההפקדות לאורך השנים
-                    invested = v_orig + v_total_depo
-                    gain = v_now - invested
+            for idx in row_indices:
+                if idx < len(raw_data):
+                    row = raw_data.iloc[idx]
+                    asset_name = str(row.iloc[1]).strip() # שם הנכס מהגיליון הראשי
                     
-                    g_now += v_now
-                    g_total_invested += invested
-                    
-                    valid_rows.append({
-                        'name': asset_name,
-                        'v_now': v_now,
-                        'v_orig': v_orig,
-                        'v_ytd_depo': v_ytd_depo,
-                        'invested': invested,
-                        'gain': gain
-                    })
+                    # חיפוש בגיליון ה-APP לפי השם המדויק
+                    # אנחנו משתמשים ב-astype(str).str.strip() כדי למנוע בעיות של רווחים נסתרים
+                    try:
+                        match = df_s[df_s.iloc[:, 1].astype(str).str.strip() == asset_name]
+                        
+                        if not match.empty:
+                            v_now = clean_val(match.iloc[0, 2])          # עמודה C: שווי נוכחי
+                            v_orig = clean_val(match.iloc[0, 4])         # עמודה E: ערך התחלתי
+                            v_ytd_depo = clean_val(match.iloc[0, 5])     # עמודה F: הפקדות YTD
+                            v_total_depo = clean_val(match.iloc[0, 6])   # עמודה G: סך הפקדות
+                            
+                            if v_now != 0:
+                                # בסיס ההשקעה לחישוב All-time
+                                invested = v_orig + v_total_depo
+                                gain = v_now - invested
+                                
+                                g_now += v_now
+                                g_total_invested += invested
+                                
+                                valid_rows.append({
+                                    'name': asset_name,
+                                    'v_now': v_now,
+                                    'v_ytd_depo': v_ytd_depo,
+                                    'invested': invested,
+                                    'gain': gain
+                                })
+                    except:
+                        pass
 
             # חישוב כותרת הקבוצה (All-time)
             g_pct = ((g_now - g_total_invested) / g_total_invested * 100) if g_total_invested != 0 else 0
@@ -422,17 +434,15 @@ try:
                     
                     d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
                     
-                    # הצגת הכרטיס עם נתוני ה-APP
                     asset_card(
                         item['name'], 
                         "", 
                         item['v_now'], 
-                        0,  # שווי ינואר לא רלוונטי בחישוב All-time
+                        0, 
                         item['v_ytd_depo'], 
                         d_html, 
                         "₪"
                     )
-            
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align:right;color: #e11d48;'>📉 פירוט התחייבויות</h2>", unsafe_allow_html=True)
