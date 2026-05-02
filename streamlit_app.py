@@ -597,6 +597,42 @@ try:
         st.markdown("<h2 style='text-align: right; color: black;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
         st.write("") # ריווח
 
+        # --- 1. כותרת ראשית ---
+        st.markdown("<h2 style='text-align: right;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
+
+        # --- 2. חלק עליון: קוביות סיכום (Metrics) ---
+        col_m1, col_m2 = st.columns(2)
+        
+        # חישוב הון מושקע (שימוש ב-invested_net שחישבנו מהטבלה)
+        with col_m1:
+            st.markdown(f"""
+                <div style="background-color: white; padding: 20px; border-radius: 15px; border-right: 5px solid #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: right;">
+                    <p style="color: #64748b; margin: 0; font-size: 0.9rem;">הפקדה חודשית כוללת</p>
+                    <h2 style="margin: 0; color: #1e293b; font-size: 1.8rem;">₪{total_monthly_sim:,.0f}</h2>
+                </div>
+            """, unsafe_allow_html=True)
+
+        with col_m2:
+            st.markdown(f"""
+                <div style="background-color: white; padding: 20px; border-radius: 15px; border-right: 5px solid #10b981; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: right;">
+                    <p style="color: #64748b; margin: 0; font-size: 0.9rem;">הון מושקע (ללא נדל"ן)</p>
+                    <h2 style="margin: 0; color: #1e293b; font-size: 1.8rem;">₪{invested_net:,.0f}</h2>
+                </div>
+            """, unsafe_allow_html=True)
+
+        # --- 3. שורת אחוז השלמת היעד ---
+        progress_pct = (invested_net / target_capital * 100) if target_capital > 0 else 0
+        
+        st.write("")
+        st.markdown(f"""
+            <div style="direction: rtl; text-align: right; margin-bottom: 5px;">
+                <span style="font-weight: bold; font-size: 1rem;">השלמתם {progress_pct:.1f}% מהדרך ליעד (הון מושקע):</span>
+            </div>
+        """, unsafe_allow_html=True)
+        st.progress(min(progress_pct / 100, 1.0))
+        
+        st.markdown("---") # קו מפריד לפני הגדרות הסימולציה
+        
         # --- 2. לוגיקת חישוב הון מושקע (קטגוריות נבחרות) ---
         try:
             def to_num(val):
