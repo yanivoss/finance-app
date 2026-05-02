@@ -628,16 +628,21 @@ try:
 
         # --- 7. פירוט הפקדות ---
         with st.expander("🔍 פירוט הזרמת הכספים החודשית"):
-            st.markdown(f"""
-            <div style="direction: rtl; text-align: right;">
+            # יצירת שורת הבונוס רק אם קיימת
+            extra_html = f'<p style="color: #10b981;">➕ <b>תוספת סימולציה:</b> ₪{extra_savings:,.0f}</p>' if extra_savings > 0 else ''
+            
+            # בניית ה-HTML במשתנה נפרד כדי למנוע בעיות גרשיים
+            html_content = f"""
+            <div style="direction: rtl; text-align: right; font-family: sans-serif;">
                 <p>💰 <b>פנסיות (זוגי):</b> ₪{monthly_pension:,.0f}</p>
                 <p>📈 <b>קרנות השתלמות:</b> ₪{monthly_hishtalmut:,.0f}</p>
                 <p>💎 <b>השקעה עצמאית:</b> ₪{monthly_independent:,.0f}</p>
-                {f'<p style="color: #10b981;">➕ <b>תוספת סימולציה:</b> ₪{extra_savings:,.0f}</p>' if extra_savings > 0 else ''}
+                {extra_html}
                 <hr style="border: 0.5px solid #eee; margin: 10px 0;">
                 <p style="font-size: 1.1rem; font-weight: bold; margin: 0;">סה"כ חסכון חודשי: ₪{total_monthly_sim:,.0f}</p>
             </div>
-            """, unsafe_allow_html=True)
+            """
+            st.markdown(html_content, unsafe_allow_html=True)
 
         # --- 8. קוביה ירוקה מסכמת (הצפי) ---
         st.markdown(f"""
