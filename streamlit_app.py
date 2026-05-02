@@ -565,6 +565,31 @@ try:
                 [data-testid="stExpanderSummary"] p {
                     color: black !important;
                 }
+                /* עיצוב כללי של האקספנדר כדי שיהיה בולט */
+                .stExpander {
+                    background-color: #ffffff !important;
+                    border: 1px solid #e2e8f0 !important;
+                    border-radius: 12px !important;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+                    margin-bottom: 1rem !important;
+                }
+
+                /* צביעת כותרת האקספנדר בשחור והפיכתה לבולטת */
+                .stExpander details summary p {
+                    color: black !important;
+                    font-weight: 600 !important;
+                    font-size: 1.05rem !important;
+                }
+                
+                /* צביעת האייקון (החץ) של האקספנדר בשחור */
+                .stExpander details summary svg {
+                    fill: black !important;
+                }
+
+                /* הסרת קו הגבול הדיפולטיבי של Streamlit כשפותחים את האקספנדר */
+                .stExpander details {
+                    border: none !important;
+                }
             </style>
         """, unsafe_allow_html=True)
         
