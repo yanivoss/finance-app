@@ -552,8 +552,18 @@ try:
                 [data-testid="stExpanderDetails"] previousSibling p {
                 color: black !important;
                 }
-            .st-emotion-cache-pgh4tt p {
-                color: black !important;
+                .st-emotion-cache-pgh4tt p {
+                    color: black !important;
+                    }
+                /* תיקון נקודתי לצבע כותרת האקספנדר */
+                .stExpander summary p, .stExpander summary svg {
+                    color: black !important;
+                    fill: black !important;
+                }
+                
+                /* ליתר ביטחון עבור גרסאות ספציפיות */
+                [data-testid="stExpanderSummary"] p {
+                    color: black !important;
                 }
             </style>
         """, unsafe_allow_html=True)
