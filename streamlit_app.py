@@ -553,8 +553,8 @@ try:
         """, unsafe_allow_html=True)
         
         # --- 1. חישוב נתונים בסיסיים (חישוב ישיר מהטבלה למניעת 0) ---
+        # --- 1. חישוב נכסים ממוקד (למניעת כפילויות) ---
         try:
-            # פונקציה פנימית לניקוי והמרת ערכים למספר
             def to_num(val):
                 try:
                     if isinstance(val, (int, float)): return float(val)
@@ -562,27 +562,31 @@ try:
                     return float(s) if s else 0.0
                 except: return 0.0
 
-            # סכימת כל הערכים בעמודה C (אינדקס 2)
-            # אנחנו מוציאים מהחישוב את שורה 12 (אינדקס 11) ואת שורות הכותרת/סיכום אם יש
-            all_values = []
+            # רשימת האינדקסים של הנכסים שבאמת נחשבים "הון מושקע"
+            # לפי המבנה שלך (0-indexed):
+            # פנסיות והשתלמות הן בדרך כלל בשורות הראשונות (0-5)
+            # תיקי מסחר (אקסלנס, אינטראקטיב) הן בהמשך
+            # אנחנו מחפשים רק שורות שיש בהן שם נכס בעמודה A (אינדקס 0)
+            # ומתעלמים משורות של "סה"כ" או "נדל"ן"
+            
+            invested_net = 0
+            debug_list = [] # לצורך בקרה עצמית
+
             for i, row in df_s.iterrows():
-                # נדלג על שורה 12 (הבית) ועל שורות ריקות/כותרות
-                if i == 11: continue 
+                name = str(row.iloc[0]).strip()
+                val = to_num(row.iloc[2])
                 
-                val = to_num(row.iloc[2]) # עמודה C היא אינדקס 2
-                if val > 0:
-                    all_values.append(val)
-            
-            invested_net = sum(all_values)
-            
-            # אם עדיין יוצא 0, ננסה למשוך ישירות מהמשתנה n_now אם הוא קיים
-            if invested_net == 0 and 'n_now' in locals():
-                home_val = to_num(df_s.iloc[11, 2])
-                total_val = to_num(n_now)
-                invested_net = max(total_val - home_val, 0)
+                # תנאי סינון:
+                # 1. לא שורה 12 (הבית)
+                # 2. לא שורה שמכילה את המילה "סה"כ" או "Total"
+                # 3. הערך גדול מ-0
+                # 4. השורה היא לא כותרת ריקה
+                if i != 11 and "סה\"כ" not in name and val > 0 and name != "nan":
+                    invested_net += val
+                    debug_list.append(f"{name}: {val:,.0f}")
 
         except Exception as e:
-            st.error(f"שגיאה בחישוב הון מושקע: {e}")
+            st.error(f"שגיאה בחישוב: {e}")
             invested_net = 0
         
         # נתוני הפקדות
