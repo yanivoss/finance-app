@@ -597,10 +597,32 @@ try:
         st.markdown("<h2 style='text-align: right; color: black;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
         st.write("") # ריווח
 
-        # --- 1. כותרת ראשית ---
-        st.markdown("<h2 style='text-align: right;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
+        # --- 2. לוגיקת חישוב הון מושקע (קטגוריות נבחרות) ---
+        try:
+            def to_num(val):
+                try:
+                    if isinstance(val, (int, float)): return float(val)
+                    s = str(val).replace('₪', '').replace(',', '').replace('%', '').strip()
+                    return float(s) if s else 0.0
+                except: return 0.0
 
-        # --- 2. חלק עליון: קוביות סיכום (Metrics) ---
+            target_categories = ["תיק השקעות ומסחר", "קרנות השתלמות", "קרנות פנסיה", "חיסכון הורים"]
+            invested_net = 0
+            for i, row in df_s.iterrows():
+                category = str(row.iloc[8]).strip() 
+                val = to_num(row.iloc[2])
+                if category in target_categories:
+                    invested_net += val
+        except:
+            invested_net = 0
+
+        # --- 3. נתוני הפקדות בסיסיים ---
+        monthly_pension = 3228.65 + 2899.5
+        monthly_hishtalmut = 1400 + 1500
+        monthly_independent = 2700
+        base_monthly_contribution = monthly_pension + monthly_hishtalmut + monthly_independent
+
+         # --- 2. חלק עליון: קוביות סיכום (Metrics) ---
         col_m1, col_m2 = st.columns(2)
         
         # חישוב הון מושקע (שימוש ב-invested_net שחישבנו מהטבלה)
@@ -632,31 +654,6 @@ try:
         st.progress(min(progress_pct / 100, 1.0))
         
         st.markdown("---") # קו מפריד לפני הגדרות הסימולציה
-        
-        # --- 2. לוגיקת חישוב הון מושקע (קטגוריות נבחרות) ---
-        try:
-            def to_num(val):
-                try:
-                    if isinstance(val, (int, float)): return float(val)
-                    s = str(val).replace('₪', '').replace(',', '').replace('%', '').strip()
-                    return float(s) if s else 0.0
-                except: return 0.0
-
-            target_categories = ["תיק השקעות ומסחר", "קרנות השתלמות", "קרנות פנסיה", "חיסכון הורים"]
-            invested_net = 0
-            for i, row in df_s.iterrows():
-                category = str(row.iloc[8]).strip() 
-                val = to_num(row.iloc[2])
-                if category in target_categories:
-                    invested_net += val
-        except:
-            invested_net = 0
-
-        # --- 3. נתוני הפקדות בסיסיים ---
-        monthly_pension = 3228.65 + 2899.5
-        monthly_hishtalmut = 1400 + 1500
-        monthly_independent = 2700
-        base_monthly_contribution = monthly_pension + monthly_hishtalmut + monthly_independent
 
         # --- 4. ממשק הגדרות סימולציה ---
         col_fire1, col_fire2 = st.columns(2)
