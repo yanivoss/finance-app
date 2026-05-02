@@ -363,23 +363,26 @@ try:
             "✈️ חיסכון לחופשה": [10], 
         }
 
+        # 1. הגדרת הנתונים מהגיליון הראשי (כולל כל השורות הרלוונטיות)
+        raw_data = df_d.copy() 
+
         # לולאת הקטגוריות
         for group_name, row_indices in groups.items():
-        
-            # 1. סינון גיליון ה-APP לפי הקטגוריה הנוכחית
+
+            # 2. סינון גיליון ה-APP לפי הקטגוריה הנוכחית (עמודה I)
             relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == group_name].copy()
             
             valid_rows = []
             g_now, g_total_invested = 0, 0
-        
+
             # המיפוי שסוגר את הפער בין השם בראשי לשם ב-APP
             mapping = {
                 'חשבון מסחר עצמאי - אקסלנס': 'תיק אקסלנס',
                 'חשבון מסחר עצמאי - אינטראקטיב': 'תיק אינטראקטיב',
                 '1,500 אופציות איסתא - IBI': 'אופציות איסתא'
             }
-        
-            # 2. מעבר על האינדקסים (בקפיצות של 2)
+
+            # 3. מעבר על האינדקסים (בקפיצות של 2)
             for idx in row_indices:
                 if idx < len(raw_data):
                     row = raw_data.iloc[idx]
@@ -399,7 +402,7 @@ try:
                             v_total_depo = clean_val(match.iloc[0, 6])   # עמודה G
                             
                             if v_now != 0:
-                                # חישוב All-time
+                                # חישוב All-time: שווי נוכחי פחות (ערך התחלתי + סך הפקדות)
                                 invested = v_orig + v_total_depo
                                 gain = v_now - invested
                                 
@@ -415,13 +418,13 @@ try:
                                 })
                     except:
                         pass
-        
-            # 3. חישוב כותרת הקבוצה ותצוגה
+
+            # 4. חישוב כותרת הקבוצה ותצוגה
             if g_total_invested != 0 or g_now != 0:
                 g_pct = ((g_now - g_total_invested) / g_total_invested * 100) if g_total_invested != 0 else 0
                 indicator = "🟢" if g_now >= g_total_invested else "🔴"
                 header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct:+.1f}%)"
-        
+
                 with st.expander(header, expanded=True):
                     for item in valid_rows:
                         pct = (item['gain'] / item['invested'] * 100) if item['invested'] != 0 else 0
