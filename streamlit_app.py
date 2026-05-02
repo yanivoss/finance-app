@@ -365,30 +365,33 @@ try:
     
         # df_s הוא גיליון ה-APP, df_d הוא הגיליון הראשי
         for app_cat_name, display_name in groups_config.items():
-        # שליפת שורות מה-APP ששייכות לקטגוריה - כאן נקבעת הכמות
+        # 1. סינון שורות ה-APP ששייכות לקטגוריה - כאן נקבעת הכמות שתוצג
         relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == app_cat_name].copy()
         
+        if relevant_app_rows.empty:
+            continue
+
         valid_rows = []
         total_now, total_invested = 0, 0
 
         for _, app_row in relevant_app_rows.iterrows():
             row_id = str(app_row.iloc[0]).strip() # מזהה כמו C17
             
-            # תיקון חיפוש המחזיק: מחפשים בעמודה A בראשי (איפה שכתוב C2, C3...)
-            # שים לב שאנחנו מחפשים את ה-ID בעמודה שבה הוא מופיע בראשי
+            # 2. תיקון זיהוי המחזיק: מחפשים את ה-ID בעמודה A של הגיליון הראשי
             main_row_match = df_d[df_d.iloc[:, 0].astype(str).str.strip() == row_id]
             
             if not main_row_match.empty:
-                # בגיליון הראשי שם המחזיק נמצא בעמודה A (אינדקס 0)
+                # לוקח את שם המחזיק (יניב/מיכל/משותף) מעמודה A בראשי
                 owner = str(main_row_match.iloc[0, 0]).strip() 
             else:
-                owner = "יניב/מיכל"
+                owner = "לא ידוע"
 
+            # 3. משיכת נתונים כספיים - אך ורק מגיליון ה-APP
             asset_name = str(app_row.iloc[1]).strip()
-            v_now = clean_val(app_row.iloc[2])
-            v_orig = clean_val(app_row.iloc[4])
-            v_ytd_depo = clean_val(app_row.iloc[5])
-            v_total_depo = clean_val(app_row.iloc[6])
+            v_now = clean_val(app_row.iloc[2])        # עמודה C
+            v_orig = clean_val(app_row.iloc[4])       # עמודה E
+            v_ytd_depo = clean_val(app_row.iloc[5])   # עמודה F
+            v_total_depo = clean_val(app_row.iloc[6]) # עמודה G
             
             invested = v_orig + v_total_depo
             gain = v_now - invested
@@ -404,30 +407,29 @@ try:
                 'invested': invested,
                 'gain': gain
             })
-    
-            # הצגת הקבוצה ב-Dashboard
-            if valid_rows:
-                g_pct = ((total_now - total_invested) / total_invested * 100) if total_invested != 0 else 0
-                indicator = "🟢" if total_now >= total_invested else "🔴"
-                header = f"{display_name} | ₪{total_now:,.0f} {indicator} ({g_pct:+.1f}%)"
-    
-                with st.expander(header, expanded=True):
-                    for item in valid_rows:
-                        pct = (item['gain'] / item['invested'] * 100) if item['invested'] != 0 else 0
-                        color = "#4CAF50" if item['gain'] >= 0 else "#e11d48"
-                        arrow = "▲" if item['gain'] >= 0 else "▼"
-                        d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
-                        
-                        # הצגת הכרטיס עם שם המחזיק והנתונים המפורטים
-                        asset_card(
-                            item['name'], 
-                            f"מחזיק: {item['owner']}", 
-                            item['v_now'], 
-                            0, 
-                            item['v_ytd_depo'], 
-                            d_html, 
-                            "₪"
-                        )
+
+        # 4. תצוגה ב-Dashboard
+        if valid_rows:
+            g_pct = ((total_now - total_invested) / total_invested * 100) if total_invested != 0 else 0
+            indicator = "🟢" if total_now >= total_invested else "🔴"
+            header = f"{display_name} | ₪{total_now:,.0f} {indicator} ({g_pct:+.1f}%)"
+
+            with st.expander(header, expanded=True):
+                for item in valid_rows:
+                    pct = (item['gain'] / item['invested'] * 100) if item['invested'] != 0 else 0
+                    color = "#4CAF50" if item['gain'] >= 0 else "#e11d48"
+                    arrow = "▲" if item['gain'] >= 0 else "▼"
+                    d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
+                    
+                    asset_card(
+                        item['name'], 
+                        f"מחזיק: {item['owner']}", 
+                        item['v_now'], 
+                        0, 
+                        item['v_ytd_depo'], 
+                        d_html, 
+                        "₪"
+                    )
         
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
