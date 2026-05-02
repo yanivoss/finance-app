@@ -392,40 +392,63 @@ try:
             for idx in row_indices:
                 if idx < len(raw_data):
                     row = raw_data.iloc[idx]
+                    asset_name = str(row.iloc[1]).strip()
                     v_now = clean_val(row.iloc[15])      # עמודה P
-                    v_jan_val = clean_val(row.iloc[10])  # עמודה K (תחילת שנה)
-                    v_depo_year = clean_val(row.iloc[16]) # עמודה Q (הפקדות 2026)
+                    v_jan_val = clean_val(row.iloc[10])  # עמודה K
+                    v_depo_year = clean_val(row.iloc[16]) # עמודה Q
                     
+                    # --- שליפת נתונים היסטוריים מגיליון APP עבור תשואה כוללת ---
+                    app_name = mapping.get(asset_name, asset_name)
+                    v_orig_app, v_total_depo_app = 0, 0
+                    try:
+                        match = df_s[df_s.iloc[:, 1].str.strip() == app_name]
+                        if not match.empty:
+                            v_orig_app = clean_val(match.iloc[0, 4])       # עמודה E (ערך התחלתי)
+                            v_total_depo_app = clean_val(match.iloc[0, 6]) # עמודה G (הפקדות עבר)
+                    except: pass
+
                     if not pd.isna(row.iloc[1]) and v_now != 0:
                         g_now += v_now
                         g_jan += v_jan_val
                         g_depo += v_depo_year
-                        valid_rows.append((row, v_now, v_jan_val, v_depo_year))
+                        # שומרים את כל הנתונים הדרושים לחישוב
+                        valid_rows.append({
+                            'row': row, 'v_now': v_now, 'v_jan': v_jan_val, 
+                            'v_depo': v_depo_year, 'v_orig': v_orig_app, 
+                            'v_total_depo': v_total_depo_app, 'name': asset_name
+                        })
 
-            # חישוב כותרת הקבוצה (השוואה לתחילת שנה)
+            # חישוב כותרת הקבוצה (נשאר YTD לפי בקשתך)
             g_diff = g_now - g_jan
             g_pct = (g_diff / g_jan * 100) if g_jan != 0 else 0
             indicator = "🟢" if g_diff >= 0 else "🔴"
             header = f"{group_name} | ₪{g_now:,.0f} {indicator} ({g_pct:+.1f}%)"
 
             with st.expander(header, expanded=True):
-                for row, v_now, v_jan_val, v_depo_year in valid_rows:
-                    # נוסחת רווח נקי: שווי עכשווי פחות (שווי תחילת שנה + הפקדות השנה)
-                    # זה מנטרל את השפעת ההפקדות החדשות על אחוז הרווח
-                    net_gain_amount = v_now - (v_jan_val + v_depo_year)
+                for item in valid_rows:
+                    # זיהוי האם מדובר בקרן פנסיה
+                    is_pension = "פנסיה" in item['name'] or "מנורה" in item['name']
                     
-                    # חישוב אחוז רווח על בסיס השקעה (תחילת שנה + הפקדות)
-                    investment_basis = v_jan_val + v_depo_year
+                    if is_pension:
+                        # פנסיה: רווח מתחילת שנה (YTD)
+                        net_gain_amount = item['v_now'] - (item['v_jan'] + item['v_depo'])
+                        investment_basis = item['v_jan'] + item['v_depo']
+                    else:
+                        # השתלמות ושאר האפיקים: תשואה כוללת (All-time)
+                        # בסיס = ערך מקורי + הפקדות עבר + הפקדות השנה
+                        investment_basis = item['v_orig'] + item['v_total_depo'] + item['v_depo']
+                        net_gain_amount = item['v_now'] - investment_basis
+
                     pct_net = (net_gain_amount / investment_basis * 100) if investment_basis != 0 else 0
-                    
                     color = "#4CAF50" if net_gain_amount >= 0 else "#e11d48"
                     arrow = "▲" if net_gain_amount >= 0 else "▼"
                     
-                    # הצגת הרווח הנקי המחושב
                     d_html = f"<span style='color: {color}; font-weight: 700;'>₪{net_gain_amount:,.0f} ({abs(pct_net):.1f}%) {arrow}</span>"
                     
-                    asset_card(row.iloc[1], row.iloc[0], v_now, v_jan_val, v_depo_year, d_html, "₪")
-
+                    asset_card(item['row'].iloc[1], item['row'].iloc[0], item['v_now'], 
+                               item['v_jan'], item['v_depo'], d_html, "₪")
+            
+            
         # הפרדה ויזואלית
         st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
         st.markdown("<h2 style='text-align:right;color: #e11d48;'>📉 פירוט התחייבויות</h2>", unsafe_allow_html=True)
