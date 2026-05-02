@@ -517,40 +517,30 @@ try:
 
     # כאן מתחיל טאב 3 - שים לב שהוא באותה רמת הזחה (רווחים) כמו with tab2
     with tab3:
-        # בלוק CSS מאוחד - נקי וממוקד
-        # בלוק CSS מאוחד ומדויק
+        # --- בלוק CSS מאוחד (נשמר מהמקור שלך) ---
         st.markdown("""
             <style>
-                /* 1. טקסט שחור לכותרות */
                 div[data-testid="stWidgetLabel"] p {
                     color: black !important;
                     font-weight: bold !important;
                     text-align: right;
                 }
-                
-                /* 2. כפתור לא נבחר - רקע בהיר, טקסט שחור */
                 button[data-testid="stBaseButton-secondaryPill"] {
-                    background-color: #f0f2f6 !important; /* אפור בהיר נקי */
-                    color: black !important; /* שיניתי מאדום לשחור */
+                    background-color: #f0f2f6 !important;
+                    color: black !important;
                     border: 1px solid #d1d5db !important;
                     border-radius: 10px !important;
                 }
-                
-                /* 3. כפתור נבחר - רקע שחור, טקסט לבן */
                 button[data-testid="stBaseButton-secondaryPill"][aria-checked="true"] {
                     background-color: black !important;
                     color: white !important;
                     border-color: black !important;
                     font-weight: bold !important;
                 }
-
-                /* 4. יישור לימין של הכפתורים */
                 div[data-testid="stPills"] > div {
                     justify-content: flex-end !important;
                     flex-direction: row-reverse !important;
                 }
-                
-                /* 5. עיצוב הודעת ההצלחה */
                 div.stSuccess {
                     background-color: #f0fdf4;
                     color: #166534;
@@ -562,154 +552,104 @@ try:
             </style>
         """, unsafe_allow_html=True)
         
-        st.markdown("<h3 style='text-align:right; color: black;'>🚀 מחשבון חופש כלכלי (FIRE)</h3>", unsafe_allow_html=True)
+        # --- 1. חישוב נתונים בסיסיים (מבוסס נתוני אמת) ---
+        try:
+            # שואבים את הערך של שורה 12 (אינדקס 11 ב-Pandas) כנדל"ן למגורים
+            home_value = clean_val(df_s.iloc[11, 2]) 
+            # הון מושקע נטו (הון כללי פחות הבית)
+            invested_net = max(current_net - home_value, 0)
+        except:
+            invested_net = 0
+
+        # נתוני הפקדות
+        monthly_pension = 3228.65 + 2899.5
+        monthly_hishtalmut = 1400 + 1500
+        monthly_independent = 2700
+        base_monthly_contribution = monthly_pension + monthly_hishtalmut + monthly_independent
+
+        st.markdown("<h3 style='text-align:right; color: black;'>🚀 מחשבון חופש כלכלי (FIRE) מותאם אישית</h3>", unsafe_allow_html=True)
         
-        # במובייל עדיף אחד מתחת לשני כדי שהכפתורים לא יחתכו
-        st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-bottom: 5px;'>הוצאה חודשית מבוקשת (₪)</p>", unsafe_allow_html=True)
-        monthly_expenses_fire = st.number_input("", value=15000, step=500, key="fire_input_exp_final", label_visibility="collapsed")
-        
-        # כותרת שחורה וברורה
-        st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
-        
-        # שימוש בתיבת בחירה - הכי בטוח למובייל, תמיד קריא ושחור
+        # --- 2. ממשק הגדרות סימולציה ---
+        st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-bottom: 5px;'>תשואה שנתית משוערת (%)</p>", unsafe_allow_html=True)
         return_options = [4, 5, 6, 7, 8, 9, 10, 11, 12]
         expected_return_fire = st.selectbox("", return_options, index=3, key="fire_ret_select", label_visibility="collapsed")
 
-        # חישוב יעד
-        fire_target = monthly_expenses_fire * 12 * 25
-        
-        try:
-            current_net = float(str(n_now).replace('₪', '').replace(',', '').strip()) if 'n_now' in locals() else 0
-        except:
-            current_net = 0
+        st.markdown("<p style='color: black; font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px;'>תוספת הפקדה חודשית מעבר לקיים (₪)</p>", unsafe_allow_html=True)
+        extra_savings = st.number_input("", value=0, step=500, key="extra_savings_sim", label_visibility="collapsed")
 
-        progress = min(current_net / fire_target, 1.0) if fire_target > 0 else 0
+        total_monthly_sim = base_monthly_contribution + extra_savings
+
+        # --- 3. חישוב סימולציה ליעד 6 מיליון ש"ח ---
+        target_6m = 6000000
+        years_to_goal = 0
+        fv = invested_net
         
-        # כרטיסי מידע
+        if fv < target_6m:
+            while fv < target_6m and years_to_goal < 50:
+                fv = (fv * (1 + expected_return_fire/100)) + (total_monthly_sim * 12)
+                years_to_goal += 1
+        
+        current_age = 48 #
+        retirement_age = current_age + years_to_goal
+
+        # --- 4. תצוגת כרטיסי מידע ---
         st.markdown(f"""
             <div style="display: flex; gap: 12px; direction: rtl; margin-top: 20px;">
                 <div style="flex: 1; background: white; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-right: 6px solid #10b981; text-align: right;">
-                    <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px; font-weight: 500;">הון נוכחי</div>
-                    <div style="font-size: 1.25rem; font-weight: 800; color: #0f172a;">₪{current_net:,.0f}</div>
+                    <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px; font-weight: 500;">הון מושקע (ללא נדל"ן)</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: #0f172a;">₪{invested_net:,.0f}</div>
                 </div>
                 <div style="flex: 1; background: white; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-right: 6px solid #3b82f6; text-align: right;">
-                    <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px; font-weight: 500;">יעד פרישה</div>
-                    <div style="font-size: 1.25rem; font-weight: 800; color: #0f172a;">₪{fire_target:,.0f}</div>
+                    <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px; font-weight: 500;">הפקדה חודשית כוללת</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: #0f172a;">₪{total_monthly_sim:,.0f}</div>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
-        st.markdown(f"<div style='text-align: right; margin-top: 20px; font-weight: bold; color: black;'>אחוז כיסוי מהיעד: {progress:.1%}</div>", unsafe_allow_html=True)
-        st.progress(progress)
-
-        st.markdown("<hr style='border: 0.5px solid black; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
-        st.markdown("<h3 style='text-align: right; color: black;'>🗓️ מתי נגיע ליעד?</h3>", unsafe_allow_html=True)
-        
-        monthly_contribution = 5000 
-        
-        years_left = 0
-        temp_net = current_net
-        if temp_net < fire_target:
-            while temp_net < fire_target and years_left < 50:
-                temp_net = (temp_net * (1 + expected_return_fire/100)) + (monthly_contribution * 12)
-                years_left += 1
-            st.success(f"בהנחה של הפקדה חודשית של ₪{monthly_contribution:,.0f}, תגיע ליעד בעוד כ-**{years_left} שנים**.")
-        else:
-            st.balloons()
-            st.success("אתה כבר שם! ההון שלך מספיק לכיסוי ההוצאות לפי חוק ה-4%.")
-
-        # --- סימולטור פרישה ל-6 מיליון ש"ח (הון מושקע בלבד) ---
-        st.markdown("<hr style='border: 0.5px solid black; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
-        st.markdown("<h3 style='text-align: right; color: black;'>🎯 הדרך ליעד המחמיר (6 מיליון ש\"ח)</h3>", unsafe_allow_html=True)
-        
-        # הגדרת הנתונים בצורה בטוחה
-        try:
-            # הערכה של שווי הדירה בניכוי משכנתא מתוך הגיליון (למשל 1,000,000 ש"ח)
-            # אם יש לך משתנה של שווי נדל"ן בגיליון, תפחית אותו כאן
-            real_estate_value = 1000000 # שים כאן את הערך הממוצע של הדירה נטו
-            
-            # הון מושקע נטו (פנסיות, השתלמות ומזומן)
-            # אנחנו מוודאים שהמספר חיובי
-            invested_net = max(current_net - real_estate_value, 0)
-        except:
-            # גיבוי למקרה שהחישוב נכשל
-            invested_net = 1230000 
-
-        target_6m = 6000000
-        monthly_savings = 5000 
-        
-        # חישוב שנים
-        years_to_6m = 0
-        future_value = invested_net
-        
-        if future_value < target_6m:
-            # יצירת משתנה זמני לחישוב כדי לא לדרוס את years_left הכללי
-            sim_years = 0
-            while future_value < target_6m and sim_years < 50:
-                future_value = (future_value * (1 + expected_return_fire/100)) + (monthly_savings * 12)
-                sim_years += 1
-            
-            # הצגת התוצאה בטקסט שחור וברור
+        # --- 5. תוצאת הסימולציה המרכזית ---
+        if years_to_goal > 0:
             st.markdown(f"""
-                <div style="background-color: #f1f5f9; padding: 15px; border-radius: 12px; border: 1px solid #cbd5e1; direction: rtl; text-align: right;">
-                    <p style="color: black; font-weight: bold; margin: 0;">
-                        בהתבסס על הון מושקע של ₪{invested_net:,.0f} (ללא נדל"ן) ותשואה של {expected_return_fire}%, 
-                        תגיעו ליעד של 6 מיליון ש"ח בעוד כ-<b>{sim_years} שנים</b>.
+                <div style="background-color: black; padding: 25px; border-radius: 16px; direction: rtl; text-align: right; margin-top: 20px; border-right: 8px solid #10b981;">
+                    <p style="color: white; font-size: 1.2rem; margin: 0;">
+                        בקצב הזה, תגיעו ליעד של 6 מיליון ש"ח בעוד: <span style="color: #10b981; font-size: 1.8rem; font-weight: bold;">{years_to_goal} שנים</span>
+                    </p>
+                    <p style="color: #cbd5e1; font-size: 1.1rem; margin-top: 10px;">
+                        הגיל המשוער שלכם יהיה: <span style="font-weight: bold; color: white;">{retirement_age}</span>
                     </p>
                 </div>
             """, unsafe_allow_html=True)
             
-            # יישור לימין של כותרת התקדמות
             progress_6m = min(invested_net / target_6m, 1.0)
             st.markdown(f"<p style='text-align: right; color: black; font-weight: bold; margin-top: 15px;'>השלמתם {progress_6m:.1%} מהדרך ליעד (הון מושקע):</p>", unsafe_allow_html=True)
             st.progress(progress_6m)
+        else:
+            st.balloons()
+            st.success("מדהים! ההון המושקע שלכם כבר חצה את רף ה-6 מיליון ש\"ח.")
 
-            st.markdown("<hr style='border: 0.5px solid black; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
-            st.markdown("<h3 style='text-align: right; color: black;'>🤔 סימולטור \"מה אם?\" וקצבה צפויה</h3>", unsafe_allow_html=True)
-
-        # סליידר להפקדה חודשית - מעוצב שחור/לבן
-        st.markdown("<p style='text-align: right; color: black; font-weight: bold; margin-bottom: 5px;'>הפקדה חודשית נוספת לחיסכון (₪)</p>", unsafe_allow_html=True)
-        savings_options = [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 10000, 12000, 15000]
-        monthly_savings_sim = st.selectbox("", savings_options, index=5, key="sim_savings_select", label_visibility="collapsed")
-
-        # לוגיקת סימולציה מעודכנת
-        target_6m = 6000000
-        sim_years = 0
-        fv = invested_net
-        while fv < target_6m and sim_years < 50:
-            fv = (fv * (1 + expected_return_fire/100)) + (monthly_savings_sim * 12)
-            sim_years += 1
-
-        # הצגת תוצאת השנים
-        st.markdown(f"""
-            <div style="background-color: black; padding: 20px; border-radius: 12px; direction: rtl; text-align: right; margin-bottom: 20px;">
-                <p style="color: white; font-size: 1.2rem; margin: 0;">
-                    עם הפקדה של ₪{monthly_savings_sim:,.0f}, תגיעו ליעד בעוד: <span style="color: #10b981; font-size: 1.5rem; font-weight: bold;">{sim_years} שנים</span>
-                </p>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # --- חישוב קצבה משולב ---
-        # נניח מקדם פנסיה של 200 (לפי ה-5,000 ש"ח למיליון שדיברנו עליהם)
-        conversion_rate = 200 
-        monthly_income_from_capital = fv / conversion_rate
+        # --- 6. פירוט הפקדות וצפי קצבה ---
+        st.markdown("<hr style='border: 0.5px solid black; margin-top: 25px; margin-bottom: 25px;'>", unsafe_allow_html=True)
         
-        st.markdown("<p style='text-align: right; color: black; font-weight: bold;'>הכנסה חודשית צפויה בפרישה (ברוטו):</p>", unsafe_allow_html=True)
+        with st.expander("🔍 פירוט הזרמת הכספים החודשית"):
+            st.markdown(f"""
+            <div style="direction: rtl; text-align: right;">
+                <p>💰 <b>פנסיות (יניב ומיכל):</b> ₪{monthly_pension:,.0f}</p>
+                <p>📈 <b>קרנות השתלמות:</b> ₪{monthly_hishtalmut:,.0f}</p>
+                <p>💎 <b>השקעה עצמאית (אקסלנס):</b> ₪{monthly_independent:,.0f}</p>
+                {f'<p>➕ <b>תוספת סימולציה:</b> ₪{extra_savings:,.0f}</p>' if extra_savings > 0 else ''}
+                <hr>
+                <p><b>סה"כ חסכון חודשי: ₪{total_monthly_sim:,.0f}</b></p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # חישוב קצבה לפי כלל ה-4% (6 מיליון ש"ח / 300 או חלקי 25 שנים)
+        conversion_rate = 200 # מקדם הערכה שמרני לקצבה
+        monthly_from_capital = target_6m / conversion_rate
         
         st.markdown(f"""
-            <div style="display: flex; gap: 10px; direction: rtl; margin-top: 10px;">
-                <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 1px solid #d1d5db; text-align: right;">
-                    <div style="font-size: 0.8rem; color: #64748b;">מהון עצמי (חוק ה-4%)</div>
-                    <div style="font-size: 1.1rem; font-weight: bold; color: black;">₪{monthly_income_from_capital:,.0f}</div>
-                </div>
-                <div style="flex: 1; background: white; padding: 15px; border-radius: 12px; border: 1px solid #d1d5db; text-align: right;">
-                    <div style="font-size: 0.8rem; color: #64748b;">קצבת זקנה (משוער)</div>
-                    <div style="font-size: 1.1rem; font-weight: bold; color: black;">₪4,000</div>
-                </div>
-            </div>
-            <div style="background: #f0fdf4; padding: 15px; border-radius: 12px; border: 1px solid #bbf7d0; text-align: center; margin-top: 10px; direction: rtl;">
-                <div style="font-size: 0.9rem; color: #166534;">סה"כ קצבה חודשית מוערכת:</div>
-                <div style="font-size: 1.6rem; font-weight: 900; color: #166534;">₪{monthly_income_from_capital + 4000:,.0f}</div>
+            <div style="background: #f0fdf4; padding: 15px; border-radius: 12px; border: 1px solid #bbf7d0; text-align: center; margin-top: 20px; direction: rtl;">
+                <div style="font-size: 0.9rem; color: #166534;">קצבה חודשית צפויה מהון של 6 מיליון ש"ח (ברוטו):</div>
+                <div style="font-size: 1.6rem; font-weight: 900; color: #166534;">₪{monthly_from_capital + 4000:,.0f}</div>
+                <div style="font-size: 0.8rem; color: #166534;">(כולל קצבת זקנה משוערת של ₪4,000)</div>
             </div>
         """, unsafe_allow_html=True)
        
