@@ -552,8 +552,7 @@ try:
             </style>
         """, unsafe_allow_html=True)
         
-        # --- 1. חישוב נתונים בסיסיים (חישוב ישיר מהטבלה למניעת 0) ---
-        # --- 1. חישוב נכסים ממוקד (למניעת כפילויות) ---
+        # --- 1. חישוב הון מושקע ממוקד לפי קטגוריות ---
         try:
             def to_num(val):
                 try:
@@ -562,31 +561,24 @@ try:
                     return float(s) if s else 0.0
                 except: return 0.0
 
-            # רשימת האינדקסים של הנכסים שבאמת נחשבים "הון מושקע"
-            # לפי המבנה שלך (0-indexed):
-            # פנסיות והשתלמות הן בדרך כלל בשורות הראשונות (0-5)
-            # תיקי מסחר (אקסלנס, אינטראקטיב) הן בהמשך
-            # אנחנו מחפשים רק שורות שיש בהן שם נכס בעמודה A (אינדקס 0)
-            # ומתעלמים משורות של "סה"כ" או "נדל"ן"
+            # רשימת הקטגוריות המדויקת כפי שהן מופיעות בעמודה I
+            target_categories = ["תיק השקעות ומסחר", "קרנות השתלמות", "קרנות פנסיה", "חיסכון הורים"]
             
             invested_net = 0
-            debug_list = [] # לצורך בקרה עצמית
+            debug_summary = [] # למעקב במידה ויש שגיאה בשמות
 
             for i, row in df_s.iterrows():
-                name = str(row.iloc[0]).strip()
-                val = to_num(row.iloc[2])
+                # עמודה I היא אינדקס 8 (העמודה התשיעית)
+                category = str(row.iloc[8]).strip() 
+                val = to_num(row.iloc[2]) # עמודה C היא אינדקס 2
+                name = str(row.iloc[0]) # עמודה A היא אינדקס 0
                 
-                # תנאי סינון:
-                # 1. לא שורה 12 (הבית)
-                # 2. לא שורה שמכילה את המילה "סה"כ" או "Total"
-                # 3. הערך גדול מ-0
-                # 4. השורה היא לא כותרת ריקה
-                if i != 11 and "סה\"כ" not in name and val > 0 and name != "nan":
+                if category in target_categories:
                     invested_net += val
-                    debug_list.append(f"{name}: {val:,.0f}")
+                    debug_summary.append(f"{name} ({category}): ₪{val:,.0f}")
 
         except Exception as e:
-            st.error(f"שגיאה בחישוב: {e}")
+            st.error(f"שגיאה במשיכת נתונים לפי קטגוריה: {e}")
             invested_net = 0
         
         # נתוני הפקדות
