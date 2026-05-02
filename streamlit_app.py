@@ -552,8 +552,11 @@ try:
             </style>
         """, unsafe_allow_html=True)
         
-        # --- 1. חישוב הון מושקע ממוקד לפי קטגוריות ---
-        # --- 1. חישוב הון מושקע ממוקד לפי קטגוריות ---
+        # --- 1. כותרת ראשית ---
+        st.markdown("<h2 style='text-align: right;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
+        st.write("") # ריווח
+
+        # --- 2. לוגיקת חישוב הון מושקע (קטגוריות נבחרות) ---
         try:
             def to_num(val):
                 try:
@@ -564,46 +567,41 @@ try:
 
             target_categories = ["תיק השקעות ומסחר", "קרנות השתלמות", "קרנות פנסיה", "חיסכון הורים"]
             invested_net = 0
-            
             for i, row in df_s.iterrows():
                 category = str(row.iloc[8]).strip() 
                 val = to_num(row.iloc[2])
                 if category in target_categories:
                     invested_net += val
-        except Exception as e:
-            st.error(f"שגיאה במשיכת נתונים: {e}")
+        except:
             invested_net = 0
 
-        # --- 2. נתוני הפקדות בסיסיים ---
+        # --- 3. נתוני הפקדות בסיסיים ---
         monthly_pension = 3228.65 + 2899.5
         monthly_hishtalmut = 1400 + 1500
         monthly_independent = 2700
         base_monthly_contribution = monthly_pension + monthly_hishtalmut + monthly_independent
 
-        # --- 3. ממשק הגדרות סימולציה ---
-        st.write("---")
+        # --- 4. ממשק הגדרות סימולציה ---
         col_fire1, col_fire2 = st.columns(2)
 
         with col_fire1:
-            st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 0;'>קצבה חודשית מבוקשת</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 5px;'>קצבה חודשית מבוקשת</p>", unsafe_allow_html=True)
             desired_income = st.number_input("", value=25000, step=1000, key="income_target_num", label_visibility="collapsed")
             target_capital = max(desired_income - 4000, 0) * 12 * 25 
             
         with col_fire2:
-            st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 0;'>תשואה שנתית (%)</p>", unsafe_allow_html=True)
+            st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 5px;'>תשואה שנתית (%)</p>", unsafe_allow_html=True)
             expected_return_fire = st.selectbox("", [4,5,6,7,8,9,10], index=3, key="fire_ret_select", label_visibility="collapsed")
 
-        # החלק הדינמי שחזר: תוספת השקעה חודשית
-        st.markdown("<p style='font-weight: bold; text-align: right; margin-top: 10px; margin-bottom: 0;'>תוספת הפקדה חודשית (₪)</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px;'>תוספת הפקדה חודשית (₪)</p>", unsafe_allow_html=True)
         extra_savings = st.number_input("", value=0, step=500, key="extra_savings_sim", label_visibility="collapsed")
 
         # סך הכל הפקדה לסימולציה
         total_monthly_sim = base_monthly_contribution + extra_savings
 
-        # --- 4. חישוב סימולציה ---
+        # --- 5. חישוב סימולציה ---
         years_to_goal = 0
         fv = invested_net
-        
         if fv < target_capital:
             while fv < target_capital and years_to_goal < 50:
                 fv = (fv * (1 + expected_return_fire/100)) + (total_monthly_sim * 12)
@@ -611,7 +609,7 @@ try:
         
         retirement_age = 48 + years_to_goal
 
-        # --- 5. תצוגת התוצאה בתיבה השחורה ---
+        # --- 6. תצוגת התוצאה בתיבה השחורה ---
         st.markdown(f"""
             <div style="background-color: black; padding: 25px; border-radius: 16px; direction: rtl; text-align: right; margin-top: 20px; border-right: 8px solid #10b981;">
                 <p style="color: white; font-size: 1.1rem; margin: 0;">
@@ -626,7 +624,9 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-        # --- 6. פירוט הפקדות ---
+        st.write("") # ריווח
+
+        # --- 7. פירוט הפקדות ---
         with st.expander("🔍 פירוט הזרמת הכספים החודשית"):
             st.markdown(f"""
             <div style="direction: rtl; text-align: right;">
@@ -638,7 +638,17 @@ try:
                 <p style="font-size: 1.1rem;"><b>סה"כ חסכון חודשי: ₪{total_monthly_sim:,.0f}</b></p>
             </div>
             """, unsafe_allow_html=True)
-        
+
+        # --- 8. קוביה ירוקה מסכמת (הצפי) ---
+        st.markdown(f"""
+            <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px solid #bbf7d0; text-align: center; margin-top: 25px; direction: rtl;">
+                <div style="font-size: 1rem; color: #166534; font-weight: bold;">קצבה חודשית ברוטו פוטנציאלית (כולל הכל):</div>
+                <div style="font-size: 2.2rem; font-weight: 900; color: #166534; margin: 10px 0;">₪{desired_income:,.0f}</div>
+                <div style="font-size: 0.9rem; color: #166534;">
+                    מבוסס על משיכה של 4% מההון + ₪4,000 קצבת זקנה משוערת לזוג
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
             
             
 except Exception as e:
