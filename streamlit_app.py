@@ -549,6 +549,12 @@ try:
                     text-align: right;
                     direction: rtl;
                 }
+                [data-testid="stExpanderDetails"] previousSibling p {
+                color: black !important;
+                }
+            .st-emotion-cache-pgh4tt p {
+                color: black !important;
+                }
             </style>
         """, unsafe_allow_html=True)
         
@@ -645,7 +651,7 @@ try:
                 html += '<p style="color: #10b981;">➕ <b>תוספת סימולציה:</b> ₪' + e_val + '</p>'
             
             html += '<hr style="border: none; border-top: 1px solid #eee; margin: 10px 0;">'
-            html += '<p style="font-size: 1.1rem; font-weight: bold;">סה"כ חסכון חודשי: ₪' + t_val + '</p>'
+            html += '<p style="font-size: 1.1rem; font-weight: bold; color: black;">סה"כ חסכון חודשי: ₪' + t_val + '</p>'
             html += '</div>'
 
             st.markdown(html, unsafe_allow_html=True)
