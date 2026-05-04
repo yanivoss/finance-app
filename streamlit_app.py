@@ -712,7 +712,7 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-        # --- 10. גרף צמיחה ויזואלי מאוחד (גרסה סופית ונקייה) ---
+        # --- 10. גרף צמיחה ויזואלי מאוחד (גרסה נקייה בשורה אחת) ---
         st.write("")
         st.markdown("<p style='font-weight: bold; text-align: right; color: black;'>📈 מסלול צמיחת ההון מול יעד המטרה</p>", unsafe_allow_html=True)
         
@@ -723,28 +723,28 @@ try:
         df_chart["Target_Goal"] = target_capital
         df_chart["Total_Wealth"] = df_chart["סך הפקדות"] + df_chart["רווח מצטבר"]
         
-        # שינוי שמות לאנגלית כדי למנוע בלגן במקרא
+        # שימוש בשמות אנגליים רק לצורך הקוד, התצוגה תהיה נקייה
         df_chart = df_chart.rename(columns={
-            "סך הפקדות": "Invested_Amount",
-            "Total_Wealth": "Total_Wealth",
-            "Target_Goal": "Goal_Line"
+            "סך הפקדות": "Invested",
+            "Total_Wealth": "Actual",
+            "Target_Goal": "Target"
         }).set_index("שנה")
         
         display_years = min(years_to_goal + 5, 50)
-        chart_subset = df_chart[["Invested_Amount", "Total_Wealth", "Goal_Line"]].head(display_years)
+        chart_subset = df_chart[["Invested", "Actual", "Target"]].head(display_years)
 
-        # הצגת הגרף ללא המקרא האוטומטי (label_visibility="collapsed" לא עובד פה, אז פשוט נסמוך על ההסבר שלנו)
+        # הצגת הגרף
         st.line_chart(
             chart_subset,
             color=["#3b82f6", "#10b981", "#ff4b4b"]
         )
         
-        # הסבר מעוצב וברור מתחת לגרף
+        # מקרא עברי בשורה אחת מעוצבת
         st.markdown(f"""
-            <div style="direction: rtl; text-align: right; font-size: 0.9rem; background-color: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <span style="color: #ff4b4b; font-weight: bold;">━</span> <b>קו אדום:</b> יעד הון נדרש (₪{target_capital:,.0f})<br>
-                <span style="color: #10b981; font-weight: bold;">━</span> <b>קו ירוק:</b> סך הון צפוי (כולל רווחי שוק)<br>
-                <span style="color: #3b82f6; font-weight: bold;">━</span> <b>קו כחול:</b> סך הפקדות מצטברות מהכיס
+            <div style="direction: rtl; text-align: center; font-size: 0.85rem; background-color: #f8fafc; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-around; align-items: center;">
+                <div><span style="color: #ff4b4b; font-weight: bold;">━</span> <b>יעד:</b> ₪{target_capital:,.0f}</div>
+                <div><span style="color: #10b981; font-weight: bold;">━</span> <b>סך הון צפוי</b></div>
+                <div><span style="color: #3b82f6; font-weight: bold;">━</span> <b>סך הפקדות מהכיס</b></div>
             </div>
         """, unsafe_allow_html=True)
         
