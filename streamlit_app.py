@@ -712,34 +712,42 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-        # --- 10. גרף צמיחה ויזואלי מאוחד (גרסה נקייה בשורה אחת) ---
+        # --- 10. גרף צמיחה ויזואלי מאוחד (ללא מקרא אנגלי) ---
         st.write("")
         st.markdown("<p style='font-weight: bold; text-align: right; color: black;'>📈 מסלול צמיחת ההון מול יעד המטרה</p>", unsafe_allow_html=True)
         
         import pandas as pd
+        import altair as alt # ייבוא הספרייה לשליטה מתקדמת בגרף
         
         # הכנת הנתונים
         df_chart = pd.DataFrame(chart_data)
         df_chart["Target_Goal"] = target_capital
         df_chart["Total_Wealth"] = df_chart["סך הפקדות"] + df_chart["רווח מצטבר"]
         
-        # שימוש בשמות אנגליים רק לצורך הקוד, התצוגה תהיה נקייה
+        # שינוי שמות והכנה לגרף
         df_chart = df_chart.rename(columns={
             "סך הפקדות": "Invested",
             "Total_Wealth": "Actual",
             "Target_Goal": "Target"
-        }).set_index("שנה")
+        })
         
         display_years = min(years_to_goal + 5, 50)
-        chart_subset = df_chart[["Invested", "Actual", "Target"]].head(display_years)
+        chart_subset = df_chart.head(display_years).melt('שנה', var_name='Category', value_name='Value')
 
-        # הצגת הגרף
-        st.line_chart(
-            chart_subset,
-            color=["#3b82f6", "#10b981", "#ff4b4b"]
-        )
+        # יצירת הגרף עם Altair וביטול המקרא (legend=None)
+        chart = alt.Chart(chart_subset).mark_line().encode(
+            x=alt.X('שנה:Q', title='שנים'),
+            y=alt.Y('Value:Q', title='סכום ב-₪'),
+            color=alt.Color('Category:N', 
+                            scale=alt.Scale(domain=['Invested', 'Actual', 'Target'], 
+                                           range=['#3b82f6', '#10b981', '#ff4b4b']),
+                            legend=None), # כאן הקסם קורה - ביטול המקרא האנגלי
+            tooltip=['שנה', 'Value']
+        ).properties(width='container', height=400)
+
+        st.altair_chart(chart, use_container_width=True)
         
-        # מקרא עברי בשורה אחת מעוצבת
+        # המקרא העברי שלך בשורה אחת
         st.markdown(f"""
             <div style="direction: rtl; text-align: center; font-size: 0.85rem; background-color: #f8fafc; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; justify-content: space-around; align-items: center;">
                 <div><span style="color: #ff4b4b; font-weight: bold;">━</span> <b>יעד:</b> ₪{target_capital:,.0f}</div>
