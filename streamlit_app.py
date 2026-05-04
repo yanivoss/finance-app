@@ -755,6 +755,50 @@ try:
                 <div><span style="color: #3b82f6; font-weight: bold;">━</span> <b>סך הפקדות מהכיס</b></div>
             </div>
         """, unsafe_allow_html=True)
+
+        # --- 11. אקספנדר תרחישים מתקדמים (סעיפים 3+4) ---
+        with st.expander("🛠️ הגדרות מתקדמות ותרחישי 'מה אם'"):
+            st.markdown("<p style='text-align: right; color: black;'>בחרו פרופיל סימולציה מהיר:</p>", unsafe_allow_html=True)
+            
+            # סעיף 3: תרחישי "מה אם" באמצעות Pills
+            scenario = st.pills(
+                "תרחישים מוכנים",
+                ["סטנדרט", "שמרני (3%)", "אופטימי (8%)", "האצת חיסכון"],
+                key="scenario_pills",
+                label_visibility="collapsed"
+            )
+
+            # לוגיקת עדכון ערכים לפי התרחיש שנבחר
+            if scenario == "שמרני (3%)":
+                # כאן אנחנו משלבים את סעיף 4 - משיכה שמרנית יותר
+                st.session_state.fire_ret_select = 5
+                swr_rate = 0.03
+            elif scenario == "אופטימי (8%)":
+                st.session_state.fire_ret_select = 8
+                swr_rate = 0.04
+            elif scenario == "האצת חיסכון":
+                st.session_state.extra_savings_sim = 2000
+                swr_rate = 0.04
+            else:
+                swr_rate = 0.04
+
+            st.markdown("---")
+            
+            # סעיף 4: בחירת אחוז משיכה (SWR) ידנית
+            st.markdown("<p style='text-align: right; color: black;'>אחוז משיכה שנתי (SWR):</p>", unsafe_allow_html=True)
+            selected_swr = st.segmented_control(
+                "SWR",
+                options=[3.0, 3.5, 4.0],
+                format_func=lambda x: f"{x}%",
+                default=4.0,
+                key="swr_selection"
+            )
+            
+            st.info(f"""
+            💡 **טיפ תכנוני:** 
+            משיכה של {selected_swr}% נחשבת {'בטוחה מאוד' if selected_swr <= 3.5 else 'סטנדרטית'} לפרישה מוקדמת. 
+            זה מעדכן את הון היעד שלכם ל-₪{(current_desired_income - 4000) * 12 * (100/selected_swr):,.0f}.
+            """, icon="ℹ️")
         
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
