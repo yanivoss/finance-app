@@ -587,6 +587,7 @@ try:
         # שימוש ב-Session State כדי למנוע שגיאות הגדרה
         current_extra = st.session_state.get('extra_savings_sim', 0)
         current_desired_income = st.session_state.get('income_target_num', 25000)
+        current_expected_return = st.session_state.get('fire_ret_select', 7)
         
         total_monthly_sim = base_monthly_contribution + current_extra
         
@@ -652,7 +653,8 @@ try:
             
         with col_fire2:
             st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 5px; color: black;'>תשואה שנתית (%)</p>", unsafe_allow_html=True)
-            expected_return_fire = st.selectbox("", [4,5,6,7,8,9,10], index=3, key="fire_ret_select", label_visibility="collapsed")
+            # הוספת index=None ושימוש ב-key גורמים לו להסתנכרן עם ה-session_state
+            expected_return_fire = st.selectbox("", [4,5,6,7,8,9,10], key="fire_ret_select", label_visibility="collapsed")
 
         st.markdown("<p style='font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px; color: black;'>תוספת הפקדה חודשית (₪)</p>", unsafe_allow_html=True)
         extra_savings = st.number_input("", value=0, step=500, key="extra_savings_sim", label_visibility="collapsed")
@@ -677,7 +679,7 @@ try:
                 years_to_goal = y
             
             # צמיחה שנתית
-            current_year_fv = (current_year_fv * (1 + expected_return_fire/100)) + (total_monthly_sim * 12)
+            current_year_fv = (current_year_fv * (1 + current_expected_return/100)) + (total_monthly_sim * 12)
             total_invested_so_far += (total_monthly_sim * 12)
 
         retirement_age = 48 + years_to_goal
@@ -796,9 +798,6 @@ try:
                 elif sel == "סטנדרט":
                     st.session_state.fire_ret_select = 7.0
                     st.session_state.swr_selection = 4.0
-
-                # השורה שפותרת את הבעיה:
-                st.rerun()
 
             st.markdown("<p style='text-align: right; color: black;'>בחרו פרופיל סימולציה מהיר:</p>", unsafe_allow_html=True)
             
