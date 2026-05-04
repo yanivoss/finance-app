@@ -712,17 +712,40 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-        # --- 10. גרף צמיחה ויזואלי (מופיע בסוף הטאב) ---
+        # --- 10. גרף צמיחה ויזואלי (כולל קו יעד) ---
         st.write("")
-        st.markdown("<p style='font-weight: bold; text-align: right; color: black;'>📈 מסלול צמיחת ההון (הפקדות מול רווחים)</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-weight: bold; text-align: right; color: black;'>📈 מסלול צמיחת ההון מול יעד המטרה</p>", unsafe_allow_html=True)
         
         import pandas as pd
-        df_chart = pd.DataFrame(chart_data).set_index("שנה")
         
-        # מציגים את הגרף עד 5 שנים מעבר ליעד כדי לראות את ה"פריצה"
+        # הכנת הנתונים לגרף
+        df_chart = pd.DataFrame(chart_data)
+        df_chart["יעד מטרה"] = target_capital  # הוספת עמודה קבועה ליעד
+        
+        # שינוי שמות לאנגלית למניעת היפוך במקרא
+        df_chart = df_chart.rename(columns={
+            "סך הפקדות": "Total_Invested",
+            "רווח מצטבר": "Accumulated_Profit",
+            "יעד מטרה": "Target_Goal"
+        }).set_index("שנה")
+        
         display_years = min(years_to_goal + 5, 50)
-        st.area_chart(df_chart[["סך הפקדות", "רווח מצטבר"]].head(display_years), color=["#3b82f6", "#10b981"])
-            
+        chart_subset = df_chart.head(display_years)
+
+        # הצגת הגרף: שכבות שטחים + קו יעד
+        st.line_chart(chart_subset["Target_Goal"], color="#ff4b4b") # קו אדום ליעד
+        st.area_chart(
+            chart_subset[["Total_Invested", "Accumulated_Profit"]],
+            color=["#3b82f6", "#10b981"]
+        )
+        
+        st.markdown(f"""
+            <div style="direction: rtl; text-align: right; font-size: 0.85rem; color: #64748b;">
+                🔴 <b>קו אדום:</b> יעד הון נדרש (₪{target_capital:,.0f}) | 
+                🔵 <b>כחול:</b> סך הפקדות (הון קיים + חדש) | 
+                🟢 <b>ירוק:</b> רווח שנצבר מהשוק
+            </div>
+        """, unsafe_allow_html=True)            
             
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
