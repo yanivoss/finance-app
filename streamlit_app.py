@@ -581,8 +581,21 @@ try:
         current_desired_income = st.session_state.get('income_target_num', 25000)
         
         total_monthly_sim = base_monthly_contribution + current_extra
-        # חישוב יעד הון (לפי הכלל שלכם: הכנסה פחות 4000 כפול 300)
-        current_target_capital = max(current_desired_income - 4000, 0) * 12 * 25
+
+        # --- החלפה מכאן: חישוב יעד הון דינמי (סעיף 4) ---
+        
+        # 1. שליפת אחוז המשיכה שנבחר באקספנדר (ברירת מחדל 4.0 אם המשתמש עוד לא נגע)
+        current_swr = st.session_state.get('swr_selection', 4.0)
+        
+        # 2. חישוב המכפיל (100 חלקי אחוז המשיכה)
+        # למשל: 4% נותן מכפיל 25 | 3% נותן מכפיל 33.3
+        multiplier = 100 / current_swr
+        
+        # 3. חישוב יעד ההון המעודכן
+        current_target_capital = max(current_desired_income - 4000, 0) * 12 * multiplier
+        
+        # שמירת המשתנה לשימוש בגרף (כדי שלא נצטרך לשנות את שאר הקוד)
+        target_capital = current_target_capital
 
         # --- 2. כותרת ראשית ---
         st.markdown("<h2 style='text-align: right; color: black;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
