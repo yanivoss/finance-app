@@ -712,40 +712,39 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-        # --- 10. גרף צמיחה ויזואלי (כולל קו יעד) ---
+        # --- 10. גרף צמיחה ויזואלי מאוחד ---
         st.write("")
         st.markdown("<p style='font-weight: bold; text-align: right; color: black;'>📈 מסלול צמיחת ההון מול יעד המטרה</p>", unsafe_allow_html=True)
         
         import pandas as pd
         
-        # הכנת הנתונים לגרף
+        # הכנת הנתונים
         df_chart = pd.DataFrame(chart_data)
-        df_chart["יעד מטרה"] = target_capital  # הוספת עמודה קבועה ליעד
+        df_chart["Target_Goal"] = target_capital
         
-        # שינוי שמות לאנגלית למניעת היפוך במקרא
+        # שינוי שמות לאנגלית כדי למנוע בעיות תצוגה במקרא
         df_chart = df_chart.rename(columns={
             "סך הפקדות": "Total_Invested",
-            "רווח מצטבר": "Accumulated_Profit",
-            "יעד מטרה": "Target_Goal"
+            "רווח מצטבר": "Accumulated_Profit"
         }).set_index("שנה")
         
         display_years = min(years_to_goal + 5, 50)
         chart_subset = df_chart.head(display_years)
 
-        # הצגת הגרף: שכבות שטחים + קו יעד
-        st.line_chart(chart_subset["Target_Goal"], color="#ff4b4b") # קו אדום ליעד
+        # יצירת גרף מאוחד - נשתמש ב-st.area_chart עבור הכל
+        # כדי שהקו יהיה בולט, נוסיף אותו כשכבה ב-area_chart אבל הוא ייראה כקו ישר
         st.area_chart(
-            chart_subset[["Total_Invested", "Accumulated_Profit"]],
-            color=["#3b82f6", "#10b981"]
+            chart_subset[["Total_Invested", "Accumulated_Profit", "Target_Goal"]],
+            color=["#3b82f6", "#10b981", "#ff4b4b"]
         )
         
         st.markdown(f"""
             <div style="direction: rtl; text-align: right; font-size: 0.85rem; color: #64748b;">
-                🔴 <b>קו אדום:</b> יעד הון נדרש (₪{target_capital:,.0f}) | 
-                🔵 <b>כחול:</b> סך הפקדות (הון קיים + חדש) | 
-                🟢 <b>ירוק:</b> רווח שנצבר מהשוק
+                <span style="color: #ff4b4b;">▬</span> <b>קו אדום:</b> יעד הון נדרש (₪{target_capital:,.0f}) | 
+                <span style="color: #3b82f6;">■</span> <b>כחול:</b> סך הפקדות | 
+                <span style="color: #10b981;">■</span> <b>ירוק:</b> רווח שנצבר
             </div>
-        """, unsafe_allow_html=True)            
-            
+        """, unsafe_allow_html=True)
+                    
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
