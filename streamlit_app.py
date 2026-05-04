@@ -590,17 +590,17 @@ try:
         
         total_monthly_sim = base_monthly_contribution + current_extra
         
-        # --- תיקון חישוב יעד הון דינמי ---
+        # השתמש בערך ברירת מחדל של 4.0 ישירות בתוך ה-get
+        current_swr = st.session_state.get('swr_selection', 4.0)
         
-        # שליפת ה-SWR עם הגנה כפולה: גם אם הוא None, נשתמש ב-4.0
-        swr_val = st.session_state.get('swr_selection')
-        current_swr = swr_val if swr_val is not None else 4.0
-        
-        # חישוב המכפיל בבטחה
+        # הגנה נוספת: אם בטעות נכנס None למרות הכל, נכריח אותו להיות 4.0
+        if current_swr is None:
+            current_swr = 4.0
+            
+        # עכשיו החילוק בטוח ב-100%
         multiplier = 100 / current_swr
         
-        current_target_capital = max(current_desired_income - 4000, 0) * 12 * multiplier
-        target_capital = current_target_capital
+        target_capital = max(current_desired_income - 4000, 0) * 12 * multiplier
 
         # --- 2. כותרת ראשית ---
         st.markdown("<h2 style='text-align: right; color: black;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
