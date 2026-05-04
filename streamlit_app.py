@@ -797,6 +797,9 @@ try:
                     st.session_state.fire_ret_select = 7.0
                     st.session_state.swr_selection = 4.0
 
+                # השורה שפותרת את הבעיה:
+                st.rerun()
+
             st.markdown("<p style='text-align: right; color: black;'>בחרו פרופיל סימולציה מהיר:</p>", unsafe_allow_html=True)
             
             # הוספת on_change כדי לעדכן את הערכים לפני שהווידג'טים נבנים מחדש
