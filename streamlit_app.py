@@ -103,6 +103,14 @@ def get_issta_live_value():
         st.error(f"קרסה הפונקציה של איסתא: {e}")
         return None, None
 
+# תוסיף את זה בתחילת הקוד, מעל הגדרת הטאבים
+if 'swr_selection' not in st.session_state:
+    st.session_state.swr_selection = 4.0
+if 'fire_ret_select' not in st.session_state:
+    st.session_state.fire_ret_select = 7.0
+if 'extra_savings_sim' not in st.session_state:
+    st.session_state.extra_savings_sim = 0.0
+
 # עדכון המשתנה הגלובלי שבו כל האפליקציה משתמשת
 if current_usd > 0:
     USD_RATE = round(current_usd, 2)
