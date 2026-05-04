@@ -636,16 +636,31 @@ try:
         st.markdown("<p style='font-weight: bold; text-align: right; margin-top: 15px; margin-bottom: 5px; color: black;'>תוספת הפקדה חודשית (₪)</p>", unsafe_allow_html=True)
         extra_savings = st.number_input("", value=0, step=500, key="extra_savings_sim", label_visibility="collapsed")
 
-        # --- 6. חישוב סימולציה ---
+        # --- 6. חישוב סימולציה (מייצר נתונים לתיבה ולגרף) ---
         years_to_goal = 0
         fv = invested_net
-        if fv < target_capital:
-            while fv < target_capital and years_to_goal < 50:
-                fv = (fv * (1 + expected_return_fire/100)) + (total_monthly_sim * 12)
-                years_to_goal += 1
+        chart_data = []
         
-        retirement_age = 48 + years_to_goal
+        current_year_fv = invested_net
+        total_invested_so_far = invested_net
+        
+        for y in range(51):  # חישוב ל-50 שנה קדימה
+            chart_data.append({
+                "שנה": y,
+                "הון צבור": current_year_fv,
+                "סך הפקדות": total_invested_so_far,
+                "רווח מצטבר": max(0, current_year_fv - total_invested_so_far)
+            })
+            
+            if current_year_fv >= target_capital and years_to_goal == 0:
+                years_to_goal = y
+            
+            # צמיחה שנתית
+            current_year_fv = (current_year_fv * (1 + expected_return_fire/100)) + (total_monthly_sim * 12)
+            total_invested_so_far += (total_monthly_sim * 12)
 
+        retirement_age = 48 + years_to_goal
+        
         # --- 7. תצוגת התוצאה בתיבה השחורה ---
         st.markdown(f"""
             <div style="background-color: black; padding: 25px; border-radius: 16px; direction: rtl; text-align: right; margin-top: 20px; border-right: 8px solid #10b981;">
@@ -696,6 +711,17 @@ try:
                 </div>
             </div>
         """, unsafe_allow_html=True)
+
+        # --- 10. גרף צמיחה ויזואלי (מופיע בסוף הטאב) ---
+        st.write("")
+        st.markdown("<p style='font-weight: bold; text-align: right; color: black;'>📈 מסלול צמיחת ההון (הפקדות מול רווחים)</p>", unsafe_allow_html=True)
+        
+        import pandas as pd
+        df_chart = pd.DataFrame(chart_data).set_index("שנה")
+        
+        # מציגים את הגרף עד 5 שנים מעבר ליעד כדי לראות את ה"פריצה"
+        display_years = min(years_to_goal + 5, 50)
+        st.area_chart(df_chart[["סך הפקדות", "רווח מצטבר"]].head(display_years), color=["#3b82f6", "#10b981"])
             
             
 except Exception as e:
