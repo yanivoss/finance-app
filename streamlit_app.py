@@ -581,20 +581,17 @@ try:
         current_desired_income = st.session_state.get('income_target_num', 25000)
         
         total_monthly_sim = base_monthly_contribution + current_extra
-
-        # --- החלפה מכאן: חישוב יעד הון דינמי (סעיף 4) ---
         
-        # 1. שליפת אחוז המשיכה שנבחר באקספנדר (ברירת מחדל 4.0 אם המשתמש עוד לא נגע)
-        current_swr = st.session_state.get('swr_selection', 4.0)
+        # --- תיקון חישוב יעד הון דינמי ---
         
-        # 2. חישוב המכפיל (100 חלקי אחוז המשיכה)
-        # למשל: 4% נותן מכפיל 25 | 3% נותן מכפיל 33.3
+        # שליפת ה-SWR עם הגנה כפולה: גם אם הוא None, נשתמש ב-4.0
+        swr_val = st.session_state.get('swr_selection')
+        current_swr = swr_val if swr_val is not None else 4.0
+        
+        # חישוב המכפיל בבטחה
         multiplier = 100 / current_swr
         
-        # 3. חישוב יעד ההון המעודכן
         current_target_capital = max(current_desired_income - 4000, 0) * 12 * multiplier
-        
-        # שמירת המשתנה לשימוש בגרף (כדי שלא נצטרך לשנות את שאר הקוד)
         target_capital = current_target_capital
 
         # --- 2. כותרת ראשית ---
