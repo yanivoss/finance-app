@@ -769,48 +769,54 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-        # --- 11. אקספנדר תרחישים מתקדמים (סעיפים 3+4) ---
+        # --- 11. אקספנדר תרחישים מתקדמים (מתוקן) ---
         with st.expander("🛠️ הגדרות מתקדמות ותרחישי 'מה אם'"):
+            
+            # פונקציה לעדכון ערכים בצורה בטוחה
+            def update_scenario():
+                sel = st.session_state.scenario_pills
+                if sel == "שמרני (3%)":
+                    st.session_state.fire_ret_select = 5.0
+                    st.session_state.swr_selection = 3.0
+                elif sel == "אופטימי (8%)":
+                    st.session_state.fire_ret_select = 8.0
+                    st.session_state.swr_selection = 4.0
+                elif sel == "האצת חיסכון":
+                    st.session_state.extra_savings_sim = 2000.0
+                    st.session_state.swr_selection = 4.0
+                elif sel == "סטנדרט":
+                    st.session_state.fire_ret_select = 7.0
+                    st.session_state.swr_selection = 4.0
+
             st.markdown("<p style='text-align: right; color: black;'>בחרו פרופיל סימולציה מהיר:</p>", unsafe_allow_html=True)
             
-            # סעיף 3: תרחישי "מה אם" באמצעות Pills
-            scenario = st.pills(
+            # הוספת on_change כדי לעדכן את הערכים לפני שהווידג'טים נבנים מחדש
+            st.pills(
                 "תרחישים מוכנים",
                 ["סטנדרט", "שמרני (3%)", "אופטימי (8%)", "האצת חיסכון"],
                 key="scenario_pills",
-                label_visibility="collapsed"
+                label_visibility="collapsed",
+                on_change=update_scenario
             )
-
-            # לוגיקת עדכון ערכים לפי התרחיש שנבחר
-            if scenario == "שמרני (3%)":
-                # כאן אנחנו משלבים את סעיף 4 - משיכה שמרנית יותר
-                st.session_state.fire_ret_select = 5
-                swr_rate = 0.03
-            elif scenario == "אופטימי (8%)":
-                st.session_state.fire_ret_select = 8
-                swr_rate = 0.04
-            elif scenario == "האצת חיסכון":
-                st.session_state.extra_savings_sim = 2000
-                swr_rate = 0.04
-            else:
-                swr_rate = 0.04
 
             st.markdown("---")
             
-            # סעיף 4: בחירת אחוז משיכה (SWR) ידנית
             st.markdown("<p style='text-align: right; color: black;'>אחוז משיכה שנתי (SWR):</p>", unsafe_allow_html=True)
-            selected_swr = st.segmented_control(
+            st.segmented_control(
                 "SWR",
                 options=[3.0, 3.5, 4.0],
                 format_func=lambda x: f"{x}%",
-                default=4.0,
                 key="swr_selection"
             )
             
+            # חישוב יעד הון לצורך התצוגה ב-Info
+            current_swr_display = st.session_state.get('swr_selection', 4.0)
+            temp_target = (current_desired_income - 4000) * 12 * (100/current_swr_display)
+
             st.info(f"""
             💡 **טיפ תכנוני:** 
-            משיכה של {selected_swr}% נחשבת {'בטוחה מאוד' if selected_swr <= 3.5 else 'סטנדרטית'} לפרישה מוקדמת. 
-            זה מעדכן את הון היעד שלכם ל-₪{(current_desired_income - 4000) * 12 * (100/selected_swr):,.0f}.
+            משיכה של {current_swr_display}% נחשבת {'בטוחה מאוד' if current_swr_display <= 3.5 else 'סטנדרטית'} לפרישה מוקדמת. 
+            זה מעדכן את הון היעד שלכם ל-₪{temp_target:,.0f}.
             """, icon="ℹ️")
         
 except Exception as e:
