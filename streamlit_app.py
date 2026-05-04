@@ -649,8 +649,8 @@ try:
             st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 5px; color: black;'>קצבה חודשית מבוקשת</p>", unsafe_allow_html=True)
             desired_income = st.number_input("", value=25000, step=1000, key="income_target_num", label_visibility="collapsed")
             # עדכון יעד ההון לפי הקלט בפועל
-            target_capital = max(desired_income - 4000, 0) * 12 * 25 
-            
+            target_capital = max(desired_income - 4000, 0) * 12 * multiplier   
+
         with col_fire2:
             st.markdown("<p style='font-weight: bold; text-align: right; margin-bottom: 5px; color: black;'>תשואה שנתית (%)</p>", unsafe_allow_html=True)
             # הוספת index=None ושימוש ב-key גורמים לו להסתנכרן עם ה-session_state
@@ -786,19 +786,27 @@ try:
             # פונקציה לעדכון ערכים בצורה בטוחה
             def update_scenario():
                 sel = st.session_state.scenario_pills
+                
                 if sel == "שמרני (3%)":
-                    st.session_state.fire_ret_select = 5.0
-                    st.session_state.swr_selection = 3.0
+                    st.session_state.fire_ret_select = 5  # תשואה נמוכה
+                    st.session_state.swr_selection = 3.0 # משיכה שמרנית (מעלה את היעד)
+                    st.session_state.extra_savings_sim = 0 # איפס הפקדה נוספת
+                    
                 elif sel == "אופטימי (8%)":
-                    st.session_state.fire_ret_select = 8.0
-                    st.session_state.swr_selection = 4.0
+                    st.session_state.fire_ret_select = 8  # תשואה גבוהה
+                    st.session_state.swr_selection = 4.0 # משיכה סטנדרטית
+                    st.session_state.extra_savings_sim = 0
+                    
                 elif sel == "האצת חיסכון":
-                    st.session_state.extra_savings_sim = 2000.0
-                    st.session_state.swr_selection = 4.0
+                    st.session_state.fire_ret_select = 7  # תשואה סטנדרטית
+                    st.session_state.swr_selection = 4.0 # משיכה סטנדרטית
+                    st.session_state.extra_savings_sim = 2000 # תוספת כסף!
+                    
                 elif sel == "סטנדרט":
-                    st.session_state.fire_ret_select = 7.0
+                    st.session_state.fire_ret_select = 7
                     st.session_state.swr_selection = 4.0
-
+                    st.session_state.extra_savings_sim = 0
+                        
             st.markdown("<p style='text-align: right; color: black;'>בחרו פרופיל סימולציה מהיר:</p>", unsafe_allow_html=True)
             
             # הוספת on_change כדי לעדכן את הערכים לפני שהווידג'טים נבנים מחדש
