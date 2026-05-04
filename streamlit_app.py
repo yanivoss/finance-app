@@ -590,17 +590,20 @@ try:
         
         total_monthly_sim = base_monthly_contribution + current_extra
         
-        # השתמש בערך ברירת מחדל של 4.0 ישירות בתוך ה-get
+        # 1. שליפת ה-SWR עם הגנה
         current_swr = st.session_state.get('swr_selection', 4.0)
-        
-        # הגנה נוספת: אם בטעות נכנס None למרות הכל, נכריח אותו להיות 4.0
         if current_swr is None:
             current_swr = 4.0
             
-        # עכשיו החילוק בטוח ב-100%
+        # 2. חישוב המכפיל
         multiplier = 100 / current_swr
         
-        target_capital = max(current_desired_income - 4000, 0) * 12 * multiplier
+        # 3. חישוב היעד
+        calculated_goal = max(current_desired_income - 4000, 0) * 12 * multiplier
+        
+        # 4. הגדרת שני השמות כדי למנוע שגיאות "not defined" בהמשך הקוד
+        target_capital = calculated_goal
+        current_target_capital = calculated_goal
 
         # --- 2. כותרת ראשית ---
         st.markdown("<h2 style='text-align: right; color: black;'>🚀 סימולציית עצמאות כלכלית</h2>", unsafe_allow_html=True)
