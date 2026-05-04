@@ -712,7 +712,7 @@ try:
             </div>
         """, unsafe_allow_html=True)
 
-        # --- 10. גרף צמיחה ויזואלי מאוחד (גרסת קו יעד נקייה) ---
+        # --- 10. גרף צמיחה ויזואלי מאוחד (גרסה סופית ונקייה) ---
         st.write("")
         st.markdown("<p style='font-weight: bold; text-align: right; color: black;'>📈 מסלול צמיחת ההון מול יעד המטרה</p>", unsafe_allow_html=True)
         
@@ -721,33 +721,32 @@ try:
         # הכנת הנתונים
         df_chart = pd.DataFrame(chart_data)
         df_chart["Target_Goal"] = target_capital
+        df_chart["Total_Wealth"] = df_chart["סך הפקדות"] + df_chart["רווח מצטבר"]
         
-        # חישוב הון כולל (הפקדות + רווח) כדי להציג קו צמיחה אחד ברור
-        df_chart["Total_Capital"] = df_chart["סך הפקדות"] + df_chart["רווח מצטבר"]
-        
-        # שינוי שמות לאנגלית לתצוגה חלקה
+        # שינוי שמות לאנגלית כדי למנוע בלגן במקרא
         df_chart = df_chart.rename(columns={
             "סך הפקדות": "Invested_Amount",
-            "Total_Capital": "Total_Wealth",
+            "Total_Wealth": "Total_Wealth",
             "Target_Goal": "Goal_Line"
         }).set_index("שנה")
         
         display_years = min(years_to_goal + 5, 50)
         chart_subset = df_chart[["Invested_Amount", "Total_Wealth", "Goal_Line"]].head(display_years)
 
-        # שימוש ב-line_chart מאוחד
+        # הצגת הגרף ללא המקרא האוטומטי (label_visibility="collapsed" לא עובד פה, אז פשוט נסמוך על ההסבר שלנו)
         st.line_chart(
             chart_subset,
-            color=["#3b82f6", "#10b981", "#ff4b4b"] # כחול להפקדות, ירוק להון כולל, אדום ליעד
+            color=["#3b82f6", "#10b981", "#ff4b4b"]
         )
         
+        # הסבר מעוצב וברור מתחת לגרף
         st.markdown(f"""
-            <div style="direction: rtl; text-align: right; font-size: 0.85rem; color: #64748b;">
-                <span style="color: #ff4b4b;">▬</span> <b>קו אדום:</b> יעד הון נדרש (₪{target_capital:,.0f}) | 
-                <span style="color: #10b981;">▬</span> <b>קו ירוק:</b> סך הון צפוי (הפקדות + רווחים) | 
-                <span style="color: #3b82f6;">▬</span> <b>קו כחול:</b> סך הפקדות מהכיס
+            <div style="direction: rtl; text-align: right; font-size: 0.9rem; background-color: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <span style="color: #ff4b4b; font-weight: bold;">━</span> <b>קו אדום:</b> יעד הון נדרש (₪{target_capital:,.0f})<br>
+                <span style="color: #10b981; font-weight: bold;">━</span> <b>קו ירוק:</b> סך הון צפוי (כולל רווחי שוק)<br>
+                <span style="color: #3b82f6; font-weight: bold;">━</span> <b>קו כחול:</b> סך הפקדות מצטברות מהכיס
             </div>
         """, unsafe_allow_html=True)
-    
+        
 except Exception as e:
     st.error(f"שגיאה בטעינת הנתונים: {e}")
