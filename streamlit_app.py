@@ -267,6 +267,7 @@ try:
     tab1, tab2, tab3 = st.tabs(["🏠 מבט על", "📋 פירוט", "🚀 מחשבון פרישה"])
     
     with tab1:
+    st.write(df_s)
         c1, c2 = st.columns(2)
         # הון נטו
         n_now, n_start, n_depo = df_s.iloc[13, 2], df_s.iloc[13, 4], df_s.iloc[13, 5]
