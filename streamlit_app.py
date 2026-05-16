@@ -250,31 +250,12 @@ try:
 
     st.markdown("<h1 style='text-align:center;'>הון משפחת נודלמן</h1>", unsafe_allow_html=True)
     
-    # --- שורת מדדי שוק מודרנית (מעל הטאבים) ---
+    # טיקרים
     m1, m2, m3 = st.columns(3)
-    
-    with m1:
-        st.metric(
-            label="💵 שער הדולר (ILS=X)", 
-            value=f"₪{USD_RATE}", 
-            delta=f"{arrow} {abs(change_pct):.1f}%" if current_usd > 0 else None, 
-            border=True
-        )
-    with m2:
-        st.metric(
-            label="📈 מדד S&P 500", 
-            value=f"{sp_p:,.0f}", 
-            delta=f"{sp_a} {abs(sp_c):.1f}%", 
-            border=True
-        )
-    with m3:
-        st.metric(
-            label="₿ Bitcoin (USD)", 
-            value=f"${btc_p:,.0f}", 
-            delta=f"{btc_a} {abs(btc_c):.1f}%", 
-            border=True
-        )
-        
+    with m1: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#black;">💵 דולר/שקל</div><div style="font-size:1.1rem; font-weight:800;">₪{USD_RATE}</div></div>', unsafe_allow_html=True)
+    with m2: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#black;">📈 S&P 500</div><div style="font-size:1.1rem; font-weight:800;">{sp_p:,.0f}</div><div style="color:{sp_col}; font-size:0.75rem; font-weight:bold;">{sp_a} {abs(sp_c):.1f}%</div></div>', unsafe_allow_html=True)
+    with m3: st.markdown(f'<div class="ticker-box"><div style="font-size:0.75rem; color:#black;">₿ Bitcoin</div><div style="font-size:1.1rem; font-weight:800;">${btc_p:,.0f}</div><div style="color:{btc_col}; font-size:0.75rem; font-weight:bold;">{btc_a} {abs(btc_c):.1f}%</div></div>', unsafe_allow_html=True)
+
     # הזרקת CSS לשינוי עיצוב הטאבים למראה נקי ומותאם למובייל
     # הזרקת CSS מתוקן ליישור מוחלט לימין
     st.markdown("""
