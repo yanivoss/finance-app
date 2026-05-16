@@ -23,15 +23,12 @@ def get_issta_live_value():
 # הגדרת דף
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed", page_icon="💰")
 
-# --- הגדרת דף (חייב להיות ראשון) ---
-st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed")
-
 # --- בלוק CSS מאוחד וגלובלי לכל האפליקציה ---
 st.markdown("""
     <style>
         /* יישור כללי לימין וצבע רקע נקי */
         .stApp { background-color: #f8fafc; direction: rtl; }
-        h1, h2, h3, p, span { text-align: right; font-family: system-ui, -apple-system, sans-serif; }
+        h1, h2, h3, p, span { text-align: center; font-family: system-ui, -apple-system, sans-serif; }
         
         /* עיצוב כרטיסיות המדדים המובנות של Streamlit */
         div[data-testid="stMetricSimpleValue"] { font-size: 1.6rem !important; font-weight: 800 !important; color: #0f172a !important; }
