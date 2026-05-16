@@ -374,10 +374,13 @@ try:
         
         if pie_data:
             df_pie = pd.DataFrame(pie_data).groupby("קטגוריה", as_index=False).sum()
+
+            # הגדרת פלטת צבעים מודרנית ונקייה אישית (כחול, ירוק, אפור, סלייט וכו')
+            custom_colors = ['#1e3a8a', '#10b981', '#3b82f6', '#64748b', '#475569', '#94a3b8']
             
-            # יצירת גרף העוגה עם חור באמצע (hole=0.5) ופלטת צבעים יוקרתית של Slate
+            # יצירת גרף העוגה עם חור באמצע ופלטת הצבעים המותאמת
             fig_donut = px.pie(df_pie, values='שווי נוכחי', names='קטגוריה', hole=0.5,
-                               color_discrete_sequence=px.colors.qualitative.Slate)
+                               color_discrete_sequence=custom_colors)
             
             # הצגת האחוזים והשמות בפנים, וביטול המקרא הצדדי שתופס מקום
             fig_donut.update_traces(textposition='inside', textinfo='percent+label')
