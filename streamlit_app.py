@@ -387,95 +387,195 @@ try:
             fig_donut.update_layout(showlegend=False, margin=dict(t=10, b=10, l=10, r=10), height=350)
             
             st.plotly_chart(fig_donut, use_container_width=True)
-
-    # ==========================================
-    # TAB 2: פירוט נכסים וטבלאות חכמות
-    # ==========================================
+            
     with tab2:
-        st.markdown("<h2 style='text-align:right;color: black;'>📋 פירוט תיק הנכסים וההתחייבויות</h2>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:right;color: black;'>📋 פירוט תיק הנכסים</h2>", unsafe_allow_html=True)
         
-        # 1. בניית הנתונים מתוך df_s עבור הטבלה החכמה
-        assets_table_data = []
+        # פונקציה פנימית לעיצוב הכרטיס - כולל נתוני הפקדות ותחילת שנה
+        def asset_card(name, owner, val_now, val_start, deposits, delta_html, currency="₪"):
+            st.markdown(f"""
+                <div style="background: white; padding: 16px; border-radius: 16px; 
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; 
+                            border-right: 6px solid #2563eb; direction: rtl;">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.1rem; font-weight: 800; color: #1e293b;">{name}</div>
+                            <div style="font-size: 0.85rem; color: #444;">מחזיק: {owner}</div>
+                        </div>
+                        <div style="text-align: left;">
+                            <div style="font-size: 1.25rem; font-weight: 800; color: #1e293b;">₪{val_now:,.0f}</div>
+                            {delta_html}
+                        </div>
+                    </div>
+                    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #f1f5f9; 
+                                display: flex; justify-content: space-between; font-size: 0.8rem; color: #444;">
+                        <span>💰 הפקדות השנה: <b>₪{deposits:,.0f}</b></span>
+                        <span>📅 תחילת שנה: <b>₪{val_start:,.0f}</b></span>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        # הגדרת הקבוצות לפי אינדקסים בגיליון DATA
+        # 1. הגדרת הקבוצות לפי הטקסט המדויק בעמודה I בגיליון ה-APP
         groups_config = {
             "קרנות פנסיה": "🏦 קרנות פנסיה",
             "קרנות השתלמות": "📈 קרנות השתלמות",
             "תיק השקעות ומסחר": "💎 תיק השקעות ומסחר",
             "חיסכון לילדים": "👦 חיסכון לילדים",
-            "חיסכון הורים": "🏥 חיסכון הורים"
+            "חיסכון הורים": "🏥חיסכון הורים",
+            "חיסכון לחופשה": "✈️ חיסכון לחופשה"
         }
 
+        # 2. לולאת ריצה על הקטגוריות
         for app_cat_name, display_name in groups_config.items():
-            relevant_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == app_cat_name]
-            for _, row in relevant_rows.iterrows():
-                v_now = clean_val(row.iloc[2])
-                v_orig = clean_val(row.iloc[4])
-                v_depo = clean_val(row.iloc[6])
-                invested = v_orig + v_depo
-                gain = v_now - invested
-                pct = (gain / invested * 100) if invested > 0 else 0
+            # סינון שורות ה-APP ששייכות לקטגוריה הנוכחית
+            relevant_app_rows = df_s[df_s.iloc[:, 8].astype(str).str.strip() == app_cat_name].copy()
+            
+            if relevant_app_rows.empty:
+                continue
+
+            valid_rows = []
+            total_now, total_invested = 0, 0
+
+            # 3. לולאת ריצה על השורות בתוך הקטגוריה
+            for _, app_row in relevant_app_rows.iterrows():
+                # משיכת שם המחזיק ישירות מעמודה J (אינדקס 9) בגיליון ה-APP
+                try:
+                    owner = str(app_row.iloc[9]).strip() 
+                    if owner == "nan" or owner == "":
+                        owner = "משותף"
+                except:
+                    owner = "משותף"
+
+                # נתונים כספיים מה-APP
+                asset_name = str(app_row.iloc[1]).strip()
+                v_now = clean_val(app_row.iloc[2])
+                v_orig = clean_val(app_row.iloc[4])
+                v_ytd_depo = clean_val(app_row.iloc[5])
+                v_total_depo = clean_val(app_row.iloc[6])
                 
-                assets_table_data.append({
-                    "אפיק השקעה": str(row.iloc[1]).strip(),
-                    "קטגוריה": display_name,
-                    "שווי נוכחי (₪)": v_now,
-                    "סך הכל הושקע (₪)": invested,
-                    "רווח/הפסד (₪)": gain,
-                    "תשואה מצטברת": pct / 100  # חלוקה ב-100 נחוצה בשביל הבר הויזואלי
+                invested = v_orig + v_total_depo
+                gain = v_now - invested
+                
+                total_now += v_now
+                total_invested += invested
+                
+                valid_rows.append({
+                    'owner': owner,
+                    'name': asset_name,
+                    'v_now': v_now,
+                    'v_ytd_depo': v_ytd_depo,
+                    'invested': invested,
+                    'gain': gain
                 })
 
-        if assets_table_data:
-            df_assets_formatted = pd.DataFrame(assets_table_data)
-            
-            # תצוגת הטבלה האינטראקטיבית עם הגדרת עמודות מתקדמת (Progress Bar)
-            st.dataframe(
-                df_assets_formatted,
-                column_config={
-                    "שווי נוכחי (₪)": st.column_config.NumberColumn(format="₪%,.0f"),
-                    "סך הכל הושקע (₪)": st.column_config.NumberColumn(format="₪%,.0f"),
-                    "רווח/הפסד (₪)": st.column_config.NumberColumn(format="₪%,.0f"),
-                    "תשואה מצטברת": st.column_config.ProgressColumn(format="%.1f%%", min_value=-0.5, max_value=1.0)
-                },
-                use_container_width=True,
-                hide_index=True
-            )
-        else:
-            st.info("לא נמצאו נתוני נכסים להצגה בטבלה.")
+            # 4. יצירת התצוגה (Expander)
+            if valid_rows:
+                g_pct = ((total_now - total_invested) / total_invested * 100) if total_invested != 0 else 0
+                indicator = "🟢" if total_now >= total_invested else "🔴"
+                header = f"{display_name} | ₪{total_now:,.0f} {indicator} ({g_pct:+.1f}%)"
 
-        # 2. חלק התחייבויות (נשמר ועבר התאמת עיצוב קלה כדי להשתלב בטבלה)
-        st.markdown("<br><h3 style='text-align:right; color:#e11d48;'>📉 פירוט התחייבויות</h3>", unsafe_allow_html=True)
+                with st.expander(header, expanded=True):
+                    for item in valid_rows:
+                        pct = (item['gain'] / item['invested'] * 100) if item['invested'] != 0 else 0
+                        color = "#4CAF50" if item['gain'] >= 0 else "#e11d48"
+                        arrow = "▲" if item['gain'] >= 0 else "▼"
+                        d_html = f"<span style='color: {color}; font-weight: 700;'>₪{item['gain']:,.0f} ({abs(pct):.1f}%) {arrow}</span>"
+                        
+                        asset_card(
+                        item['name'], 
+                        item['owner'],  # כאן הורדתי את ה-f"מחזיק: {item['owner']}"
+                        item['v_now'], 
+                        0, 
+                        item['v_ytd_depo'], 
+                        d_html, 
+                        "₪"
+                    )
+        
+        # הפרדה ויזואלית
+        st.markdown("<br><hr style='border-top: 2px dashed #e2e8f0;'><br>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align:right;color: #e11d48;'>📉 פירוט התחייבויות</h2>", unsafe_allow_html=True)
+
         try:
             df_debts = pd.read_csv(URL_DEBTS)
-            debt_indices = [2, 0]  # משכנתא והלוואה קבועה
+            debt_indices = [2, 0] 
+            
+            total_debt_now = 0
+            total_debt_start_original = 0 
+            valid_debts = []
+
             for idx in debt_indices:
                 if idx < len(df_debts):
                     row = df_debts.iloc[idx]
-                    d_name = str(row.iloc[1])
-                    d_val = clean_val(row.iloc[10])
-                    v_original_val = d_val
+                    asset_name = str(row.iloc[1])
+                    d_val_now = clean_val(row.iloc[10]) # יתרה היום (K)
+                    
+                    # ערכי ברירת מחדל למקרה שהחיפוש ב-APP ייכשל
                     v_total_paid = 0
-                    
+                    v_original_val = d_val_now if d_val_now > 0 else 0
+
+                    # חיפוש בגיליון APP (df_s)
                     try:
-                        first_word = d_name.split()[0]
-                        mask = df_s.iloc[:, 1].str.contains(first_word, na=False, case=False)
-                        app_match = df_s[mask]
-                        if not app_match.empty:
-                            v_total_paid = clean_val(app_match.iloc[0, 6])
-                            v_original_val = clean_val(app_match.iloc[0, 4])
-                    except: pass
-                    
+                        if 'df_s' in locals() or 'df_s' in globals():
+                            # חיפוש לפי המילה הראשונה בשם הנכס
+                            first_word = asset_name.split()[0]
+                            mask = df_s.iloc[:, 1].str.contains(first_word, na=False, case=False)
+                            app_match = df_s[mask]
+                            
+                            if not app_match.empty:
+                                v_total_paid = clean_val(app_match.iloc[0, 6])   # עמודה G
+                                v_original_val = clean_val(app_match.iloc[0, 4]) # עמודה E
+                    except:
+                        pass
+
+                    if d_val_now >= 0: # שיניתי ל >= כדי שיציג גם אם החוב אופס
+                        total_debt_now += d_val_now
+                        total_debt_start_original += v_original_val
+                        valid_debts.append((row, d_val_now, v_total_paid, v_original_val))
+
+            # --- חישוב כותרת בטוח (מחוץ ללולאת ה-for) ---
+            total_paid_calc = total_debt_start_original - total_debt_now
+            # הגנה מפני חלוקה באפס
+            if total_debt_start_original > 0:
+                debt_pct_progress = (total_paid_calc / total_debt_start_original * 100)
+            else:
+                debt_pct_progress = 0
+            
+            debt_header = f"ריכוז התחייבויות | יתרה: ₪{total_debt_now:,.0f} 🟢 ({debt_pct_progress:.1f}% שולם)"
+
+            with st.expander(debt_header, expanded=True):
+                for row, d_val, v_total_paid, v_original_val in valid_debts:
+                    d_name = str(row.iloc[1])
+                    # חישוב אחוזים בטוח
                     paid_pct = (v_total_paid / v_original_val * 100) if v_original_val > 0 else 0
+                    remaining_pct = (d_val / v_original_val * 100) if v_original_val > 0 else 0
                     
-                    st.markdown(f"""
-                        <div style='background: white; padding: 16px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 12px; border-right: 6px solid #e11d48;'>
-                            <div style='display: flex; justify-content: space-between; align-items: center;'>
-                                <div style='text-align: right;'><b>{d_name}</b><br><span style='font-size:0.8rem; color:#64748b;'>חוב מקורי: ₪{v_original_val:,.0f}</span></div>
-                                <div style='text-align: left;'><b>₪{d_val:,.0f}</b><br><span style='font-size:0.8rem; color:#16a34a;'>הוחזר: {paid_pct:.1f}%</span></div>
+                    debt_card_html = f"""
+                        <div style='background: white; padding: 20px; border-radius: 20px; 
+                                    box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 16px; 
+                                    border-right: 8px solid #e11d48; direction: rtl; text-align: right;'>
+                            <div style='display: flex; justify-content: space-between; align-items: start;'>
+                                <div>
+                                    <div style='font-size: 1.2rem; font-weight: 800; color: #1e293b;'>{d_name}</div>
+                                    <div style='font-size: 0.85rem; color: #64748b;'>הלוואה מקורית: ₪{v_original_val:,.0f}</div>
+                                </div>
+                                <div style='text-align: left; direction: ltr;'>
+                                    <div style='font-size: 1.5rem; font-weight: 900; color: #1e293b;'>₪{d_val:,.0f}</div>
+                                    <div style='color: #4CAF50; font-size: 0.9rem; font-weight: 600; margin-top: 4px;'>
+                                        הוחזר: ₪{v_total_paid:,.0f} ({paid_pct:.1f}%)
+                                    </div>
+                                </div>
+                            </div>
+                            <div style='margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; direction: rtl;'>
+                                <span style='font-size: 0.8rem; color: #64748b;'>📉 נותר לסילוק: <b>{remaining_pct:.1f}%</b> מהקרן</span>
+                                <span style='font-size: 0.8rem; color: #e11d48;'>⏳ יתרה לתשלום</span>
                             </div>
                         </div>
-                    """, unsafe_allow_html=True)
-        except Exception as debt_error:
-            st.info(f"ממתין לעדכון נתוני התחייבויות... ({debt_error})")
-            
+                    """
+                    st.markdown(debt_card_html, unsafe_allow_html=True)
+
+        except Exception as e:
+            st.info("ממתין לעדכון נתוני התחייבויות...")            
 
     # כאן מתחיל טאב 3 - שים לב שהוא באותה רמת הזחה (רווחים) כמו with tab2
     with tab3:
