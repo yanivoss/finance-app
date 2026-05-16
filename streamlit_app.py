@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import yfinance as yf
 import datetime
+import plotly.express as px
 
 # נתוני אופציות איסתא - קבועים
 ISSTA_QTY = 1500
@@ -357,7 +358,33 @@ try:
         with r4c2:
             i_n, i_s, i_d = df_s.iloc[3, 2], df_s.iloc[3, 4], df_s.iloc[3, 6]
             st.markdown(f'<div class="sub-card"><div class="sub-label">✈️ אופציות איסתא</div><div class="sub-val">₪{clean_val(i_n):,.0f}</div>{get_delta_html(i_n, i_s, i_d, False)}<div class="split-text">ממתין למימוש </div></div>', unsafe_allow_html=True)
+
+
+            # --- הוספת גרף דונאט מודרני לתחתית טאב 1 ---
+        st.markdown("<br><h3 style='text-align:right;'>🍩 התפלגות תיק הנכסים הכולל</h3>", unsafe_allow_html=True)
         
+        # הגדרת הקטגוריות שתרצה לכלול בגרף העוגה
+        categories_pie = ["תיק השקעות ומסחר", "קרנות השתלמות", "קרנות פנסיה", "חיסכון הורים", "נדל\"ן", "חיסכון לילדים"]
+        pie_data = []
+        
+        for i, row in df_s.iterrows():
+            cat = str(row.iloc[8]).strip()
+            if cat in categories_pie:
+                pie_data.append({"קטגוריה": cat, "שווי נוכחי": clean_val(row.iloc[2])})
+        
+        if pie_data:
+            df_pie = pd.DataFrame(pie_data).groupby("קטגוריה", as_index=False).sum()
+            
+            # יצירת גרף העוגה עם חור באמצע (hole=0.5) ופלטת צבעים יוקרתית של Slate
+            fig_donut = px.pie(df_pie, values='שווי נוכחי', names='קטגוריה', hole=0.5,
+                               color_discrete_sequence=px.colors.qualitative.Slate)
+            
+            # הצגת האחוזים והשמות בפנים, וביטול המקרא הצדדי שתופס מקום
+            fig_donut.update_traces(textposition='inside', textinfo='percent+label')
+            fig_donut.update_layout(showlegend=False, margin=dict(t=10, b=10, l=10, r=10), height=350)
+            
+            st.plotly_chart(fig_donut, use_container_width=True)
+            
     with tab2:
         st.markdown("<h2 style='text-align:right;color: black;'>📋 פירוט תיק הנכסים</h2>", unsafe_allow_html=True)
         
