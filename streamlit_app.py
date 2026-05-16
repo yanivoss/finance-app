@@ -23,6 +23,33 @@ def get_issta_live_value():
 # הגדרת דף
 st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed", page_icon="💰")
 
+# --- הגדרת דף (חייב להיות ראשון) ---
+st.set_page_config(page_title="Noodelman Finance", layout="wide", initial_sidebar_state="collapsed")
+
+# --- בלוק CSS מאוחד וגלובלי לכל האפליקציה ---
+st.markdown("""
+    <style>
+        /* יישור כללי לימין וצבע רקע נקי */
+        .stApp { background-color: #f8fafc; direction: rtl; }
+        h1, h2, h3, p, span { text-align: right; font-family: system-ui, -apple-system, sans-serif; }
+        
+        /* עיצוב כרטיסיות המדדים המובנות של Streamlit */
+        div[data-testid="stMetricSimpleValue"] { font-size: 1.6rem !important; font-weight: 800 !important; color: #0f172a !important; }
+        div[data-testid="stMetricLabel"] p { color: #64748b !important; font-weight: 600 !important; font-size: 0.9rem !important; }
+        
+        /* יישור כותרות הטאבים לימין */
+        div[data-testid="stTabs"] { direction: rtl !important; }
+        div[data-testid="stTabs"] [data-baseweb="tab-list"] { display: flex; justify-content: flex-start !important; gap: 8px; }
+        div[data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p { color: #0f172a !important; font-weight: 700 !important; font-size: 0.95rem !important; }
+        div[data-testid="stTabs"] button[aria-selected="true"] { border-bottom-color: #2563eb !important; }
+        
+        /* התאמות ווידג'טים ואקספנדרים */
+        div[data-testid="stWidgetLabel"] p { color: #0f172a !important; font-weight: bold !important; text-align: right; }
+        .stExpander { background-color: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 12px !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important; }
+        .stExpander details summary p { color: black !important; font-weight: 600 !important; }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- פונקציות עזר ---
 def clean_val(value):
     if pd.isna(value) or value == '': return 0.0
